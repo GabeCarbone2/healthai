@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Ambientes e editores
+.env
+.idea/
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Dados e artefatos gerados
+data/raw/*
+data/interim/*
+data/processed/*
+models/*
+reports/figures/*
+
+# Mantém a estrutura de diretórios no Git
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+!models/.gitkeep
+!reports/figures/.gitkeep
+

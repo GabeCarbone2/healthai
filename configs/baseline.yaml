@@ -1,0 +1,25 @@
+data:
+  path: data/raw/diabetes.csv
+  target: Outcome
+  features:
+    - Pregnancies
+    - Glucose
+    - BloodPressure
+    - SkinThickness
+    - Insulin
+    - BMI
+    - DiabetesPedigreeFunction
+    - Age
+
+split:
+  test_size: 0.20
+  random_state: 42
+
+model:
+  max_iter: 1000
+  class_weight: balanced
+
+outputs:
+  model_path: models/diabetes_pipeline.joblib
+  metrics_path: reports/metrics.json
+
