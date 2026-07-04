@@ -1,0 +1,2725 @@
+{
+  "pima": {
+    "source_dataset": "pima_openml_37",
+    "selected_model": "random_forest",
+    "selection": {
+      "metric": "f1",
+      "cv_folds": 5,
+      "scope": "training_only",
+      "search_iterations": 8,
+      "threshold_metric": "f2"
+    },
+    "records_excluded": {
+      "missing_or_invalid_target": 0
+    },
+    "n_train": 614,
+    "n_test": 154,
+    "evaluation": {
+      "dataset": "held_out_test",
+      "calibration": {
+        "n_bins": 10,
+        "strategy": "quantile"
+      },
+      "confidence_intervals": {
+        "enabled": true,
+        "confidence_level": 0.95,
+        "n_bootstrap": 2000,
+        "random_state": 42
+      },
+      "subgroup_minimum_size": 20,
+      "subgroup_minimum_events": 10
+    },
+    "models": {
+      "logistic_regression": {
+        "accuracy": 0.6753246753246753,
+        "precision": 0.5204081632653061,
+        "recall": 0.9444444444444444,
+        "f1": 0.6710526315789473,
+        "roc_auc": 0.8105555555555556,
+        "brier_score": 0.18161481201774296,
+        "confusion_matrix": [
+          [
+            53,
+            47
+          ],
+          [
+            3,
+            51
+          ]
+        ],
+        "calibration": {
+          "dataset": "test",
+          "strategy": "quantile",
+          "requested_bins": 10,
+          "effective_bins": 10,
+          "expected_calibration_error": 0.12000214804153471,
+          "points": [
+            {
+              "bin_lower": 0.029868249026420542,
+              "bin_upper": 0.09486656504114058,
+              "mean_predicted_probability": 0.07043108945639177,
+              "observed_frequency": 0.0,
+              "count": 16
+            },
+            {
+              "bin_lower": 0.09486656504114058,
+              "bin_upper": 0.15001333695978558,
+              "mean_predicted_probability": 0.12129331938757269,
+              "observed_frequency": 0.06666666666666667,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.15001333695978558,
+              "bin_upper": 0.21553374679276116,
+              "mean_predicted_probability": 0.18807932723394016,
+              "observed_frequency": 0.0,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.21553374679276116,
+              "bin_upper": 0.29241104990980227,
+              "mean_predicted_probability": 0.24782692446771168,
+              "observed_frequency": 0.1875,
+              "count": 16
+            },
+            {
+              "bin_lower": 0.29241104990980227,
+              "bin_upper": 0.42501629256395546,
+              "mean_predicted_probability": 0.36158302167060724,
+              "observed_frequency": 0.4,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.42501629256395546,
+              "bin_upper": 0.5148432114364344,
+              "mean_predicted_probability": 0.4796045215337157,
+              "observed_frequency": 0.5333333333333333,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.5148432114364344,
+              "bin_upper": 0.6476406774897123,
+              "mean_predicted_probability": 0.5829337807371087,
+              "observed_frequency": 0.5625,
+              "count": 16
+            },
+            {
+              "bin_lower": 0.6476406774897123,
+              "bin_upper": 0.7856834647891666,
+              "mean_predicted_probability": 0.7175366802351036,
+              "observed_frequency": 0.3333333333333333,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.7856834647891666,
+              "bin_upper": 0.8825201415046761,
+              "mean_predicted_probability": 0.8331902235076566,
+              "observed_frequency": 0.7333333333333333,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.8825201415046761,
+              "bin_upper": 0.995195436132437,
+              "mean_predicted_probability": 0.9235988735261059,
+              "observed_frequency": 0.6875,
+              "count": 16
+            }
+          ]
+        },
+        "confidence_intervals": {
+          "method": "paired_nonparametric_percentile_bootstrap",
+          "dataset": "test",
+          "confidence_level": 0.95,
+          "n_bootstrap": 2000,
+          "random_state": 42,
+          "metrics": {
+            "accuracy": {
+              "estimate": 0.6753246753246753,
+              "lower": 0.5974025974025974,
+              "upper": 0.7467532467532467,
+              "valid_resamples": 2000
+            },
+            "precision": {
+              "estimate": 0.5204081632653061,
+              "lower": 0.41664603960396046,
+              "upper": 0.6195760869565217,
+              "valid_resamples": 2000
+            },
+            "recall": {
+              "estimate": 0.9444444444444444,
+              "lower": 0.875,
+              "upper": 1.0,
+              "valid_resamples": 2000
+            },
+            "f1": {
+              "estimate": 0.6710526315789473,
+              "lower": 0.5757018716577541,
+              "upper": 0.7516227724898017,
+              "valid_resamples": 2000
+            },
+            "roc_auc": {
+              "estimate": 0.8105555555555556,
+              "lower": 0.7363939320557559,
+              "upper": 0.8713641860510927,
+              "valid_resamples": 2000
+            },
+            "brier_score": {
+              "estimate": 0.18161481201774296,
+              "lower": 0.14924455223558164,
+              "upper": 0.21782546937691674,
+              "valid_resamples": 2000
+            }
+          }
+        },
+        "subgroups": {
+          "age_group": {
+            "column": "age_years",
+            "label": "Faixa etária",
+            "dataset": "test",
+            "minimum_size": 20,
+            "n_total": 154,
+            "missing_or_unassigned": 0,
+            "groups": [
+              {
+                "value": "21–39",
+                "label": "21–39",
+                "n": 115,
+                "positives": 36,
+                "prevalence": 0.3130434782608696,
+                "metrics": {
+                  "accuracy": 0.6956521739130435,
+                  "precision": 0.5076923076923077,
+                  "recall": 0.9166666666666666,
+                  "f1": 0.6534653465346535,
+                  "roc_auc": 0.819268635724332,
+                  "brier_score": 0.16958726924014567,
+                  "confusion_matrix": [
+                    [
+                      47,
+                      32
+                    ],
+                    [
+                      3,
+                      33
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.6956521739130435,
+                      "lower": 0.6086956521739131,
+                      "upper": 0.782608695652174,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.5076923076923077,
+                      "lower": 0.38095238095238093,
+                      "upper": 0.6376811594202898,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.9166666666666666,
+                      "lower": 0.8181818181818182,
+                      "upper": 1.0,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.6534653465346535,
+                      "lower": 0.5306122448979592,
+                      "upper": 0.7563025210084033,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.819268635724332,
+                      "lower": 0.7332096631205673,
+                      "upper": 0.8888969638242894,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.16958726924014567,
+                      "lower": 0.13472419203441643,
+                      "upper": 0.2101431422167373,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              },
+              {
+                "value": "40–59",
+                "label": "40–59",
+                "n": 33,
+                "positives": 17,
+                "prevalence": 0.5151515151515151,
+                "metrics": {
+                  "accuracy": 0.6666666666666666,
+                  "precision": 0.6071428571428571,
+                  "recall": 1.0,
+                  "f1": 0.7555555555555555,
+                  "roc_auc": 0.8088235294117647,
+                  "brier_score": 0.18599358122972318,
+                  "confusion_matrix": [
+                    [
+                      5,
+                      11
+                    ],
+                    [
+                      0,
+                      17
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.6666666666666666,
+                      "lower": 0.48484848484848486,
+                      "upper": 0.8181818181818182,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.6071428571428571,
+                      "lower": 0.416594827586207,
+                      "upper": 0.7777777777777778,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 1.0,
+                      "lower": 1.0,
+                      "upper": 1.0,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.7555555555555555,
+                      "lower": 0.5881635581061694,
+                      "upper": 0.875,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.8088235294117647,
+                      "lower": 0.6353202718334298,
+                      "upper": 0.937037037037037,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.18599358122972318,
+                      "lower": 0.12081542140535899,
+                      "upper": 0.26404749299975694,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              },
+              {
+                "value": "60+",
+                "label": "60+",
+                "n": 6,
+                "positives": 1,
+                "prevalence": 0.16666666666666666,
+                "metrics": null,
+                "confidence_intervals": null,
+                "status": "insufficient_sample",
+                "minimum_size": 20
+              }
+            ],
+            "minimum_events": 10
+          }
+        },
+        "cross_validation": {
+          "mean": 0.6791895767639055,
+          "std": 0.01774605093022565,
+          "fold_scores": [
+            0.6966292134831461,
+            0.6938775510204082,
+            0.6506024096385542,
+            0.6666666666666666,
+            0.6881720430107527
+          ],
+          "best_params": {
+            "classifier__solver": "liblinear",
+            "classifier__class_weight": "balanced",
+            "classifier__C": 0.1
+          }
+        },
+        "threshold": {
+          "metric": "f2",
+          "beta": 2.0,
+          "value": 0.26,
+          "f_beta": 0.8084772370486656,
+          "precision": 0.49282296650717705,
+          "recall": 0.9626168224299065
+        }
+      },
+      "random_forest": {
+        "accuracy": 0.6558441558441559,
+        "precision": 0.5052631578947369,
+        "recall": 0.8888888888888888,
+        "f1": 0.6442953020134228,
+        "roc_auc": 0.8250000000000001,
+        "brier_score": 0.16492256519242882,
+        "confusion_matrix": [
+          [
+            53,
+            47
+          ],
+          [
+            6,
+            48
+          ]
+        ],
+        "calibration": {
+          "dataset": "test",
+          "strategy": "quantile",
+          "requested_bins": 10,
+          "effective_bins": 10,
+          "expected_calibration_error": 0.0849749150419087,
+          "points": [
+            {
+              "bin_lower": 0.0,
+              "bin_upper": 0.03740507246376812,
+              "mean_predicted_probability": 0.018832298136645963,
+              "observed_frequency": 0.0,
+              "count": 16
+            },
+            {
+              "bin_lower": 0.03740507246376812,
+              "bin_upper": 0.08592698412698413,
+              "mean_predicted_probability": 0.056142660401988,
+              "observed_frequency": 0.13333333333333333,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.08592698412698413,
+              "bin_upper": 0.1405625,
+              "mean_predicted_probability": 0.1059111938863692,
+              "observed_frequency": 0.0,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.1405625,
+              "bin_upper": 0.21732857142857145,
+              "mean_predicted_probability": 0.17494754173371999,
+              "observed_frequency": 0.25,
+              "count": 16
+            },
+            {
+              "bin_lower": 0.21732857142857145,
+              "bin_upper": 0.38688561336857086,
+              "mean_predicted_probability": 0.3297425893983432,
+              "observed_frequency": 0.2,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.38688561336857086,
+              "bin_upper": 0.516842554670758,
+              "mean_predicted_probability": 0.445318151687985,
+              "observed_frequency": 0.4666666666666667,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.516842554670758,
+              "bin_upper": 0.5976570821950458,
+              "mean_predicted_probability": 0.5546373409195742,
+              "observed_frequency": 0.4375,
+              "count": 16
+            },
+            {
+              "bin_lower": 0.5976570821950458,
+              "bin_upper": 0.7211355686423698,
+              "mean_predicted_probability": 0.6577763769776088,
+              "observed_frequency": 0.5333333333333333,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.7211355686423698,
+              "bin_upper": 0.8300505275275212,
+              "mean_predicted_probability": 0.7744758399296242,
+              "observed_frequency": 0.6,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.8300505275275212,
+              "bin_upper": 0.9624080086580087,
+              "mean_predicted_probability": 0.8883190961102718,
+              "observed_frequency": 0.875,
+              "count": 16
+            }
+          ]
+        },
+        "confidence_intervals": {
+          "method": "paired_nonparametric_percentile_bootstrap",
+          "dataset": "test",
+          "confidence_level": 0.95,
+          "n_bootstrap": 2000,
+          "random_state": 42,
+          "metrics": {
+            "accuracy": {
+              "estimate": 0.6558441558441559,
+              "lower": 0.577922077922078,
+              "upper": 0.7272727272727273,
+              "valid_resamples": 2000
+            },
+            "precision": {
+              "estimate": 0.5052631578947369,
+              "lower": 0.39805825242718446,
+              "upper": 0.6037735849056604,
+              "valid_resamples": 2000
+            },
+            "recall": {
+              "estimate": 0.8888888888888888,
+              "lower": 0.8035714285714286,
+              "upper": 0.9666666666666667,
+              "valid_resamples": 2000
+            },
+            "f1": {
+              "estimate": 0.6442953020134228,
+              "lower": 0.5454545454545454,
+              "upper": 0.7283971057149865,
+              "valid_resamples": 2000
+            },
+            "roc_auc": {
+              "estimate": 0.8250000000000001,
+              "lower": 0.753537655912424,
+              "upper": 0.8858538087608124,
+              "valid_resamples": 2000
+            },
+            "brier_score": {
+              "estimate": 0.16492256519242882,
+              "lower": 0.13269283054823866,
+              "upper": 0.201339965288992,
+              "valid_resamples": 2000
+            }
+          }
+        },
+        "subgroups": {
+          "age_group": {
+            "column": "age_years",
+            "label": "Faixa etária",
+            "dataset": "test",
+            "minimum_size": 20,
+            "n_total": 154,
+            "missing_or_unassigned": 0,
+            "groups": [
+              {
+                "value": "21–39",
+                "label": "21–39",
+                "n": 115,
+                "positives": 36,
+                "prevalence": 0.3130434782608696,
+                "metrics": {
+                  "accuracy": 0.6782608695652174,
+                  "precision": 0.4918032786885246,
+                  "recall": 0.8333333333333334,
+                  "f1": 0.6185567010309279,
+                  "roc_auc": 0.8196202531645569,
+                  "brier_score": 0.16057071072100546,
+                  "confusion_matrix": [
+                    [
+                      48,
+                      31
+                    ],
+                    [
+                      6,
+                      30
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.6782608695652174,
+                      "lower": 0.591304347826087,
+                      "upper": 0.7652173913043478,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.4918032786885246,
+                      "lower": 0.36062371926229514,
+                      "upper": 0.6229567593252554,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.8333333333333334,
+                      "lower": 0.6969065656565657,
+                      "upper": 0.9473684210526315,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.6185567010309279,
+                      "lower": 0.49340287372202274,
+                      "upper": 0.721663802978236,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.8196202531645569,
+                      "lower": 0.7404690748440749,
+                      "upper": 0.8927002417405318,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.16057071072100546,
+                      "lower": 0.12347190760518359,
+                      "upper": 0.19969535295062354,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              },
+              {
+                "value": "40–59",
+                "label": "40–59",
+                "n": 33,
+                "positives": 17,
+                "prevalence": 0.5151515151515151,
+                "metrics": {
+                  "accuracy": 0.6363636363636364,
+                  "precision": 0.5862068965517241,
+                  "recall": 1.0,
+                  "f1": 0.7391304347826086,
+                  "roc_auc": 0.8639705882352942,
+                  "brier_score": 0.16157668546920362,
+                  "confusion_matrix": [
+                    [
+                      4,
+                      12
+                    ],
+                    [
+                      0,
+                      17
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.6363636363636364,
+                      "lower": 0.45454545454545453,
+                      "upper": 0.7878787878787878,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.5862068965517241,
+                      "lower": 0.4,
+                      "upper": 0.75,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 1.0,
+                      "lower": 1.0,
+                      "upper": 1.0,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.7391304347826086,
+                      "lower": 0.5714285714285714,
+                      "upper": 0.8571428571428571,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.8639705882352942,
+                      "lower": 0.7300865800865801,
+                      "upper": 0.9654166666666667,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.16157668546920362,
+                      "lower": 0.11011311227257148,
+                      "upper": 0.2206446039264457,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              },
+              {
+                "value": "60+",
+                "label": "60+",
+                "n": 6,
+                "positives": 1,
+                "prevalence": 0.16666666666666666,
+                "metrics": null,
+                "confidence_intervals": null,
+                "status": "insufficient_sample",
+                "minimum_size": 20
+              }
+            ],
+            "minimum_events": 10
+          }
+        },
+        "cross_validation": {
+          "mean": 0.6834084293001549,
+          "std": 0.028180074538199627,
+          "fold_scores": [
+            0.7191011235955056,
+            0.673469387755102,
+            0.7126436781609196,
+            0.6451612903225806,
+            0.6666666666666666
+          ],
+          "best_params": {
+            "classifier__n_estimators": 100,
+            "classifier__min_samples_split": 5,
+            "classifier__min_samples_leaf": 2,
+            "classifier__max_features": "log2",
+            "classifier__max_depth": 12,
+            "classifier__class_weight": "balanced"
+          }
+        },
+        "threshold": {
+          "metric": "f2",
+          "beta": 2.0,
+          "value": 0.21,
+          "f_beta": 0.7925867507886435,
+          "precision": 0.4878640776699029,
+          "recall": 0.9392523364485982
+        }
+      },
+      "svm": {
+        "accuracy": 0.6818181818181818,
+        "precision": 0.5274725274725275,
+        "recall": 0.8888888888888888,
+        "f1": 0.6620689655172414,
+        "roc_auc": 0.8124074074074074,
+        "brier_score": 0.17437624145582822,
+        "confusion_matrix": [
+          [
+            57,
+            43
+          ],
+          [
+            6,
+            48
+          ]
+        ],
+        "calibration": {
+          "dataset": "test",
+          "strategy": "quantile",
+          "requested_bins": 10,
+          "effective_bins": 10,
+          "expected_calibration_error": 0.12152170423246085,
+          "points": [
+            {
+              "bin_lower": 0.013455674024501488,
+              "bin_upper": 0.040252851394028885,
+              "mean_predicted_probability": 0.03160505358227181,
+              "observed_frequency": 0.0625,
+              "count": 16
+            },
+            {
+              "bin_lower": 0.040252851394028885,
+              "bin_upper": 0.0796449791582435,
+              "mean_predicted_probability": 0.05784234783741313,
+              "observed_frequency": 0.0,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.0796449791582435,
+              "bin_upper": 0.11167136437982973,
+              "mean_predicted_probability": 0.09027258358335545,
+              "observed_frequency": 0.0,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.11167136437982973,
+              "bin_upper": 0.16938070816290177,
+              "mean_predicted_probability": 0.1408494693727115,
+              "observed_frequency": 0.25,
+              "count": 16
+            },
+            {
+              "bin_lower": 0.16938070816290177,
+              "bin_upper": 0.26309742099414285,
+              "mean_predicted_probability": 0.22405952281710087,
+              "observed_frequency": 0.26666666666666666,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.26309742099414285,
+              "bin_upper": 0.3543098108329982,
+              "mean_predicted_probability": 0.3145994359923219,
+              "observed_frequency": 0.5333333333333333,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.3543098108329982,
+              "bin_upper": 0.48472317629895656,
+              "mean_predicted_probability": 0.4251693759692436,
+              "observed_frequency": 0.625,
+              "count": 16
+            },
+            {
+              "bin_lower": 0.48472317629895656,
+              "bin_upper": 0.7013422269530651,
+              "mean_predicted_probability": 0.5851900211111151,
+              "observed_frequency": 0.3333333333333333,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.7013422269530651,
+              "bin_upper": 0.8270964313592424,
+              "mean_predicted_probability": 0.740242514036836,
+              "observed_frequency": 0.7333333333333333,
+              "count": 15
+            },
+            {
+              "bin_lower": 0.8270964313592424,
+              "bin_upper": 0.9616552465703371,
+              "mean_predicted_probability": 0.8908123261373215,
+              "observed_frequency": 0.6875,
+              "count": 16
+            }
+          ]
+        },
+        "confidence_intervals": {
+          "method": "paired_nonparametric_percentile_bootstrap",
+          "dataset": "test",
+          "confidence_level": 0.95,
+          "n_bootstrap": 2000,
+          "random_state": 42,
+          "metrics": {
+            "accuracy": {
+              "estimate": 0.6818181818181818,
+              "lower": 0.6038961038961039,
+              "upper": 0.7532467532467533,
+              "valid_resamples": 2000
+            },
+            "precision": {
+              "estimate": 0.5274725274725275,
+              "lower": 0.42045454545454547,
+              "upper": 0.6264057750759877,
+              "valid_resamples": 2000
+            },
+            "recall": {
+              "estimate": 0.8888888888888888,
+              "lower": 0.8035714285714286,
+              "upper": 0.967741935483871,
+              "valid_resamples": 2000
+            },
+            "f1": {
+              "estimate": 0.6620689655172414,
+              "lower": 0.5645057899090158,
+              "upper": 0.7453700463651473,
+              "valid_resamples": 2000
+            },
+            "roc_auc": {
+              "estimate": 0.8124074074074074,
+              "lower": 0.740609587585034,
+              "upper": 0.8728089574898786,
+              "valid_resamples": 2000
+            },
+            "brier_score": {
+              "estimate": 0.17437624145582822,
+              "lower": 0.1396216141463262,
+              "upper": 0.21005872114281904,
+              "valid_resamples": 2000
+            }
+          }
+        },
+        "subgroups": {
+          "age_group": {
+            "column": "age_years",
+            "label": "Faixa etária",
+            "dataset": "test",
+            "minimum_size": 20,
+            "n_total": 154,
+            "missing_or_unassigned": 0,
+            "groups": [
+              {
+                "value": "21–39",
+                "label": "21–39",
+                "n": 115,
+                "positives": 36,
+                "prevalence": 0.3130434782608696,
+                "metrics": {
+                  "accuracy": 0.6869565217391305,
+                  "precision": 0.5,
+                  "recall": 0.8333333333333334,
+                  "f1": 0.625,
+                  "roc_auc": 0.8164556962025317,
+                  "brier_score": 0.16681759832016163,
+                  "confusion_matrix": [
+                    [
+                      49,
+                      30
+                    ],
+                    [
+                      6,
+                      30
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.6869565217391305,
+                      "lower": 0.6086956521739131,
+                      "upper": 0.7739130434782608,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.5,
+                      "lower": 0.36666666666666664,
+                      "upper": 0.6338231310942579,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.8333333333333334,
+                      "lower": 0.7027027027027027,
+                      "upper": 0.9474021592442644,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.625,
+                      "lower": 0.49348767174854136,
+                      "upper": 0.732156117397454,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.8164556962025317,
+                      "lower": 0.7299878361075544,
+                      "upper": 0.8901899176092724,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.16681759832016163,
+                      "lower": 0.1266005866326675,
+                      "upper": 0.211715779770126,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              },
+              {
+                "value": "40–59",
+                "label": "40–59",
+                "n": 33,
+                "positives": 17,
+                "prevalence": 0.5151515151515151,
+                "metrics": {
+                  "accuracy": 0.7272727272727273,
+                  "precision": 0.6538461538461539,
+                  "recall": 1.0,
+                  "f1": 0.7906976744186046,
+                  "roc_auc": 0.7977941176470589,
+                  "brier_score": 0.17898214827991982,
+                  "confusion_matrix": [
+                    [
+                      7,
+                      9
+                    ],
+                    [
+                      0,
+                      17
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.7272727272727273,
+                      "lower": 0.5757575757575758,
+                      "upper": 0.8787878787878788,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.6538461538461539,
+                      "lower": 0.45454545454545453,
+                      "upper": 0.8333333333333334,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 1.0,
+                      "lower": 1.0,
+                      "upper": 1.0,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.7906976744186046,
+                      "lower": 0.625,
+                      "upper": 0.9090909090909091,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.7977941176470589,
+                      "lower": 0.6296058006535948,
+                      "upper": 0.9307692307692308,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.17898214827991982,
+                      "lower": 0.12168241739262328,
+                      "upper": 0.23837799836809226,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              },
+              {
+                "value": "60+",
+                "label": "60+",
+                "n": 6,
+                "positives": 1,
+                "prevalence": 0.16666666666666666,
+                "metrics": null,
+                "confidence_intervals": null,
+                "status": "insufficient_sample",
+                "minimum_size": 20
+              }
+            ],
+            "minimum_events": 10
+          }
+        },
+        "cross_validation": {
+          "mean": 0.6565667289249741,
+          "std": 0.015196468542041222,
+          "fold_scores": [
+            0.6486486486486487,
+            0.65,
+            0.684931506849315,
+            0.6582278481012658,
+            0.6410256410256411
+          ],
+          "best_params": {
+            "classifier__estimator__gamma": 0.01,
+            "classifier__estimator__class_weight": null,
+            "classifier__estimator__C": 2.0
+          }
+        },
+        "threshold": {
+          "metric": "f2",
+          "beta": 2.0,
+          "value": 0.18,
+          "f_beta": 0.8017727639000806,
+          "precision": 0.5168831168831168,
+          "recall": 0.9299065420560748
+        }
+      }
+    }
+  },
+  "nhanes": {
+    "source_dataset": "nhanes_2017_2018",
+    "selected_model": "svm",
+    "selection": {
+      "metric": "f1",
+      "cv_folds": 5,
+      "scope": "training_only",
+      "search_iterations": 8,
+      "threshold_metric": "f2"
+    },
+    "records_excluded": {
+      "missing_or_invalid_target": 545,
+      "age_years_below_18": 3031,
+      "diastolic_bp_mmhg_set_missing_below_30": 29
+    },
+    "n_train": 4542,
+    "n_test": 1136,
+    "evaluation": {
+      "dataset": "held_out_test",
+      "calibration": {
+        "n_bins": 10,
+        "strategy": "quantile"
+      },
+      "confidence_intervals": {
+        "enabled": true,
+        "confidence_level": 0.95,
+        "n_bootstrap": 2000,
+        "random_state": 42
+      },
+      "subgroup_minimum_size": 20,
+      "subgroup_minimum_events": 10
+    },
+    "models": {
+      "logistic_regression": {
+        "accuracy": 0.8820422535211268,
+        "precision": 0.5963302752293578,
+        "recall": 0.7386363636363636,
+        "f1": 0.6598984771573604,
+        "roc_auc": 0.9091826467803029,
+        "brier_score": 0.10547239451060884,
+        "confusion_matrix": [
+          [
+            872,
+            88
+          ],
+          [
+            46,
+            130
+          ]
+        ],
+        "calibration": {
+          "dataset": "test",
+          "strategy": "quantile",
+          "requested_bins": 10,
+          "effective_bins": 10,
+          "expected_calibration_error": 0.15255741937942413,
+          "points": [
+            {
+              "bin_lower": 0.00430905497070221,
+              "bin_upper": 0.02872583902610769,
+              "mean_predicted_probability": 0.018473231197662893,
+              "observed_frequency": 0.008771929824561403,
+              "count": 114
+            },
+            {
+              "bin_lower": 0.02872583902610769,
+              "bin_upper": 0.05400539478660493,
+              "mean_predicted_probability": 0.04180416863175255,
+              "observed_frequency": 0.0,
+              "count": 113
+            },
+            {
+              "bin_lower": 0.05400539478660493,
+              "bin_upper": 0.08502400424639213,
+              "mean_predicted_probability": 0.06901099134008626,
+              "observed_frequency": 0.008771929824561403,
+              "count": 114
+            },
+            {
+              "bin_lower": 0.08502400424639213,
+              "bin_upper": 0.13101093267784775,
+              "mean_predicted_probability": 0.10887611749360343,
+              "observed_frequency": 0.035398230088495575,
+              "count": 113
+            },
+            {
+              "bin_lower": 0.13101093267784775,
+              "bin_upper": 0.1967645905785374,
+              "mean_predicted_probability": 0.15685492277215882,
+              "observed_frequency": 0.043859649122807015,
+              "count": 114
+            },
+            {
+              "bin_lower": 0.1967645905785374,
+              "bin_upper": 0.298330959242357,
+              "mean_predicted_probability": 0.24227451225214758,
+              "observed_frequency": 0.07017543859649122,
+              "count": 114
+            },
+            {
+              "bin_lower": 0.298330959242357,
+              "bin_upper": 0.3978619012483051,
+              "mean_predicted_probability": 0.34448009215552905,
+              "observed_frequency": 0.061946902654867256,
+              "count": 113
+            },
+            {
+              "bin_lower": 0.3978619012483051,
+              "bin_upper": 0.5349752065040813,
+              "mean_predicted_probability": 0.4678371222794979,
+              "observed_frequency": 0.1592920353982301,
+              "count": 113
+            },
+            {
+              "bin_lower": 0.5349752065040813,
+              "bin_upper": 0.8103862331120195,
+              "mean_predicted_probability": 0.6708392514929415,
+              "observed_frequency": 0.3333333333333333,
+              "count": 114
+            },
+            {
+              "bin_lower": 0.8103862331120195,
+              "bin_upper": 0.9999999822350992,
+              "mean_predicted_probability": 0.9520778878897623,
+              "observed_frequency": 0.8245614035087719,
+              "count": 114
+            }
+          ]
+        },
+        "confidence_intervals": {
+          "method": "paired_nonparametric_percentile_bootstrap",
+          "dataset": "test",
+          "confidence_level": 0.95,
+          "n_bootstrap": 2000,
+          "random_state": 42,
+          "metrics": {
+            "accuracy": {
+              "estimate": 0.8820422535211268,
+              "lower": 0.8635343309859155,
+              "upper": 0.9005281690140845,
+              "valid_resamples": 2000
+            },
+            "precision": {
+              "estimate": 0.5963302752293578,
+              "lower": 0.5296547856430708,
+              "upper": 0.662604045683314,
+              "valid_resamples": 2000
+            },
+            "recall": {
+              "estimate": 0.7386363636363636,
+              "lower": 0.6729530631260191,
+              "upper": 0.8031959717905809,
+              "valid_resamples": 2000
+            },
+            "f1": {
+              "estimate": 0.6598984771573604,
+              "lower": 0.6,
+              "upper": 0.7125404112246218,
+              "valid_resamples": 2000
+            },
+            "roc_auc": {
+              "estimate": 0.9091826467803029,
+              "lower": 0.8828916200503911,
+              "upper": 0.933473492825199,
+              "valid_resamples": 2000
+            },
+            "brier_score": {
+              "estimate": 0.10547239451060884,
+              "lower": 0.09507421801219129,
+              "upper": 0.1158214108887622,
+              "valid_resamples": 2000
+            }
+          }
+        },
+        "subgroups": {
+          "sex": {
+            "column": "sex",
+            "label": "Sexo",
+            "dataset": "test",
+            "minimum_size": 20,
+            "n_total": 1136,
+            "missing_or_unassigned": 0,
+            "groups": [
+              {
+                "value": "0",
+                "label": "Masculino",
+                "n": 564,
+                "positives": 94,
+                "prevalence": 0.16666666666666666,
+                "metrics": {
+                  "accuracy": 0.8829787234042553,
+                  "precision": 0.6186440677966102,
+                  "recall": 0.776595744680851,
+                  "f1": 0.6886792452830188,
+                  "roc_auc": 0.9196921684019919,
+                  "brier_score": 0.10821445328425394,
+                  "confusion_matrix": [
+                    [
+                      425,
+                      45
+                    ],
+                    [
+                      21,
+                      73
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.8829787234042553,
+                      "lower": 0.8546099290780141,
+                      "upper": 0.9060283687943262,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.6186440677966102,
+                      "lower": 0.5315041128084607,
+                      "upper": 0.7,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.776595744680851,
+                      "lower": 0.6835145197319434,
+                      "upper": 0.8602522306108442,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.6886792452830188,
+                      "lower": 0.6120218579234973,
+                      "upper": 0.7536307762349193,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.9196921684019919,
+                      "lower": 0.8876952967268682,
+                      "upper": 0.9488035260400457,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.10821445328425394,
+                      "lower": 0.09437144653957569,
+                      "upper": 0.12465599269114759,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              },
+              {
+                "value": "1",
+                "label": "Feminino",
+                "n": 572,
+                "positives": 82,
+                "prevalence": 0.14335664335664336,
+                "metrics": {
+                  "accuracy": 0.8811188811188811,
+                  "precision": 0.57,
+                  "recall": 0.6951219512195121,
+                  "f1": 0.6263736263736264,
+                  "roc_auc": 0.8974240915878545,
+                  "brier_score": 0.1027686862093224,
+                  "confusion_matrix": [
+                    [
+                      447,
+                      43
+                    ],
+                    [
+                      25,
+                      57
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.8811188811188811,
+                      "lower": 0.8531468531468531,
+                      "upper": 0.9055944055944056,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.57,
+                      "lower": 0.4690125966674639,
+                      "upper": 0.6666666666666666,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.6951219512195121,
+                      "lower": 0.5933441558441559,
+                      "upper": 0.7922196705733291,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.6263736263736264,
+                      "lower": 0.5365727935629873,
+                      "upper": 0.7023889961389961,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.8974240915878545,
+                      "lower": 0.8558085537295674,
+                      "upper": 0.931938663627381,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.1027686862093224,
+                      "lower": 0.08837844328898455,
+                      "upper": 0.1174342217973665,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              }
+            ],
+            "minimum_events": 10
+          },
+          "age_group": {
+            "column": "age_years",
+            "label": "Faixa etária",
+            "dataset": "test",
+            "minimum_size": 20,
+            "n_total": 1136,
+            "missing_or_unassigned": 0,
+            "groups": [
+              {
+                "value": "18–39",
+                "label": "18–39",
+                "n": 396,
+                "positives": 8,
+                "prevalence": 0.020202020202020204,
+                "metrics": {
+                  "accuracy": 0.9772727272727273,
+                  "precision": 0.4,
+                  "recall": 0.25,
+                  "f1": 0.3076923076923077,
+                  "roc_auc": 0.902061855670103,
+                  "brier_score": 0.024290876058298896,
+                  "confusion_matrix": [
+                    [
+                      385,
+                      3
+                    ],
+                    [
+                      6,
+                      2
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.9772727272727273,
+                      "lower": 0.9621212121212122,
+                      "upper": 0.98989898989899,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.4,
+                      "lower": 0.0,
+                      "upper": 1.0,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.25,
+                      "lower": 0.0,
+                      "upper": 0.6,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.3076923076923077,
+                      "lower": 0.0,
+                      "upper": 0.6153846153846154,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.902061855670103,
+                      "lower": 0.8073660714285715,
+                      "upper": 0.9795396419437339,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.024290876058298896,
+                      "lower": 0.014211648056425216,
+                      "upper": 0.036480019369551725,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "limited_events",
+                "minimum_events": 10
+              },
+              {
+                "value": "40–59",
+                "label": "40–59",
+                "n": 319,
+                "positives": 48,
+                "prevalence": 0.15047021943573669,
+                "metrics": {
+                  "accuracy": 0.890282131661442,
+                  "precision": 0.6274509803921569,
+                  "recall": 0.6666666666666666,
+                  "f1": 0.6464646464646465,
+                  "roc_auc": 0.8802275522755227,
+                  "brier_score": 0.10305331803858875,
+                  "confusion_matrix": [
+                    [
+                      252,
+                      19
+                    ],
+                    [
+                      16,
+                      32
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.890282131661442,
+                      "lower": 0.8557993730407524,
+                      "upper": 0.9216300940438872,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.6274509803921569,
+                      "lower": 0.48936170212765956,
+                      "upper": 0.7600217391304348,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.6666666666666666,
+                      "lower": 0.5348449612403101,
+                      "upper": 0.8,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.6464646464646465,
+                      "lower": 0.5128048780487805,
+                      "upper": 0.7522935779816514,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.8802275522755227,
+                      "lower": 0.8185787511667614,
+                      "upper": 0.9403771642263067,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.10305331803858875,
+                      "lower": 0.0844671612129503,
+                      "upper": 0.12208365298642057,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              },
+              {
+                "value": "60+",
+                "label": "60+",
+                "n": 421,
+                "positives": 120,
+                "prevalence": 0.2850356294536817,
+                "metrics": {
+                  "accuracy": 0.7862232779097387,
+                  "precision": 0.5925925925925926,
+                  "recall": 0.8,
+                  "f1": 0.6808510638297872,
+                  "roc_auc": 0.8696982281284606,
+                  "brier_score": 0.18366613964526238,
+                  "confusion_matrix": [
+                    [
+                      235,
+                      66
+                    ],
+                    [
+                      24,
+                      96
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.7862232779097387,
+                      "lower": 0.7458432304038005,
+                      "upper": 0.8266033254156769,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.5925925925925926,
+                      "lower": 0.5197215631291343,
+                      "upper": 0.6688686313686313,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.8,
+                      "lower": 0.7232011554621849,
+                      "upper": 0.8684318377911994,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.6808510638297872,
+                      "lower": 0.6153846153846154,
+                      "upper": 0.7422924212872667,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.8696982281284606,
+                      "lower": 0.8255821611558231,
+                      "upper": 0.907826498506826,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.18366613964526238,
+                      "lower": 0.1656930265014447,
+                      "upper": 0.20116231164724246,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              }
+            ],
+            "minimum_events": 10
+          }
+        },
+        "cross_validation": {
+          "mean": 0.6575212188585893,
+          "std": 0.01267104334589307,
+          "fold_scores": [
+            0.6538461538461539,
+            0.6744186046511628,
+            0.6666666666666666,
+            0.6555555555555556,
+            0.6371191135734072
+          ],
+          "best_params": {
+            "classifier__solver": "lbfgs",
+            "classifier__C": 0.05
+          }
+        },
+        "threshold": {
+          "metric": "f2",
+          "beta": 2.0,
+          "value": 0.58,
+          "f_beta": 0.7518387360392264,
+          "precision": 0.6396292004634995,
+          "recall": 0.7863247863247863
+        }
+      },
+      "random_forest": {
+        "accuracy": 0.8213028169014085,
+        "precision": 0.459214501510574,
+        "recall": 0.8636363636363636,
+        "f1": 0.5996055226824457,
+        "roc_auc": 0.9170188210227274,
+        "brier_score": 0.08562547157112856,
+        "confusion_matrix": [
+          [
+            781,
+            179
+          ],
+          [
+            24,
+            152
+          ]
+        ],
+        "calibration": {
+          "dataset": "test",
+          "strategy": "quantile",
+          "requested_bins": 10,
+          "effective_bins": 10,
+          "expected_calibration_error": 0.08790942975912694,
+          "points": [
+            {
+              "bin_lower": 0.0,
+              "bin_upper": 0.006371492593070393,
+              "mean_predicted_probability": 0.002775598931094018,
+              "observed_frequency": 0.008771929824561403,
+              "count": 114
+            },
+            {
+              "bin_lower": 0.006371492593070393,
+              "bin_upper": 0.017554497088734616,
+              "mean_predicted_probability": 0.011381849480389266,
+              "observed_frequency": 0.0,
+              "count": 113
+            },
+            {
+              "bin_lower": 0.017554497088734616,
+              "bin_upper": 0.031892282729523325,
+              "mean_predicted_probability": 0.024332530049471317,
+              "observed_frequency": 0.0,
+              "count": 105
+            },
+            {
+              "bin_lower": 0.031892282729523325,
+              "bin_upper": 0.05633721598539996,
+              "mean_predicted_probability": 0.041704755928159795,
+              "observed_frequency": 0.01639344262295082,
+              "count": 122
+            },
+            {
+              "bin_lower": 0.05633721598539996,
+              "bin_upper": 0.09825994977778399,
+              "mean_predicted_probability": 0.07590440025030633,
+              "observed_frequency": 0.05263157894736842,
+              "count": 114
+            },
+            {
+              "bin_lower": 0.09825994977778399,
+              "bin_upper": 0.15811002373726887,
+              "mean_predicted_probability": 0.12604867384587135,
+              "observed_frequency": 0.043859649122807015,
+              "count": 114
+            },
+            {
+              "bin_lower": 0.15811002373726887,
+              "bin_upper": 0.2753079837922175,
+              "mean_predicted_probability": 0.20328082831260003,
+              "observed_frequency": 0.07964601769911504,
+              "count": 113
+            },
+            {
+              "bin_lower": 0.2753079837922175,
+              "bin_upper": 0.49543519038557693,
+              "mean_predicted_probability": 0.37696967404277254,
+              "observed_frequency": 0.168141592920354,
+              "count": 113
+            },
+            {
+              "bin_lower": 0.49543519038557693,
+              "bin_upper": 0.787294155851098,
+              "mean_predicted_probability": 0.6314194844517452,
+              "observed_frequency": 0.35964912280701755,
+              "count": 114
+            },
+            {
+              "bin_lower": 0.787294155851098,
+              "bin_upper": 0.9986811787046711,
+              "mean_predicted_probability": 0.918243045387532,
+              "observed_frequency": 0.8157894736842105,
+              "count": 114
+            }
+          ]
+        },
+        "confidence_intervals": {
+          "method": "paired_nonparametric_percentile_bootstrap",
+          "dataset": "test",
+          "confidence_level": 0.95,
+          "n_bootstrap": 2000,
+          "random_state": 42,
+          "metrics": {
+            "accuracy": {
+              "estimate": 0.8213028169014085,
+              "lower": 0.7984154929577465,
+              "upper": 0.8433098591549296,
+              "valid_resamples": 2000
+            },
+            "precision": {
+              "estimate": 0.459214501510574,
+              "lower": 0.4065262754857854,
+              "upper": 0.5154068108724971,
+              "valid_resamples": 2000
+            },
+            "recall": {
+              "estimate": 0.8636363636363636,
+              "lower": 0.8078981998105064,
+              "upper": 0.9123760633203762,
+              "valid_resamples": 2000
+            },
+            "f1": {
+              "estimate": 0.5996055226824457,
+              "lower": 0.5477507546241507,
+              "upper": 0.6500832358285057,
+              "valid_resamples": 2000
+            },
+            "roc_auc": {
+              "estimate": 0.9170188210227274,
+              "lower": 0.8924764710131319,
+              "upper": 0.9380686457572933,
+              "valid_resamples": 2000
+            },
+            "brier_score": {
+              "estimate": 0.08562547157112856,
+              "lower": 0.07523347546993092,
+              "upper": 0.09641944763285937,
+              "valid_resamples": 2000
+            }
+          }
+        },
+        "subgroups": {
+          "sex": {
+            "column": "sex",
+            "label": "Sexo",
+            "dataset": "test",
+            "minimum_size": 20,
+            "n_total": 1136,
+            "missing_or_unassigned": 0,
+            "groups": [
+              {
+                "value": "0",
+                "label": "Masculino",
+                "n": 564,
+                "positives": 94,
+                "prevalence": 0.16666666666666666,
+                "metrics": {
+                  "accuracy": 0.824468085106383,
+                  "precision": 0.48502994011976047,
+                  "recall": 0.8617021276595744,
+                  "f1": 0.6206896551724138,
+                  "roc_auc": 0.9192847442281575,
+                  "brier_score": 0.08817074079332579,
+                  "confusion_matrix": [
+                    [
+                      384,
+                      86
+                    ],
+                    [
+                      13,
+                      81
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.824468085106383,
+                      "lower": 0.792508865248227,
+                      "upper": 0.8528368794326241,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.48502994011976047,
+                      "lower": 0.4103973176592843,
+                      "upper": 0.5555555555555556,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.8617021276595744,
+                      "lower": 0.7849462365591398,
+                      "upper": 0.9268356199186992,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.6206896551724138,
+                      "lower": 0.5454165081780145,
+                      "upper": 0.6842332908395556,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.9192847442281575,
+                      "lower": 0.8866315911630548,
+                      "upper": 0.9468306875125749,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.08817074079332579,
+                      "lower": 0.07347329958001343,
+                      "upper": 0.1038073527473404,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              },
+              {
+                "value": "1",
+                "label": "Feminino",
+                "n": 572,
+                "positives": 82,
+                "prevalence": 0.14335664335664336,
+                "metrics": {
+                  "accuracy": 0.8181818181818182,
+                  "precision": 0.4329268292682927,
+                  "recall": 0.8658536585365854,
+                  "f1": 0.5772357723577236,
+                  "roc_auc": 0.9135017421602786,
+                  "brier_score": 0.08311580051987116,
+                  "confusion_matrix": [
+                    [
+                      397,
+                      93
+                    ],
+                    [
+                      11,
+                      71
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.8181818181818182,
+                      "lower": 0.7832167832167832,
+                      "upper": 0.8496503496503497,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.4329268292682927,
+                      "lower": 0.3539325842696629,
+                      "upper": 0.5061787749287749,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.8658536585365854,
+                      "lower": 0.7944851204534719,
+                      "upper": 0.9333333333333333,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.5772357723577236,
+                      "lower": 0.4979574614655989,
+                      "upper": 0.6492537313432836,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.9135017421602786,
+                      "lower": 0.8789224954150993,
+                      "upper": 0.9443172882446993,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.08311580051987116,
+                      "lower": 0.06928369614479231,
+                      "upper": 0.09747204575997923,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              }
+            ],
+            "minimum_events": 10
+          },
+          "age_group": {
+            "column": "age_years",
+            "label": "Faixa etária",
+            "dataset": "test",
+            "minimum_size": 20,
+            "n_total": 1136,
+            "missing_or_unassigned": 0,
+            "groups": [
+              {
+                "value": "18–39",
+                "label": "18–39",
+                "n": 396,
+                "positives": 8,
+                "prevalence": 0.020202020202020204,
+                "metrics": {
+                  "accuracy": 0.9696969696969697,
+                  "precision": 0.25,
+                  "recall": 0.25,
+                  "f1": 0.25,
+                  "roc_auc": 0.8337628865979381,
+                  "brier_score": 0.019829377259615994,
+                  "confusion_matrix": [
+                    [
+                      382,
+                      6
+                    ],
+                    [
+                      6,
+                      2
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.9696969696969697,
+                      "lower": 0.952020202020202,
+                      "upper": 0.9848484848484849,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.25,
+                      "lower": 0.0,
+                      "upper": 0.6006249999999994,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.25,
+                      "lower": 0.0,
+                      "upper": 0.6,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.25,
+                      "lower": 0.0,
+                      "upper": 0.5,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.8337628865979381,
+                      "lower": 0.6319871646062424,
+                      "upper": 0.9594117858168246,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.019829377259615994,
+                      "lower": 0.01000720594500557,
+                      "upper": 0.031691310796913306,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "limited_events",
+                "minimum_events": 10
+              },
+              {
+                "value": "40–59",
+                "label": "40–59",
+                "n": 319,
+                "positives": 48,
+                "prevalence": 0.15047021943573669,
+                "metrics": {
+                  "accuracy": 0.8338557993730408,
+                  "precision": 0.47058823529411764,
+                  "recall": 0.8333333333333334,
+                  "f1": 0.6015037593984962,
+                  "roc_auc": 0.8919126691266913,
+                  "brier_score": 0.09006292250057332,
+                  "confusion_matrix": [
+                    [
+                      226,
+                      45
+                    ],
+                    [
+                      8,
+                      40
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.8338557993730408,
+                      "lower": 0.7962382445141066,
+                      "upper": 0.8746081504702194,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.47058823529411764,
+                      "lower": 0.3563218390804598,
+                      "upper": 0.5773232176564541,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.8333333333333334,
+                      "lower": 0.7272727272727273,
+                      "upper": 0.930272198731501,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.6015037593984962,
+                      "lower": 0.49273636991028297,
+                      "upper": 0.6929459230819288,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.8919126691266913,
+                      "lower": 0.8377811578392839,
+                      "upper": 0.9397668248927862,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.09006292250057332,
+                      "lower": 0.06906538154686225,
+                      "upper": 0.1103168454934633,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              },
+              {
+                "value": "60+",
+                "label": "60+",
+                "n": 421,
+                "positives": 120,
+                "prevalence": 0.2850356294536817,
+                "metrics": {
+                  "accuracy": 0.672209026128266,
+                  "precision": 0.46218487394957986,
+                  "recall": 0.9166666666666666,
+                  "f1": 0.6145251396648045,
+                  "roc_auc": 0.8803017718715394,
+                  "brier_score": 0.14415209033803142,
+                  "confusion_matrix": [
+                    [
+                      173,
+                      128
+                    ],
+                    [
+                      10,
+                      110
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.672209026128266,
+                      "lower": 0.6270783847980997,
+                      "upper": 0.7173396674584323,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.46218487394957986,
+                      "lower": 0.40259470819636795,
+                      "upper": 0.5252100840336135,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.9166666666666666,
+                      "lower": 0.8613732242789497,
+                      "upper": 0.9636396574440053,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.6145251396648045,
+                      "lower": 0.5546206093056693,
+                      "upper": 0.6719598054275474,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.8803017718715394,
+                      "lower": 0.8436130393027982,
+                      "upper": 0.9132851201314626,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.14415209033803142,
+                      "lower": 0.12461020340479896,
+                      "upper": 0.16330562403192514,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              }
+            ],
+            "minimum_events": 10
+          }
+        },
+        "cross_validation": {
+          "mean": 0.6906061424659853,
+          "std": 0.023040058872694173,
+          "fold_scores": [
+            0.656891495601173,
+            0.6791277258566978,
+            0.7092651757188498,
+            0.7223880597014926,
+            0.6853582554517134
+          ],
+          "best_params": {
+            "classifier__n_estimators": 300,
+            "classifier__min_samples_split": 10,
+            "classifier__min_samples_leaf": 1,
+            "classifier__max_features": "log2",
+            "classifier__max_depth": 12
+          }
+        },
+        "threshold": {
+          "metric": "f2",
+          "beta": 2.0,
+          "value": 0.29,
+          "f_beta": 0.7617328519855595,
+          "precision": 0.46993318485523383,
+          "recall": 0.9017094017094017
+        }
+      },
+      "svm": {
+        "accuracy": 0.8371478873239436,
+        "precision": 0.4845360824742268,
+        "recall": 0.8011363636363636,
+        "f1": 0.6038543897216274,
+        "roc_auc": 0.9005119554924242,
+        "brier_score": 0.07331094605983064,
+        "confusion_matrix": [
+          [
+            810,
+            150
+          ],
+          [
+            35,
+            141
+          ]
+        ],
+        "calibration": {
+          "dataset": "test",
+          "strategy": "quantile",
+          "requested_bins": 10,
+          "effective_bins": 10,
+          "expected_calibration_error": 0.01968138015066559,
+          "points": [
+            {
+              "bin_lower": 0.0026372833842377543,
+              "bin_upper": 0.00835613466143191,
+              "mean_predicted_probability": 0.006356349836426246,
+              "observed_frequency": 0.008771929824561403,
+              "count": 114
+            },
+            {
+              "bin_lower": 0.00835613466143191,
+              "bin_upper": 0.01105208550692547,
+              "mean_predicted_probability": 0.00972418661809715,
+              "observed_frequency": 0.0,
+              "count": 113
+            },
+            {
+              "bin_lower": 0.01105208550692547,
+              "bin_upper": 0.013340763394550717,
+              "mean_predicted_probability": 0.012167017862255432,
+              "observed_frequency": 0.03508771929824561,
+              "count": 114
+            },
+            {
+              "bin_lower": 0.013340763394550717,
+              "bin_upper": 0.01690206716939257,
+              "mean_predicted_probability": 0.014972626482860726,
+              "observed_frequency": 0.017699115044247787,
+              "count": 113
+            },
+            {
+              "bin_lower": 0.01690206716939257,
+              "bin_upper": 0.023188151927653944,
+              "mean_predicted_probability": 0.01956583907816185,
+              "observed_frequency": 0.043859649122807015,
+              "count": 114
+            },
+            {
+              "bin_lower": 0.023188151927653944,
+              "bin_upper": 0.041536027703698734,
+              "mean_predicted_probability": 0.030848942620987828,
+              "observed_frequency": 0.07894736842105263,
+              "count": 114
+            },
+            {
+              "bin_lower": 0.041536027703698734,
+              "bin_upper": 0.09291043195619124,
+              "mean_predicted_probability": 0.06204218478674725,
+              "observed_frequency": 0.08849557522123894,
+              "count": 113
+            },
+            {
+              "bin_lower": 0.09291043195619124,
+              "bin_upper": 0.2228180512539305,
+              "mean_predicted_probability": 0.14498875434980543,
+              "observed_frequency": 0.10619469026548672,
+              "count": 113
+            },
+            {
+              "bin_lower": 0.2228180512539305,
+              "bin_upper": 0.6333837748322761,
+              "mean_predicted_probability": 0.39944227208502325,
+              "observed_frequency": 0.38596491228070173,
+              "count": 114
+            },
+            {
+              "bin_lower": 0.6333837748322761,
+              "bin_upper": 0.9796759676516316,
+              "mean_predicted_probability": 0.7886025369202538,
+              "observed_frequency": 0.7807017543859649,
+              "count": 114
+            }
+          ]
+        },
+        "confidence_intervals": {
+          "method": "paired_nonparametric_percentile_bootstrap",
+          "dataset": "test",
+          "confidence_level": 0.95,
+          "n_bootstrap": 2000,
+          "random_state": 42,
+          "metrics": {
+            "accuracy": {
+              "estimate": 0.8371478873239436,
+              "lower": 0.8151408450704225,
+              "upper": 0.8591549295774648,
+              "valid_resamples": 2000
+            },
+            "precision": {
+              "estimate": 0.4845360824742268,
+              "lower": 0.42673421099847497,
+              "upper": 0.5441708132016057,
+              "valid_resamples": 2000
+            },
+            "recall": {
+              "estimate": 0.8011363636363636,
+              "lower": 0.7378023790483806,
+              "upper": 0.8588294512435846,
+              "valid_resamples": 2000
+            },
+            "f1": {
+              "estimate": 0.6038543897216274,
+              "lower": 0.5477153724560364,
+              "upper": 0.6584904033311159,
+              "valid_resamples": 2000
+            },
+            "roc_auc": {
+              "estimate": 0.9005119554924242,
+              "lower": 0.8728628978703715,
+              "upper": 0.9258489570360512,
+              "valid_resamples": 2000
+            },
+            "brier_score": {
+              "estimate": 0.07331094605983064,
+              "lower": 0.062383598366774096,
+              "upper": 0.0850681223687615,
+              "valid_resamples": 2000
+            }
+          }
+        },
+        "subgroups": {
+          "sex": {
+            "column": "sex",
+            "label": "Sexo",
+            "dataset": "test",
+            "minimum_size": 20,
+            "n_total": 1136,
+            "missing_or_unassigned": 0,
+            "groups": [
+              {
+                "value": "0",
+                "label": "Masculino",
+                "n": 564,
+                "positives": 94,
+                "prevalence": 0.16666666666666666,
+                "metrics": {
+                  "accuracy": 0.824468085106383,
+                  "precision": 0.48484848484848486,
+                  "recall": 0.851063829787234,
+                  "f1": 0.6177606177606177,
+                  "roc_auc": 0.9143730194658216,
+                  "brier_score": 0.07385121234338823,
+                  "confusion_matrix": [
+                    [
+                      385,
+                      85
+                    ],
+                    [
+                      14,
+                      80
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.824468085106383,
+                      "lower": 0.7907801418439716,
+                      "upper": 0.8546099290780141,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.48484848484848486,
+                      "lower": 0.40963150849010077,
+                      "upper": 0.5597547169811321,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.851063829787234,
+                      "lower": 0.7727272727272727,
+                      "upper": 0.9231132075471699,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.6177606177606177,
+                      "lower": 0.5461819976150335,
+                      "upper": 0.6840483769088814,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.9143730194658216,
+                      "lower": 0.882418663957636,
+                      "upper": 0.9453975985906373,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.07385121234338823,
+                      "lower": 0.0585670970673906,
+                      "upper": 0.09038277860348642,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              },
+              {
+                "value": "1",
+                "label": "Feminino",
+                "n": 572,
+                "positives": 82,
+                "prevalence": 0.14335664335664336,
+                "metrics": {
+                  "accuracy": 0.8496503496503497,
+                  "precision": 0.48412698412698413,
+                  "recall": 0.7439024390243902,
+                  "f1": 0.5865384615384616,
+                  "roc_auc": 0.8832877053260327,
+                  "brier_score": 0.07277823594807106,
+                  "confusion_matrix": [
+                    [
+                      425,
+                      65
+                    ],
+                    [
+                      21,
+                      61
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.8496503496503497,
+                      "lower": 0.8181818181818182,
+                      "upper": 0.8776660839160838,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.48412698412698413,
+                      "lower": 0.39364993438320217,
+                      "upper": 0.576287483702738,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.7439024390243902,
+                      "lower": 0.6469537815126052,
+                      "upper": 0.8333333333333334,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.5865384615384616,
+                      "lower": 0.5,
+                      "upper": 0.66359551738584,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.8832877053260327,
+                      "lower": 0.8373246705532597,
+                      "upper": 0.9210458672359035,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.07277823594807106,
+                      "lower": 0.05726748654377805,
+                      "upper": 0.08860886125159793,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              }
+            ],
+            "minimum_events": 10
+          },
+          "age_group": {
+            "column": "age_years",
+            "label": "Faixa etária",
+            "dataset": "test",
+            "minimum_size": 20,
+            "n_total": 1136,
+            "missing_or_unassigned": 0,
+            "groups": [
+              {
+                "value": "18–39",
+                "label": "18–39",
+                "n": 396,
+                "positives": 8,
+                "prevalence": 0.020202020202020204,
+                "metrics": {
+                  "accuracy": 0.9722222222222222,
+                  "precision": 0.2857142857142857,
+                  "recall": 0.25,
+                  "f1": 0.26666666666666666,
+                  "roc_auc": 0.8556701030927835,
+                  "brier_score": 0.018810562897749954,
+                  "confusion_matrix": [
+                    [
+                      383,
+                      5
+                    ],
+                    [
+                      6,
+                      2
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.9722222222222222,
+                      "lower": 0.9545454545454546,
+                      "upper": 0.9873737373737373,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.2857142857142857,
+                      "lower": 0.0,
+                      "upper": 0.6666666666666666,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.25,
+                      "lower": 0.0,
+                      "upper": 0.6,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.26666666666666666,
+                      "lower": 0.0,
+                      "upper": 0.5454545454545454,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.8556701030927835,
+                      "lower": 0.7286702444841979,
+                      "upper": 0.9536204099480939,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.018810562897749954,
+                      "lower": 0.00783028949232614,
+                      "upper": 0.031943546814765605,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "limited_events",
+                "minimum_events": 10
+              },
+              {
+                "value": "40–59",
+                "label": "40–59",
+                "n": 319,
+                "positives": 48,
+                "prevalence": 0.15047021943573669,
+                "metrics": {
+                  "accuracy": 0.8463949843260188,
+                  "precision": 0.49333333333333335,
+                  "recall": 0.7708333333333334,
+                  "f1": 0.6016260162601627,
+                  "roc_auc": 0.8689268142681427,
+                  "brier_score": 0.07702683987435971,
+                  "confusion_matrix": [
+                    [
+                      233,
+                      38
+                    ],
+                    [
+                      11,
+                      37
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.8463949843260188,
+                      "lower": 0.8087774294670846,
+                      "upper": 0.8871473354231975,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.49333333333333335,
+                      "lower": 0.375,
+                      "upper": 0.6097719353816915,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.7708333333333334,
+                      "lower": 0.6486361361361361,
+                      "upper": 0.8837209302325582,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.6016260162601627,
+                      "lower": 0.4859676980310317,
+                      "upper": 0.6962996031746032,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.8689268142681427,
+                      "lower": 0.8060066039266365,
+                      "upper": 0.9280710987631986,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.07702683987435971,
+                      "lower": 0.054426991350728954,
+                      "upper": 0.1000531425195729,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              },
+              {
+                "value": "60+",
+                "label": "60+",
+                "n": 421,
+                "positives": 120,
+                "prevalence": 0.2850356294536817,
+                "metrics": {
+                  "accuracy": 0.7030878859857482,
+                  "precision": 0.4880382775119617,
+                  "recall": 0.85,
+                  "f1": 0.6200607902735562,
+                  "roc_auc": 0.8587070874861572,
+                  "brier_score": 0.12175935842408048,
+                  "confusion_matrix": [
+                    [
+                      194,
+                      107
+                    ],
+                    [
+                      18,
+                      102
+                    ]
+                  ]
+                },
+                "confidence_intervals": {
+                  "method": "paired_nonparametric_percentile_bootstrap",
+                  "dataset": "test",
+                  "confidence_level": 0.95,
+                  "n_bootstrap": 1000,
+                  "random_state": 42,
+                  "metrics": {
+                    "accuracy": {
+                      "estimate": 0.7030878859857482,
+                      "lower": 0.6603325415676959,
+                      "upper": 0.7434679334916865,
+                      "valid_resamples": 1000
+                    },
+                    "precision": {
+                      "estimate": 0.4880382775119617,
+                      "lower": 0.42521924209448214,
+                      "upper": 0.5576059021623538,
+                      "valid_resamples": 1000
+                    },
+                    "recall": {
+                      "estimate": 0.85,
+                      "lower": 0.7856975967957276,
+                      "upper": 0.9091095380029806,
+                      "valid_resamples": 1000
+                    },
+                    "f1": {
+                      "estimate": 0.6200607902735562,
+                      "lower": 0.5566993627598172,
+                      "upper": 0.6783704757388967,
+                      "valid_resamples": 1000
+                    },
+                    "roc_auc": {
+                      "estimate": 0.8587070874861572,
+                      "lower": 0.8120260366205959,
+                      "upper": 0.8965139970926012,
+                      "valid_resamples": 1000
+                    },
+                    "brier_score": {
+                      "estimate": 0.12175935842408048,
+                      "lower": 0.10196572976605749,
+                      "upper": 0.1433014215192406,
+                      "valid_resamples": 1000
+                    }
+                  }
+                },
+                "status": "estimated",
+                "minimum_events": 10
+              }
+            ],
+            "minimum_events": 10
+          }
+        },
+        "cross_validation": {
+          "mean": 0.7152424283703785,
+          "std": 0.01425916350086823,
+          "fold_scores": [
+            0.7007299270072993,
+            0.7307692307692307,
+            0.7338709677419355,
+            0.7018867924528301,
+            0.7089552238805971
+          ],
+          "best_params": {
+            "classifier__estimator__gamma": "scale",
+            "classifier__estimator__C": 0.1
+          }
+        },
+        "threshold": {
+          "metric": "f2",
+          "beta": 2.0,
+          "value": 0.13,
+          "f_beta": 0.7504970178926441,
+          "precision": 0.4967105263157895,
+          "recall": 0.8603988603988604
+        }
+      }
+    }
+  }
+}

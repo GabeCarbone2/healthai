@@ -1,0 +1,334 @@
+"""Cadastro e autenticação baseada em sessões opacas."""
+
+import hashlib
+import secrets
+import time
+from datetime import datetime, timezone
+from typing import Annotated
+from urllib.parse import urlencode
+
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
+from pwdlib import PasswordHash
+from sqlalchemy import delete, select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from backend.database import get_db
+from backend.email_service import EmailDeliveryError, send_verification_email
+from backend.models import (
+    EmailVerificationToken,
+    PredictionResult,
+    User,
+    UserSession,
+)
+from backend.privacy import PRIVACY_NOTICE_VERSION
+from backend.schemas import (
+    DeleteAccountInput,
+    LoginInput,
+    PrivacyConsentInput,
+    RegisterInput,
+    RegistrationResponse,
+    ResendEmailVerificationInput,
+    UserResponse,
+    VerifyEmailInput,
+)
+from backend.settings import setting
+
+SESSION_COOKIE = "healthai_session"
+SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7
+EMAIL_VERIFICATION_DURATION_SECONDS = 60 * 60 * 24
+EMAIL_RESEND_INTERVAL_SECONDS = 60
+password_hash = PasswordHash.recommended()
+dummy_password_hash = password_hash.hash("healthai-dummy-password")
+router = APIRouter(prefix="/auth", tags=["Autenticação"])
+DatabaseSession = Annotated[Session, Depends(get_db)]
+
+
+def _token_digest(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def _set_session_cookie(response: Response, token: str) -> None:
+    response.set_cookie(
+        key=SESSION_COOKIE,
+        value=token,
+        max_age=SESSION_DURATION_SECONDS,
+        httponly=True,
+        secure=setting("HEALTHAI_SECURE_COOKIE", "false").lower() == "true",
+        samesite="lax",
+        path="/",
+    )
+
+
+def _create_session(db: Session, user: User, response: Response) -> None:
+    now = int(time.time())
+    db.execute(delete(UserSession).where(UserSession.expires_at <= now))
+    token = secrets.token_urlsafe(32)
+    db.add(
+        UserSession(
+            token_hash=_token_digest(token),
+            user_id=user.id,
+            expires_at=now + SESSION_DURATION_SECONDS,
+        )
+    )
+    db.commit()
+    _set_session_cookie(response, token)
+
+
+def _verification_url(token: str) -> str:
+    frontend_url = setting(
+        "HEALTHAI_FRONTEND_URL", "http://127.0.0.1:5173"
+    ).rstrip("/")
+    return f"{frontend_url}/verify-email?{urlencode({'token': token})}"
+
+
+def _issue_verification_token(db: Session, user: User) -> None:
+    now = int(time.time())
+    token = secrets.token_urlsafe(32)
+    token_hash = _token_digest(token)
+    db.execute(
+        delete(EmailVerificationToken).where(
+            EmailVerificationToken.user_id == user.id
+        )
+    )
+    db.add(
+        EmailVerificationToken(
+            token_hash=token_hash,
+            user_id=user.id,
+            expires_at=now + EMAIL_VERIFICATION_DURATION_SECONDS,
+            created_at=now,
+        )
+    )
+    db.commit()
+    try:
+        send_verification_email(
+            recipient=user.email,
+            recipient_name=user.name,
+            verification_url=_verification_url(token),
+        )
+    except EmailDeliveryError:
+        db.execute(
+            delete(EmailVerificationToken).where(
+                EmailVerificationToken.token_hash == token_hash
+            )
+        )
+        db.commit()
+        raise
+
+
+def get_current_user(
+    db: DatabaseSession,
+    session_token: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
+) -> User:
+    """Valida a sessão e retorna o usuário autenticado."""
+    if not session_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Autenticação necessária.",
+        )
+
+    user_session = db.scalar(
+        select(UserSession).where(
+            UserSession.token_hash == _token_digest(session_token),
+            UserSession.expires_at > int(time.time()),
+        )
+    )
+    user = db.get(User, user_session.user_id) if user_session else None
+    if not user or not user.is_active or not user.email_verified_at:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Sessão inválida ou expirada.",
+        )
+    return user
+
+
+def get_consented_user(
+    user: Annotated[User, Depends(get_current_user)],
+) -> User:
+    """Exige aceite da versão atual do aviso para acessar dados da aplicação."""
+    if (
+        not user.privacy_accepted_at
+        or user.privacy_notice_version != PRIVACY_NOTICE_VERSION
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Aceite o aviso de privacidade para continuar.",
+        )
+    return user
+
+
+@router.post("/register", response_model=RegistrationResponse, status_code=201)
+def register(
+    data: RegisterInput,
+    db: DatabaseSession,
+) -> RegistrationResponse:
+    email = str(data.email).strip().lower()
+    if db.scalar(select(User).where(User.email == email)):
+        raise HTTPException(status_code=409, detail="Este e-mail já está cadastrado.")
+
+    user = User(
+        email=email,
+        name=data.name.strip(),
+        password_hash=password_hash.hash(data.password),
+        privacy_accepted_at=datetime.now(timezone.utc),
+        privacy_notice_version=PRIVACY_NOTICE_VERSION,
+    )
+    db.add(user)
+    try:
+        db.commit()
+    except IntegrityError as error:
+        db.rollback()
+        raise HTTPException(
+            status_code=409, detail="Este e-mail já está cadastrado."
+        ) from error
+    db.refresh(user)
+    email_sent = True
+    try:
+        _issue_verification_token(db, user)
+    except EmailDeliveryError:
+        email_sent = False
+    return RegistrationResponse(
+        email=user.email,
+        expires_in_seconds=EMAIL_VERIFICATION_DURATION_SECONDS,
+        email_sent=email_sent,
+    )
+
+
+@router.post("/verify-email", response_model=UserResponse)
+def verify_email(
+    data: VerifyEmailInput,
+    response: Response,
+    db: DatabaseSession,
+) -> User:
+    now = int(time.time())
+    verification = db.scalar(
+        select(EmailVerificationToken).where(
+            EmailVerificationToken.token_hash == _token_digest(data.token),
+            EmailVerificationToken.expires_at > now,
+        )
+    )
+    user = db.get(User, verification.user_id) if verification else None
+    if not verification or not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Link de verificação inválido ou expirado.",
+        )
+
+    user.email_verified_at = datetime.now(timezone.utc)
+    db.execute(
+        delete(EmailVerificationToken).where(
+            EmailVerificationToken.user_id == user.id
+        )
+    )
+    db.commit()
+    db.refresh(user)
+    _create_session(db, user, response)
+    return user
+
+
+@router.post("/resend-verification", status_code=204)
+def resend_verification(
+    data: ResendEmailVerificationInput,
+    db: DatabaseSession,
+) -> None:
+    email = str(data.email).strip().lower()
+    user = db.scalar(select(User).where(User.email == email))
+    if not user or user.email_verified_at or not user.is_active:
+        return
+
+    now = int(time.time())
+    latest_token = db.scalar(
+        select(EmailVerificationToken)
+        .where(EmailVerificationToken.user_id == user.id)
+        .order_by(EmailVerificationToken.created_at.desc())
+    )
+    if (
+        latest_token
+        and latest_token.created_at > now - EMAIL_RESEND_INTERVAL_SECONDS
+    ):
+        return
+    try:
+        _issue_verification_token(db, user)
+    except EmailDeliveryError:
+        # A resposta permanece genérica para não revelar contas cadastradas.
+        return
+
+
+@router.post("/login", response_model=UserResponse)
+def login(
+    data: LoginInput,
+    response: Response,
+    db: DatabaseSession,
+) -> User:
+    email = str(data.email).strip().lower()
+    user = db.scalar(select(User).where(User.email == email))
+    stored_hash = user.password_hash if user else dummy_password_hash
+    valid_password = password_hash.verify(data.password, stored_hash)
+    if not user or not valid_password or not user.is_active:
+        raise HTTPException(status_code=401, detail="E-mail ou senha inválidos.")
+    if not user.email_verified_at:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Confirme seu e-mail antes de entrar.",
+        )
+
+    _create_session(db, user, response)
+    return user
+
+
+@router.get("/me", response_model=UserResponse)
+def me(user: Annotated[User, Depends(get_current_user)]) -> User:
+    return user
+
+
+@router.post("/privacy-consent", response_model=UserResponse)
+def accept_privacy_notice(
+    _: PrivacyConsentInput,
+    db: DatabaseSession,
+    user: Annotated[User, Depends(get_current_user)],
+) -> User:
+    user.privacy_accepted_at = datetime.now(timezone.utc)
+    user.privacy_notice_version = PRIVACY_NOTICE_VERSION
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.post("/logout", status_code=204)
+def logout(
+    response: Response,
+    db: DatabaseSession,
+    session_token: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
+) -> None:
+    if session_token:
+        db.execute(
+            delete(UserSession).where(
+                UserSession.token_hash == _token_digest(session_token)
+            )
+        )
+        db.commit()
+    response.delete_cookie(SESSION_COOKIE, path="/")
+
+
+@router.delete("/account", status_code=204)
+def delete_account(
+    data: DeleteAccountInput,
+    response: Response,
+    db: DatabaseSession,
+    user: Annotated[User, Depends(get_current_user)],
+) -> None:
+    if not password_hash.verify(data.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Senha incorreta.")
+
+    db.execute(
+        delete(PredictionResult).where(PredictionResult.user_id == user.id)
+    )
+    db.execute(
+        delete(EmailVerificationToken).where(
+            EmailVerificationToken.user_id == user.id
+        )
+    )
+    db.execute(delete(UserSession).where(UserSession.user_id == user.id))
+    db.execute(delete(User).where(User.id == user.id))
+    db.commit()
+    response.delete_cookie(SESSION_COOKIE, path="/")

@@ -1,0 +1,38 @@
+services:
+  api:
+    build:
+      context: .
+      target: api
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    volumes:
+      - healthai_data:/app/data
+    networks:
+      - healthai
+
+  web:
+    build:
+      context: .
+      target: web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - healthai
+
+networks:
+  healthai:
+
+volumes:
+  healthai_data:
+  caddy_data:
+  caddy_config:

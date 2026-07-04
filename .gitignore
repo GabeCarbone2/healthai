@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
+*.db
 .pytest_cache/
 .ruff_cache/
 .coverage
@@ -9,8 +10,15 @@ htmlcov/
 .venv/
 venv/
 
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
 # Ambientes e editores
 .env
+.env.*
+!.env.example
+!.env.production.example
 .idea/
 .vscode/
 
@@ -29,5 +37,7 @@ reports/figures/*
 !data/interim/.gitkeep
 !data/processed/.gitkeep
 !models/.gitkeep
+!models/pima_selected.joblib
+!models/nhanes_selected.joblib
 !reports/figures/.gitkeep
-
+!reports/figures/*_calibration.png

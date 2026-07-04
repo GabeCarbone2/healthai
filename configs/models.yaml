@@ -1,0 +1,156 @@
+data:
+  path: healthai_dados_publicos.csv
+  target: diabetes_outcome
+  source_column: source_dataset
+
+split:
+  test_size: 0.20
+  random_state: 42
+
+selection:
+  scoring: f1
+  cv_folds: 5
+  shuffle: true
+  search_iterations: 8
+  n_jobs: -1
+  threshold:
+    metric: f2
+    beta: 2.0
+    minimum: 0.10
+    maximum: 0.90
+    step: 0.01
+
+evaluation:
+  calibration:
+    n_bins: 10
+    strategy: quantile
+  confidence_intervals:
+    enabled: true
+    confidence_level: 0.95
+    n_bootstrap: 2000
+    random_state: 42
+  subgroup_minimum_size: 20
+  subgroup_minimum_events: 10
+  subgroup_bootstrap: 1000
+
+experiments:
+  pima:
+    source_value: pima_openml_37
+    numeric_features:
+      - pregnancies
+      - glucose_mg_dl
+      - diastolic_bp_mmhg
+      - skin_thickness_mm
+      - serum_insulin_muu_ml
+      - bmi_kg_m2
+      - diabetes_pedigree_function
+      - age_years
+    categorical_features: []
+    subgroups:
+      - name: age_group
+        column: age_years
+        label: Faixa etária
+        bins: [21, 40, 60, 101]
+        labels: ["21–39", "40–59", "60+"]
+    models:
+      logistic_regression:
+        enabled: true
+        params:
+          max_iter: 1000
+        search_params:
+          classifier__C: [0.01, 0.05, 0.1, 0.5, 1.0, 5.0]
+          classifier__solver: [lbfgs, liblinear]
+          classifier__class_weight: [null, balanced]
+      random_forest:
+        enabled: true
+        params:
+          n_estimators: 100
+          n_jobs: 1
+        search_params:
+          classifier__n_estimators: [100, 200, 300, 500]
+          classifier__max_depth: [null, 8, 12, 20]
+          classifier__min_samples_split: [2, 5, 10]
+          classifier__min_samples_leaf: [1, 2, 4]
+          classifier__max_features: [sqrt, log2, null]
+          classifier__class_weight: [null, balanced]
+      svm:
+        enabled: true
+        params:
+          kernel: rbf
+          C: 1.0
+          gamma: scale
+          calibration_cv: 5
+        search_params:
+          classifier__estimator__C: [0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
+          classifier__estimator__gamma: [scale, auto, 0.01, 0.1]
+          classifier__estimator__class_weight: [null, balanced]
+
+  nhanes:
+    source_value: nhanes_2017_2018
+    numeric_features:
+      - sex
+      - age_years
+      - bmi_kg_m2
+      - systolic_bp_mmhg
+      - diastolic_bp_mmhg
+      - hba1c_percent
+      - glucose_mg_dl
+    categorical_features: []
+    category_mappings:
+      sex:
+        male: 0
+        female: 1
+    subgroups:
+      - name: sex
+        column: sex
+        label: Sexo
+        value_labels:
+          "0": Masculino
+          "1": Feminino
+      - name: age_group
+        column: age_years
+        label: Faixa etária
+        bins: [18, 40, 60, 101]
+        labels: ["18–39", "40–59", "60+"]
+    filters:
+      minimum_values:
+        age_years: 18
+      invalid_below:
+        diastolic_bp_mmhg: 30
+    models:
+      logistic_regression:
+        enabled: true
+        params:
+          max_iter: 2000
+          class_weight: balanced
+        search_params:
+          classifier__C: [0.01, 0.05, 0.1, 0.5, 1.0, 5.0]
+          classifier__solver: [lbfgs, liblinear]
+      random_forest:
+        enabled: true
+        params:
+          n_estimators: 300
+          class_weight: balanced
+          n_jobs: 1
+        search_params:
+          classifier__n_estimators: [200, 300, 500]
+          classifier__max_depth: [null, 8, 12, 20]
+          classifier__min_samples_split: [2, 5, 10]
+          classifier__min_samples_leaf: [1, 2, 4]
+          classifier__max_features: [sqrt, log2, null]
+      svm:
+        enabled: true
+        params:
+          kernel: rbf
+          C: 1.0
+          gamma: scale
+          calibration_cv: 5
+          class_weight: balanced
+        search_params:
+          classifier__estimator__C: [0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
+          classifier__estimator__gamma: [scale, auto, 0.01, 0.1]
+
+outputs:
+  models_dir: models
+  metrics_path: reports/model_comparison.json
+  figures_dir: reports/figures
