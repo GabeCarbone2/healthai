@@ -44,6 +44,8 @@ export function login(email: string, password: string): Promise<User> {
 
 export function register(
   name: string,
+  crm: string,
+  crmUf: string,
   email: string,
   password: string,
   privacyAccepted: boolean,
@@ -52,6 +54,8 @@ export function register(
     method: "POST",
     body: JSON.stringify({
       name,
+      crm,
+      crm_uf: crmUf,
       email,
       password,
       privacy_accepted: privacyAccepted,

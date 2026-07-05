@@ -2422,7 +2422,8 @@ body,
   font-weight: 500;
 }
 
-.auth-form input {
+.auth-form input,
+.auth-form select {
   height: 44px;
   padding: 0 13px;
   color: #122350;
@@ -2432,6 +2433,20 @@ body,
   box-shadow:
     0 9px 19px rgb(0 18 89 / 18%),
     inset 0 1px 2px rgb(24 54 120 / 8%);
+}
+
+.auth-form select {
+  width: 100%;
+}
+
+.professional-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(100px, 1fr);
+  gap: 11px;
+}
+
+.professional-fields label {
+  min-width: 0;
 }
 
 .auth-form input::placeholder {

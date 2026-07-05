@@ -9,7 +9,7 @@ import { AuthPage } from "./AuthPage";
 vi.mock("../api");
 
 const privacy = {
-  notice_version: "2026-07-04.2",
+  notice_version: "2026-07-04.3",
   result_retention_days: 180,
   contact: "privacidade@example.com",
 };
@@ -18,11 +18,13 @@ const registeredUser = {
   id: 1,
   email: "usuario@example.com",
   name: "Usuário Teste",
+  crm: "123456",
+  crm_uf: "SP",
   role: "user",
   created_at: "2026-07-04T12:00:00Z",
   email_verified_at: "2026-07-04T12:00:00Z",
   privacy_accepted_at: "2026-07-04T12:00:00Z",
-  privacy_notice_version: "2026-07-04.2",
+  privacy_notice_version: "2026-07-04.3",
 };
 
 describe("AuthPage", () => {
@@ -44,6 +46,8 @@ describe("AuthPage", () => {
 
     await browser.click(screen.getByRole("button", { name: "Criar conta" }));
     await browser.type(screen.getByLabelText("Nome"), "Usuário Teste");
+    await browser.type(screen.getByLabelText("CRM"), "123456");
+    await browser.selectOptions(screen.getByLabelText("UF do CRM"), "SP");
     await browser.type(
       screen.getByLabelText("E-mail"),
       "usuario@example.com",
@@ -64,6 +68,8 @@ describe("AuthPage", () => {
 
     expect(api.register).toHaveBeenCalledWith(
       "Usuário Teste",
+      "123456",
+      "SP",
       "usuario@example.com",
       "senha-segura",
       true,

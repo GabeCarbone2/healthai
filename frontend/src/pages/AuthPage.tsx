@@ -22,9 +22,17 @@ type Props = {
   privacy: PrivacyInfo;
 };
 
+const BRAZILIAN_STATES = [
+  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO",
+  "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI",
+  "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
+];
+
 export function AuthPage({ onAuthenticated, privacy }: Props) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
+  const [crm, setCrm] = useState("");
+  const [crmUf, setCrmUf] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
@@ -59,6 +67,8 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
       } else {
         const registration = await register(
           name,
+          crm,
+          crmUf,
           email,
           password,
           privacyAccepted,
@@ -120,7 +130,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
         </div>
         <div className="auth-security-note">
           <ShieldCheck size={15} />
-          Ambiente acadêmico protegido
+          Acesso restrito a médicos
         </div>
       </header>
 
@@ -131,11 +141,11 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
             Inteligência aplicada à saúde
           </div>
           <h1>
-            Dados que ajudam a enxergar <em>além do óbvio.</em>
+            Plataforma de apoio clínico <em>para médicos.</em>
           </h1>
           <p>
-            Explore modelos preditivos com rastreabilidade, privacidade e uma
-            experiência feita para pesquisa clínica.
+            Explore modelos preditivos com rastreabilidade e privacidade em
+            uma experiência criada para apoiar a prática médica.
           </p>
           <div className="auth-highlights">
             <span>
@@ -233,19 +243,53 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
 
           <form onSubmit={submit} className="auth-form">
             {mode === "register" && (
-              <label>
-                <span>Nome</span>
-                <input
-                  type="text"
-                  autoComplete="name"
-                  minLength={2}
-                  maxLength={120}
-                  placeholder="Como devemos chamar você?"
-                  required
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                />
-              </label>
+              <>
+                <label>
+                  <span>Nome</span>
+                  <input
+                    type="text"
+                    autoComplete="name"
+                    minLength={2}
+                    maxLength={120}
+                    placeholder="Como devemos chamar você?"
+                    required
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                  />
+                </label>
+                <div className="professional-fields">
+                  <label>
+                    <span>CRM</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      minLength={1}
+                      maxLength={10}
+                      pattern="[0-9]{1,10}"
+                      placeholder="Somente números"
+                      required
+                      value={crm}
+                      onChange={(event) =>
+                        setCrm(event.target.value.replace(/\D/g, ""))
+                      }
+                    />
+                  </label>
+                  <label>
+                    <span>UF do CRM</span>
+                    <select
+                      aria-label="UF do CRM"
+                      required
+                      value={crmUf}
+                      onChange={(event) => setCrmUf(event.target.value)}
+                    >
+                      <option value="" disabled>Selecione</option>
+                      {BRAZILIAN_STATES.map((state) => (
+                        <option key={state} value={state}>{state}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              </>
             )}
 
             <label>

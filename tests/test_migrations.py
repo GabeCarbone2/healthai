@@ -32,12 +32,17 @@ def test_migrations_create_fresh_database(tmp_path: Path) -> None:
     command.upgrade(config, "head")
 
     engine = create_engine(f"sqlite:///{database_path}")
-    assert EXPECTED_TABLES <= set(inspect(engine).get_table_names())
+    inspector = inspect(engine)
+    assert EXPECTED_TABLES <= set(inspector.get_table_names())
+    user_columns = {
+        column["name"] for column in inspector.get_columns("users")
+    }
+    assert {"crm", "crm_uf"} <= user_columns
     with engine.connect() as connection:
         revision = connection.exec_driver_sql(
             "SELECT version_num FROM alembic_version"
         ).scalar_one()
-    assert revision == "20260704_04"
+    assert revision == "20260704_05"
     command.check(config)
     engine.dispose()
 

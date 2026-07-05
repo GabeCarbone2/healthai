@@ -8,8 +8,9 @@ export function PrivacyNotice({ info }: Props) {
   return (
     <div className="privacy-notice">
       <p>
-        O HealthAI usa seu nome e e-mail para administrar a conta. Senhas são
-        armazenadas somente como hash e a autenticação usa cookie protegido.
+        O HealthAI usa seu nome, e-mail, CRM e UF do registro para administrar
+        a conta profissional. Senhas são armazenadas somente como hash e a
+        autenticação usa cookie protegido.
       </p>
       <p>
         Nas avaliações, use apenas o identificador <code>PAC-…</code>. O

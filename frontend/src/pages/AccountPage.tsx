@@ -51,6 +51,9 @@ export function AccountPage({ user, privacy, onDeleted }: Props) {
           <p>
             {user.name} · {user.email}
           </p>
+          {user.crm && user.crm_uf && (
+            <p>CRM {user.crm}/{user.crm_uf}</p>
+          )}
           <PrivacyNotice info={privacy} />
         </div>
       </section>

@@ -49,6 +49,8 @@ def register(client: TestClient) -> None:
         "/auth/register",
         json={
             "name": "Usuário Teste",
+            "crm": "123456",
+            "crm_uf": "SP",
             "email": "usuario@example.com",
             "password": "senha-segura",
             "privacy_accepted": True,
@@ -92,7 +94,7 @@ def test_privacy_policy_is_public_and_reports_retention(
 
     assert response.status_code == 200
     assert response.json() == {
-        "notice_version": "2026-07-04.2",
+        "notice_version": "2026-07-04.3",
         "result_retention_days": 90,
         "contact": "privacidade@example.com",
     }
@@ -111,6 +113,8 @@ def test_registration_requires_explicit_privacy_consent(
         "/auth/register",
         json={
             "name": "Usuário Teste",
+            "crm": "123456",
+            "crm_uf": "SP",
             "email": "usuario@example.com",
             "password": "senha-segura",
             "privacy_accepted": False,
@@ -134,6 +138,8 @@ def test_registration_requires_email_verification_before_creating_session(
         "/auth/register",
         json={
             "name": "Usuário Teste",
+            "crm": "123456",
+            "crm_uf": "sp",
             "email": "USUARIO@example.com",
             "password": "senha-segura",
             "privacy_accepted": True,
@@ -152,6 +158,8 @@ def test_registration_requires_email_verification_before_creating_session(
         user = db.scalar(select(User))
         assert user is not None
         assert user.password_hash != "senha-segura"
+        assert user.crm == "123456"
+        assert user.crm_uf == "SP"
         assert user.email_verified_at is None
         verification = db.scalar(select(EmailVerificationToken))
         assert verification is not None
@@ -176,6 +184,8 @@ def test_registration_requires_email_verification_before_creating_session(
     )
     assert verification_response.status_code == 200
     assert verification_response.json()["email_verified_at"] is not None
+    assert verification_response.json()["crm"] == "123456"
+    assert verification_response.json()["crm_uf"] == "SP"
     assert "HttpOnly" in verification_response.headers["set-cookie"]
     assert client.get("/auth/me").status_code == 200
     with next(db_override()) as db:
@@ -200,6 +210,8 @@ def test_duplicate_registration_is_rejected(client: TestClient) -> None:
         "/auth/register",
         json={
             "name": "Outro Nome",
+            "crm": "654321",
+            "crm_uf": "RJ",
             "email": "usuario@example.com",
             "password": "outra-senha",
             "privacy_accepted": True,
@@ -207,6 +219,43 @@ def test_duplicate_registration_is_rejected(client: TestClient) -> None:
     )
 
     assert response.status_code == 409
+
+
+def test_duplicate_crm_in_same_state_is_rejected(client: TestClient) -> None:
+    register(client)
+
+    response = client.post(
+        "/auth/register",
+        json={
+            "name": "Outra Médica",
+            "crm": "123456",
+            "crm_uf": "SP",
+            "email": "outra@example.com",
+            "password": "outra-senha",
+            "privacy_accepted": True,
+        },
+    )
+
+    assert response.status_code == 409
+    assert "CRM 123456/SP" in response.json()["detail"]
+
+
+def test_registration_rejects_invalid_crm_and_state(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/auth/register",
+        json={
+            "name": "Usuário Teste",
+            "crm": "CRM-12",
+            "crm_uf": "XX",
+            "email": "usuario@example.com",
+            "password": "senha-segura",
+            "privacy_accepted": True,
+        },
+    )
+
+    assert response.status_code == 422
 
 
 def test_logout_invalidates_session(client: TestClient) -> None:
@@ -237,7 +286,7 @@ def test_existing_user_must_accept_current_privacy_notice(
     )
     assert consent.status_code == 200
     assert consent.json()["privacy_accepted_at"] is not None
-    assert consent.json()["privacy_notice_version"] == "2026-07-04.2"
+    assert consent.json()["privacy_notice_version"] == "2026-07-04.3"
     assert client.get("/results").status_code == 200
 
 

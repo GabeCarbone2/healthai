@@ -1,6 +1,6 @@
 # Aviso de privacidade e controles LGPD
 
-Versão do aviso: **2026-07-04.2**
+Versão do aviso: **2026-07-04.3**
 
 Este documento descreve os controles técnicos implementados no HealthAI. Ele
 não substitui a definição, pelo responsável pelo projeto, do controlador, do
@@ -15,8 +15,8 @@ diagnóstico e não substitui avaliação profissional.
 
 ## Dados tratados
 
-- conta: nome, e-mail, estado da verificação, hash da senha, sessões e
-  data/versionamento do aceite;
+- conta profissional: nome, e-mail, CRM, UF do CRM, estado da verificação,
+  hash da senha, sessões e data/versionamento do aceite;
 - avaliação: identificador pseudonimizado `PAC-…`, modelo, resultado,
   probabilidade, limiar e data;
 - dados clínicos informados no formulário: processados transitoriamente para

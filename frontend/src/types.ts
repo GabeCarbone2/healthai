@@ -133,6 +133,8 @@ export type User = {
   id: number;
   email: string;
   name: string;
+  crm: string | null;
+  crm_uf: string | null;
   role: string;
   created_at: string;
   email_verified_at: string | null;

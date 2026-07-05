@@ -11,11 +11,13 @@ const user = {
   id: 1,
   email: "medico@example.com",
   name: "Usuário Teste",
+  crm: "123456",
+  crm_uf: "SP",
   role: "user",
   created_at: "2026-07-04T12:00:00Z",
   email_verified_at: "2026-07-04T12:00:00Z",
   privacy_accepted_at: "2026-07-04T12:00:00Z",
-  privacy_notice_version: "2026-07-04.2",
+  privacy_notice_version: "2026-07-04.3",
 };
 
 const catalog = {
@@ -32,7 +34,7 @@ const emptyResults = {
 };
 
 const privacy = {
-  notice_version: "2026-07-04.2",
+  notice_version: "2026-07-04.3",
   result_retention_days: 180,
   contact: "privacidade@example.com",
 };

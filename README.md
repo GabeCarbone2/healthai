@@ -102,12 +102,13 @@ populações aceitas pelos modelos. Ela persiste somente um identificador
 pseudonimizado `PAC-…` e o resultado da avaliação; nomes de pacientes e valores
 clínicos enviados ao modelo não são armazenados.
 
-No primeiro acesso, use **Criar conta**. A API cria automaticamente o banco
-SQLite `data/healthai.db`, armazena usuários, sessões e o histórico de
-resultados, e protege senhas com Argon2. A conta só abre uma sessão depois da
-confirmação do e-mail; o token expira em 24 horas e somente seu hash é
-persistido. O acesso permanece em um cookie `HttpOnly` por sete dias. Os
-valores clínicos dos formulários não são gravados.
+No primeiro acesso, use **Criar conta**. O cadastro profissional exige CRM e
+UF e impede a repetição desse par. A API cria automaticamente o banco SQLite
+`data/healthai.db`, armazena usuários, sessões e o histórico de resultados, e
+protege senhas com Argon2. A conta só abre uma sessão depois da confirmação do
+e-mail; o token expira em 24 horas e somente seu hash é persistido. O acesso
+permanece em um cookie `HttpOnly` por sete dias. Os valores clínicos dos
+formulários não são gravados.
 Ao iniciar, a API aplica automaticamente as migrações pendentes do Alembic.
 Resultados vencidos são eliminados conforme
 `HEALTHAI_RESULT_RETENTION_DAYS` (180 dias por padrão), e o usuário pode excluir

@@ -5,19 +5,37 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
+BrazilianState = Literal[
+    "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO",
+    "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI",
+    "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
+]
+
 
 class RegisterInput(BaseModel):
     name: str = Field(min_length=2, max_length=120)
+    crm: str = Field(min_length=1, max_length=10, pattern=r"^\d{1,10}$")
+    crm_uf: BrazilianState
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
     privacy_accepted: Literal[True]
+
+    @field_validator("name", "crm", mode="before")
+    @classmethod
+    def strip_text(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
 
     @field_validator("name")
     @classmethod
     def validate_name(cls, value: str) -> str:
         if len(value.strip()) < 2:
             raise ValueError("Informe um nome válido.")
-        return value.strip()
+        return value
+
+    @field_validator("crm_uf", mode="before")
+    @classmethod
+    def normalize_crm_uf(cls, value: object) -> object:
+        return value.strip().upper() if isinstance(value, str) else value
 
 
 class LoginInput(BaseModel):
@@ -55,6 +73,8 @@ class UserResponse(BaseModel):
     id: int
     email: EmailStr
     name: str
+    crm: str | None
+    crm_uf: str | None
     role: str
     created_at: datetime
     email_verified_at: datetime | None

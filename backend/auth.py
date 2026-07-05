@@ -165,10 +165,22 @@ def register(
     email = str(data.email).strip().lower()
     if db.scalar(select(User).where(User.email == email)):
         raise HTTPException(status_code=409, detail="Este e-mail já está cadastrado.")
+    if db.scalar(
+        select(User).where(
+            User.crm == data.crm,
+            User.crm_uf == data.crm_uf,
+        )
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail=f"O CRM {data.crm}/{data.crm_uf} já está cadastrado.",
+        )
 
     user = User(
         email=email,
         name=data.name.strip(),
+        crm=data.crm,
+        crm_uf=data.crm_uf,
         password_hash=password_hash.hash(data.password),
         privacy_accepted_at=datetime.now(timezone.utc),
         privacy_notice_version=PRIVACY_NOTICE_VERSION,
@@ -179,7 +191,8 @@ def register(
     except IntegrityError as error:
         db.rollback()
         raise HTTPException(
-            status_code=409, detail="Este e-mail já está cadastrado."
+            status_code=409,
+            detail="Este e-mail ou CRM já está cadastrado.",
         ) from error
     db.refresh(user)
     email_sent = True
