@@ -49,7 +49,7 @@ def test_migrations_create_fresh_database(tmp_path: Path) -> None:
         revision = connection.exec_driver_sql(
             "SELECT version_num FROM alembic_version"
         ).scalar_one()
-    assert revision == "20260705_06"
+    assert revision == "20260705_07"
     command.check(config)
     engine.dispose()
 
@@ -131,6 +131,10 @@ def test_privacy_migration_removes_existing_patient_names(
         identifier = connection.exec_driver_sql(
             "SELECT patient_identifier FROM prediction_results WHERE id = 1"
         ).scalar_one()
+        profile = connection.exec_driver_sql(
+            "SELECT experiment FROM prediction_results WHERE id = 1"
+        ).scalar_one()
     assert identifier.startswith("PAC-")
     assert "Nome" not in identifier
+    assert profile == "Perfil feminino"
     migrated_engine.dispose()

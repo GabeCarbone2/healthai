@@ -164,8 +164,8 @@ INPUT_FIELDS = {
 }
 
 EXPERIMENT_LABELS = {
-    "pima": "Pima",
-    "nhanes": "NHANES",
+    "pima": "Perfil feminino",
+    "nhanes": "Perfil geral",
 }
 
 

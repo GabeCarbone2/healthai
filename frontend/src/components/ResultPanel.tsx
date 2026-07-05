@@ -47,7 +47,7 @@ export function ResultPanel({ experiment, prediction }: Props) {
 
           <dl className="result-details">
             <div>
-              <dt>Base</dt>
+              <dt>Perfil</dt>
               <dd>{experiment.label}</dd>
             </div>
             <div>

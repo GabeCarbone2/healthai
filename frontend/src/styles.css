@@ -2815,6 +2815,7 @@ body,
 }
 
 .app-shell .model-switch button {
+  min-width: 132px;
   height: 34px;
   color: #b9ccef;
   background: transparent;

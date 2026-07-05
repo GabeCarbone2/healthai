@@ -471,7 +471,7 @@ def test_prediction_result_survives_new_request_and_can_be_cleared(
         "id": 1,
         "patient_identifier": "PAC-A1B2C3D4",
         "created_at": results.json()["items"][0]["created_at"],
-        "experiment": "Pima",
+        "experiment": "Perfil feminino",
         "model": "Random Forest",
         "predicted_class": 1,
         "probability": 0.81,

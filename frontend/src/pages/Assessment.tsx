@@ -112,7 +112,7 @@ export function Assessment({ experiments, onResult }: Props) {
         <div>
           <h1>Nova avaliação</h1>
         </div>
-        <div className="model-switch" aria-label="Base do experimento">
+        <div className="model-switch" aria-label="Tipo de avaliação">
           {experiments.map((item) => (
             <button
               key={item.id}

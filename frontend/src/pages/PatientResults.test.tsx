@@ -8,7 +8,7 @@ const result = {
   id: 7,
   patientIdentifier: "PAC-A1B2C3D4",
   createdAt: "2026-07-04T12:00:00Z",
-  experiment: "Pima",
+  experiment: "Perfil feminino",
   model: "Random Forest",
   predictedClass: 1,
   probability: 0.81,

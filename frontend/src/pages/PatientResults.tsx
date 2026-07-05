@@ -241,7 +241,7 @@ export function PatientResults({
                   <tr>
                     <th>Identificador</th>
                     <th>Data</th>
-                    <th>Base</th>
+                    <th>Perfil</th>
                     <th>Modelo</th>
                     <th>Resultado</th>
                     <th>Probabilidade</th>
