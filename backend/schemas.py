@@ -3,24 +3,45 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 BrazilianState = Literal[
     "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO",
     "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI",
     "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
 ]
+CrmStatus = Literal["pending", "approved", "rejected"]
 
 
-class RegisterInput(BaseModel):
-    name: str = Field(min_length=2, max_length=120)
+class CrmCredentialsInput(BaseModel):
     crm: str = Field(min_length=1, max_length=10, pattern=r"^\d{1,10}$")
     crm_uf: BrazilianState
+
+    @field_validator("crm", mode="before")
+    @classmethod
+    def strip_crm(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
+
+    @field_validator("crm_uf", mode="before")
+    @classmethod
+    def normalize_crm_uf(cls, value: object) -> object:
+        return value.strip().upper() if isinstance(value, str) else value
+
+
+class RegisterInput(CrmCredentialsInput):
+    name: str = Field(min_length=2, max_length=120)
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
     privacy_accepted: Literal[True]
 
-    @field_validator("name", "crm", mode="before")
+    @field_validator("name", mode="before")
     @classmethod
     def strip_text(cls, value: object) -> object:
         return value.strip() if isinstance(value, str) else value
@@ -31,12 +52,6 @@ class RegisterInput(BaseModel):
         if len(value.strip()) < 2:
             raise ValueError("Informe um nome válido.")
         return value
-
-    @field_validator("crm_uf", mode="before")
-    @classmethod
-    def normalize_crm_uf(cls, value: object) -> object:
-        return value.strip().upper() if isinstance(value, str) else value
-
 
 class LoginInput(BaseModel):
     email: EmailStr
@@ -67,6 +82,23 @@ class DeleteAccountInput(BaseModel):
     confirmation: Literal["EXCLUIR"]
 
 
+class CrmReviewInput(BaseModel):
+    status: Literal["approved", "rejected"]
+    rejection_reason: str | None = Field(default=None, max_length=500)
+
+    @model_validator(mode="after")
+    def validate_rejection_reason(self) -> "CrmReviewInput":
+        reason = (
+            self.rejection_reason.strip()
+            if self.rejection_reason
+            else None
+        )
+        if self.status == "rejected" and not reason:
+            raise ValueError("Informe o motivo da rejeição.")
+        self.rejection_reason = reason
+        return self
+
+
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -75,11 +107,31 @@ class UserResponse(BaseModel):
     name: str
     crm: str | None
     crm_uf: str | None
+    crm_status: CrmStatus | None
+    crm_verified_at: datetime | None
+    crm_verified_by: int | None
+    crm_rejection_reason: str | None
     role: str
     created_at: datetime
     email_verified_at: datetime | None
     privacy_accepted_at: datetime | None
     privacy_notice_version: str | None
+
+
+class AdminCrmReviewResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    email: EmailStr
+    crm: str | None
+    crm_uf: str | None
+    crm_status: CrmStatus | None
+    created_at: datetime
+    email_verified_at: datetime | None
+    crm_verified_at: datetime | None
+    crm_verified_by: int | None
+    crm_rejection_reason: str | None
 
 
 class PatientPredictionInput(BaseModel):

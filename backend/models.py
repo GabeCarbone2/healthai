@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
+    DateTime,
     Float,
     ForeignKey,
     Index,
@@ -24,6 +26,11 @@ class User(Base):
     __tablename__ = "users"
     __table_args__ = (
         UniqueConstraint("crm", "crm_uf", name="uq_users_crm_uf"),
+        CheckConstraint(
+            "crm_status IS NULL OR crm_status IN "
+            "('pending', 'approved', 'rejected')",
+            name="ck_users_crm_status",
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -31,6 +38,18 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(120))
     crm: Mapped[str | None] = mapped_column(String(10), nullable=True)
     crm_uf: Mapped[str | None] = mapped_column(String(2), nullable=True)
+    crm_status: Mapped[str | None] = mapped_column(
+        String(20), default="pending", nullable=True
+    )
+    crm_verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(), nullable=True
+    )
+    crm_verified_by: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    crm_rejection_reason: Mapped[str | None] = mapped_column(
+        String(500), nullable=True
+    )
     password_hash: Mapped[str] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(30), default="user")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)

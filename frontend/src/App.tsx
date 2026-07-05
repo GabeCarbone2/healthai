@@ -4,6 +4,7 @@ import {
   ListChecks,
   LogOut,
   RefreshCw,
+  ShieldEllipsis,
   ShieldCheck,
   WifiOff,
 } from "lucide-react";
@@ -20,6 +21,7 @@ import {
 } from "./api";
 import { Assessment } from "./pages/Assessment";
 import { AccountPage } from "./pages/AccountPage";
+import { AdminCrmPage } from "./pages/AdminCrmPage";
 import { AuthPage } from "./pages/AuthPage";
 import { PatientResults } from "./pages/PatientResults";
 import { PrivacyConsentPage } from "./pages/PrivacyConsentPage";
@@ -33,13 +35,22 @@ import type {
   User,
 } from "./types";
 
-type Page = "assessment" | "results" | "account";
+type Page = "assessment" | "results" | "account" | "admin";
 
-const navigation = [
+const clinicalNavigation = [
   { id: "assessment" as const, label: "Avaliação", icon: ClipboardPlus },
   { id: "results" as const, label: "Resultados", icon: ListChecks },
-  { id: "account" as const, label: "Conta", icon: ShieldCheck },
 ];
+const accountNavigation = {
+  id: "account" as const,
+  label: "Conta",
+  icon: ShieldCheck,
+};
+const adminNavigation = {
+  id: "admin" as const,
+  label: "Verificações",
+  icon: ShieldEllipsis,
+};
 
 const EMPTY_FILTERS: ResultFilters = {
   search: "",
@@ -91,6 +102,7 @@ export default function App() {
     if (
       !user
       || !privacyInfo
+      || user.crm_status !== "approved"
       || !user.privacy_accepted_at
       || user.privacy_notice_version !== privacyInfo.notice_version
     ) {
@@ -337,6 +349,20 @@ export default function App() {
     );
   }
 
+  const clinicalAccess = user.crm_status === "approved";
+  const adminAccess = user.role === "admin";
+  const navigation = [
+    ...(clinicalAccess ? clinicalNavigation : []),
+    accountNavigation,
+    ...(adminAccess ? [adminNavigation] : []),
+  ];
+  const effectivePage: Page =
+    page === "admin" && adminAccess
+      ? "admin"
+      : (page === "assessment" || page === "results") && !clinicalAccess
+        ? "account"
+        : page;
+
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -352,7 +378,7 @@ export default function App() {
             {navigation.map((item) => (
               <button
                 type="button"
-                className={page === item.id ? "active" : ""}
+                className={effectivePage === item.id ? "active" : ""}
                 onClick={() => setPage(item.id)}
                 key={item.id}
               >
@@ -387,7 +413,16 @@ export default function App() {
             {logoutError} Tente novamente.
           </div>
         )}
-        {catalogError ? (
+        {effectivePage === "admin" ? (
+          <AdminCrmPage />
+        ) : effectivePage === "account" ? (
+          <AccountPage
+            user={user}
+            privacy={privacyInfo}
+            onDeleted={clearLocalAccount}
+            onUserUpdated={setUser}
+          />
+        ) : catalogError ? (
           <div className="connection-error">
             <WifiOff size={28} />
             <h1>Não foi possível carregar os modelos</h1>
@@ -402,7 +437,7 @@ export default function App() {
             <Activity size={24} />
             <span>Carregando modelos...</span>
           </div>
-        ) : page === "assessment" ? (
+        ) : effectivePage === "assessment" ? (
           <Assessment
             experiments={catalog.experiments}
             onResult={() => {
@@ -412,7 +447,7 @@ export default function App() {
               void loadResults(1, EMPTY_FILTERS);
             }}
           />
-        ) : page === "results" ? (
+        ) : effectivePage === "results" ? (
           <PatientResults
             results={patientResults}
             filters={resultFilters}
@@ -435,13 +470,7 @@ export default function App() {
             onDelete={removeResult}
             onClear={removeResults}
           />
-        ) : (
-          <AccountPage
-            user={user}
-            privacy={privacyInfo}
-            onDeleted={clearLocalAccount}
-          />
-        )}
+        ) : null}
       </main>
     </div>
   );

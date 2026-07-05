@@ -1,5 +1,7 @@
 import type {
+  AdminCrmReview,
   Catalog,
+  CrmStatus,
   PatientResult,
   PatientResultPage,
   PrivacyInfo,
@@ -74,6 +76,34 @@ export function resendVerification(email: string): Promise<void> {
   return request<void>("/auth/resend-verification", {
     method: "POST",
     body: JSON.stringify({ email }),
+  });
+}
+
+export function submitCrm(crm: string, crmUf: string): Promise<User> {
+  return request<User>("/auth/crm", {
+    method: "POST",
+    body: JSON.stringify({ crm, crm_uf: crmUf }),
+  });
+}
+
+export function fetchCrmReviews(
+  status?: CrmStatus,
+): Promise<AdminCrmReview[]> {
+  const query = status ? `?status=${status}` : "";
+  return request<AdminCrmReview[]>(`/auth/admin/crm-reviews${query}`);
+}
+
+export function reviewCrm(
+  userId: number,
+  status: "approved" | "rejected",
+  rejectionReason?: string,
+): Promise<User> {
+  return request<User>(`/auth/admin/crm-reviews/${userId}`, {
+    method: "POST",
+    body: JSON.stringify({
+      status,
+      rejection_reason: rejectionReason || null,
+    }),
   });
 }
 

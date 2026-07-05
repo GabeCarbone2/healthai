@@ -13,11 +13,15 @@ const user = {
   name: "Usuário Teste",
   crm: "123456",
   crm_uf: "SP",
+  crm_status: "approved" as const,
+  crm_verified_at: "2026-07-04T12:00:00Z",
+  crm_verified_by: 2,
+  crm_rejection_reason: null,
   role: "user",
   created_at: "2026-07-04T12:00:00Z",
   email_verified_at: "2026-07-04T12:00:00Z",
   privacy_accepted_at: "2026-07-04T12:00:00Z",
-  privacy_notice_version: "2026-07-04.3",
+  privacy_notice_version: "2026-07-05.1",
 };
 
 const catalog = {
@@ -34,7 +38,7 @@ const emptyResults = {
 };
 
 const privacy = {
-  notice_version: "2026-07-04.3",
+  notice_version: "2026-07-05.1",
   result_retention_days: 180,
   contact: "privacidade@example.com",
 };
@@ -117,5 +121,26 @@ describe("App", () => {
     expect(
       await screen.findByRole("button", { name: "Avaliação" }),
     ).toBeInTheDocument();
+  });
+
+  it("mantém cadastros pendentes fora das funções clínicas", async () => {
+    vi.mocked(api.fetchCurrentUser).mockResolvedValue({
+      ...user,
+      crm_status: "pending",
+      crm_verified_at: null,
+      crm_verified_by: null,
+    });
+
+    render(<App />);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Verificação profissional pendente",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Avaliação" }),
+    ).not.toBeInTheDocument();
+    expect(api.fetchCatalog).not.toHaveBeenCalled();
   });
 });

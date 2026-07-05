@@ -43,6 +43,11 @@ Edite `.env.production` e preencha `HEALTHAI_SMTP_PASSWORD` com a senha
 exclusiva da caixa postal remetente. O arquivo é ignorado pelo Git e não deve
 ser enviado ao repositório.
 
+Defina também `HEALTHAI_ADMIN_EMAILS` com os e-mails, separados por vírgula,
+das contas autorizadas a analisar cadastros profissionais. Ao iniciar, a API
+promove contas existentes que correspondam à lista. Sem ao menos um
+administrador configurado, nenhum CRM pendente poderá ser aprovado.
+
 Os artefatos `models/pima_selected.joblib` e
 `models/nhanes_selected.joblib` precisam estar versionados no repositório antes
 do clone.

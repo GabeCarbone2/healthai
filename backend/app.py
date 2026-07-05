@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
-from backend.auth import get_consented_user
+from backend.auth import get_consented_user, promote_configured_admins
 from backend.auth import router as auth_router
 from backend.database import SessionLocal, get_db, init_database
 from backend.model_service import (
@@ -43,6 +43,7 @@ DatabaseSession = Annotated[Session, Depends(get_db)]
 async def lifespan(_: FastAPI):
     init_database()
     with SessionLocal() as db:
+        promote_configured_admins(db)
         purge_expired_results(db)
         db.commit()
     yield

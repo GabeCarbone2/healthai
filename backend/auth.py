@@ -7,7 +7,15 @@ from datetime import datetime, timezone
 from typing import Annotated
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
+from fastapi import (
+    APIRouter,
+    Cookie,
+    Depends,
+    HTTPException,
+    Query,
+    Response,
+    status,
+)
 from pwdlib import PasswordHash
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
@@ -23,6 +31,10 @@ from backend.models import (
 )
 from backend.privacy import PRIVACY_NOTICE_VERSION
 from backend.schemas import (
+    AdminCrmReviewResponse,
+    CrmCredentialsInput,
+    CrmReviewInput,
+    CrmStatus,
     DeleteAccountInput,
     LoginInput,
     PrivacyConsentInput,
@@ -42,6 +54,29 @@ password_hash = PasswordHash.recommended()
 dummy_password_hash = password_hash.hash("healthai-dummy-password")
 router = APIRouter(prefix="/auth", tags=["Autenticação"])
 DatabaseSession = Annotated[Session, Depends(get_db)]
+
+
+def configured_admin_emails() -> set[str]:
+    """Retorna os e-mails autorizados a receber a função administrativa."""
+    return {
+        email.strip().lower()
+        for email in setting("HEALTHAI_ADMIN_EMAILS").split(",")
+        if email.strip()
+    }
+
+
+def promote_configured_admins(db: Session) -> int:
+    """Promove contas existentes explicitamente listadas na configuração."""
+    emails = configured_admin_emails()
+    if not emails:
+        return 0
+    users = db.scalars(select(User).where(User.email.in_(emails))).all()
+    promoted = 0
+    for user in users:
+        if user.role != "admin":
+            user.role = "admin"
+            promoted += 1
+    return promoted
 
 
 def _token_digest(token: str) -> str:
@@ -154,6 +189,22 @@ def get_consented_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Aceite o aviso de privacidade para continuar.",
         )
+    if user.crm_status != "approved":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Seu cadastro profissional ainda não foi aprovado.",
+        )
+    return user
+
+
+def get_admin_user(
+    user: Annotated[User, Depends(get_current_user)],
+) -> User:
+    if user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso administrativo necessário.",
+        )
     return user
 
 
@@ -181,6 +232,8 @@ def register(
         name=data.name.strip(),
         crm=data.crm,
         crm_uf=data.crm_uf,
+        crm_status="pending",
+        role="admin" if email in configured_admin_emails() else "user",
         password_hash=password_hash.hash(data.password),
         privacy_accepted_at=datetime.now(timezone.utc),
         privacy_notice_version=PRIVACY_NOTICE_VERSION,
@@ -292,6 +345,86 @@ def login(
 @router.get("/me", response_model=UserResponse)
 def me(user: Annotated[User, Depends(get_current_user)]) -> User:
     return user
+
+
+@router.post("/crm", response_model=UserResponse)
+def submit_crm(
+    data: CrmCredentialsInput,
+    db: DatabaseSession,
+    user: Annotated[User, Depends(get_current_user)],
+) -> User:
+    if user.crm_status == "approved":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="O CRM desta conta já foi aprovado.",
+        )
+    duplicate = db.scalar(
+        select(User).where(
+            User.crm == data.crm,
+            User.crm_uf == data.crm_uf,
+            User.id != user.id,
+        )
+    )
+    if duplicate:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"O CRM {data.crm}/{data.crm_uf} já está cadastrado.",
+        )
+    user.crm = data.crm
+    user.crm_uf = data.crm_uf
+    user.crm_status = "pending"
+    user.crm_verified_at = None
+    user.crm_verified_by = None
+    user.crm_rejection_reason = None
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.get(
+    "/admin/crm-reviews",
+    response_model=list[AdminCrmReviewResponse],
+)
+def list_crm_reviews(
+    db: DatabaseSession,
+    _: Annotated[User, Depends(get_admin_user)],
+    review_status: Annotated[CrmStatus | None, Query(alias="status")] = None,
+) -> list[User]:
+    statement = (
+        select(User)
+        .where(User.crm.is_not(None), User.crm_uf.is_not(None))
+        .order_by(User.created_at.asc())
+    )
+    if review_status:
+        statement = statement.where(User.crm_status == review_status)
+    return list(db.scalars(statement))
+
+
+@router.post(
+    "/admin/crm-reviews/{user_id}",
+    response_model=UserResponse,
+)
+def review_crm(
+    user_id: int,
+    data: CrmReviewInput,
+    db: DatabaseSession,
+    admin: Annotated[User, Depends(get_admin_user)],
+) -> User:
+    target = db.get(User, user_id)
+    if not target or not target.crm or not target.crm_uf:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cadastro profissional não encontrado.",
+        )
+    target.crm_status = data.status
+    target.crm_verified_at = datetime.now(timezone.utc)
+    target.crm_verified_by = admin.id
+    target.crm_rejection_reason = (
+        data.rejection_reason if data.status == "rejected" else None
+    )
+    db.commit()
+    db.refresh(target)
+    return target
 
 
 @router.post("/privacy-consent", response_model=UserResponse)

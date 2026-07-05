@@ -44,7 +44,7 @@ def client(
     engine.dispose()
 
 
-def register(client: TestClient) -> None:
+def register(client: TestClient, *, approve_crm: bool = True) -> None:
     response = client.post(
         "/auth/register",
         json={
@@ -62,6 +62,8 @@ def register(client: TestClient) -> None:
         user = db.scalar(select(User))
         assert user is not None
         user.email_verified_at = datetime.now(timezone.utc)
+        if approve_crm:
+            user.crm_status = "approved"
         db.commit()
     login_response = client.post(
         "/auth/login",
@@ -94,7 +96,7 @@ def test_privacy_policy_is_public_and_reports_retention(
 
     assert response.status_code == 200
     assert response.json() == {
-        "notice_version": "2026-07-04.3",
+        "notice_version": "2026-07-05.1",
         "result_retention_days": 90,
         "contact": "privacidade@example.com",
     }
@@ -160,6 +162,7 @@ def test_registration_requires_email_verification_before_creating_session(
         assert user.password_hash != "senha-segura"
         assert user.crm == "123456"
         assert user.crm_uf == "SP"
+        assert user.crm_status == "pending"
         assert user.email_verified_at is None
         verification = db.scalar(select(EmailVerificationToken))
         assert verification is not None
@@ -186,6 +189,7 @@ def test_registration_requires_email_verification_before_creating_session(
     assert verification_response.json()["email_verified_at"] is not None
     assert verification_response.json()["crm"] == "123456"
     assert verification_response.json()["crm_uf"] == "SP"
+    assert verification_response.json()["crm_status"] == "pending"
     assert "HttpOnly" in verification_response.headers["set-cookie"]
     assert client.get("/auth/me").status_code == 200
     with next(db_override()) as db:
@@ -258,6 +262,92 @@ def test_registration_rejects_invalid_crm_and_state(
     assert response.status_code == 422
 
 
+def test_pending_crm_blocks_clinical_access(client: TestClient) -> None:
+    register(client, approve_crm=False)
+
+    response = client.get("/models")
+
+    assert response.status_code == 403
+    assert "ainda não foi aprovado" in response.json()["detail"]
+    assert client.get("/auth/me").json()["crm_status"] == "pending"
+    assert client.get("/auth/admin/crm-reviews").status_code == 403
+
+
+def test_admin_can_approve_pending_crm(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("HEALTHAI_ADMIN_EMAILS", "admin@example.com")
+    register(client, approve_crm=False)
+    assert client.post("/auth/logout").status_code == 204
+
+    admin_registration = client.post(
+        "/auth/register",
+        json={
+            "name": "Administradora",
+            "crm": "999999",
+            "crm_uf": "DF",
+            "email": "admin@example.com",
+            "password": "senha-admin",
+            "privacy_accepted": True,
+        },
+    )
+    assert admin_registration.status_code == 201
+
+    db_override = app.dependency_overrides[get_db]
+    with next(db_override()) as db:
+        admin = db.scalar(
+            select(User).where(User.email == "admin@example.com")
+        )
+        assert admin is not None
+        assert admin.role == "admin"
+        admin.email_verified_at = datetime.now(timezone.utc)
+        db.commit()
+
+    login = client.post(
+        "/auth/login",
+        json={"email": "admin@example.com", "password": "senha-admin"},
+    )
+    assert login.status_code == 200
+
+    pending = client.get(
+        "/auth/admin/crm-reviews",
+        params={"status": "pending"},
+    )
+    assert pending.status_code == 200
+    doctor = next(
+        item
+        for item in pending.json()
+        if item["email"] == "usuario@example.com"
+    )
+
+    rejected_without_reason = client.post(
+        f"/auth/admin/crm-reviews/{doctor['id']}",
+        json={"status": "rejected"},
+    )
+    assert rejected_without_reason.status_code == 422
+
+    approval = client.post(
+        f"/auth/admin/crm-reviews/{doctor['id']}",
+        json={"status": "approved"},
+    )
+    assert approval.status_code == 200
+    assert approval.json()["crm_status"] == "approved"
+    assert approval.json()["crm_verified_by"] == login.json()["id"]
+    assert approval.json()["crm_verified_at"] is not None
+
+    assert client.post("/auth/logout").status_code == 204
+    doctor_login = client.post(
+        "/auth/login",
+        json={
+            "email": "usuario@example.com",
+            "password": "senha-segura",
+        },
+    )
+    assert doctor_login.status_code == 200
+    assert client.get("/models").status_code == 200
+
+
 def test_logout_invalidates_session(client: TestClient) -> None:
     register(client)
 
@@ -286,7 +376,7 @@ def test_existing_user_must_accept_current_privacy_notice(
     )
     assert consent.status_code == 200
     assert consent.json()["privacy_accepted_at"] is not None
-    assert consent.json()["privacy_notice_version"] == "2026-07-04.3"
+    assert consent.json()["privacy_notice_version"] == "2026-07-05.1"
     assert client.get("/results").status_code == 200
 
 

@@ -135,11 +135,31 @@ export type User = {
   name: string;
   crm: string | null;
   crm_uf: string | null;
+  crm_status: CrmStatus | null;
+  crm_verified_at: string | null;
+  crm_verified_by: number | null;
+  crm_rejection_reason: string | null;
   role: string;
   created_at: string;
   email_verified_at: string | null;
   privacy_accepted_at: string | null;
   privacy_notice_version: string | null;
+};
+
+export type CrmStatus = "pending" | "approved" | "rejected";
+
+export type AdminCrmReview = {
+  id: number;
+  name: string;
+  email: string;
+  crm: string | null;
+  crm_uf: string | null;
+  crm_status: CrmStatus | null;
+  created_at: string;
+  email_verified_at: string | null;
+  crm_verified_at: string | null;
+  crm_verified_by: number | null;
+  crm_rejection_reason: string | null;
 };
 
 export type RegistrationResponse = {

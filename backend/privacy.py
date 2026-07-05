@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from backend.models import PredictionResult
 from backend.settings import setting
 
-PRIVACY_NOTICE_VERSION = "2026-07-04.3"
+PRIVACY_NOTICE_VERSION = "2026-07-05.1"
 DEFAULT_RESULT_RETENTION_DAYS = 180
 
 

@@ -37,12 +37,19 @@ def test_migrations_create_fresh_database(tmp_path: Path) -> None:
     user_columns = {
         column["name"] for column in inspector.get_columns("users")
     }
-    assert {"crm", "crm_uf"} <= user_columns
+    assert {
+        "crm",
+        "crm_uf",
+        "crm_status",
+        "crm_verified_at",
+        "crm_verified_by",
+        "crm_rejection_reason",
+    } <= user_columns
     with engine.connect() as connection:
         revision = connection.exec_driver_sql(
             "SELECT version_num FROM alembic_version"
         ).scalar_one()
-    assert revision == "20260704_05"
+    assert revision == "20260705_06"
     command.check(config)
     engine.dispose()
 

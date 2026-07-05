@@ -3187,6 +3187,7 @@ body,
 }
 
 .app-shell .account-card,
+.app-shell .crm-status-card,
 .app-shell .danger-zone {
   color: var(--app-text);
   background: var(--app-surface);
@@ -3194,6 +3195,250 @@ body,
   border-radius: 18px;
   box-shadow: 0 25px 58px rgb(0 8 52 / 28%);
   backdrop-filter: blur(22px);
+}
+
+.crm-status-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 18px;
+  padding: 24px;
+}
+
+.crm-status-card.pending,
+.crm-status-card.missing {
+  border-color: rgb(255 203 99 / 35%);
+}
+
+.crm-status-card.pending > svg,
+.crm-status-card.missing > svg {
+  color: #ffd36f;
+}
+
+.crm-status-card.approved {
+  border-color: rgb(92 225 174 / 35%);
+}
+
+.crm-status-card.approved > svg {
+  color: #62e1ae;
+}
+
+.crm-status-card.rejected {
+  border-color: rgb(255 121 135 / 35%);
+}
+
+.crm-status-card.rejected > svg {
+  color: #ff8994;
+}
+
+.crm-status-card h2 {
+  margin: 0 0 7px;
+  color: #ffffff;
+}
+
+.crm-status-card p {
+  margin-bottom: 8px;
+  color: #a7bde0;
+  font-size: 13px;
+}
+
+.crm-status-card strong {
+  color: #e5f2ff;
+  font-size: 12px;
+}
+
+.crm-update-form {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) 120px auto;
+  align-items: end;
+  gap: 11px;
+  margin-top: 18px;
+}
+
+.crm-update-form label > span,
+.review-actions label > span {
+  display: block;
+  margin-bottom: 6px;
+  color: #c5d7f2;
+  font-size: 11px;
+}
+
+.crm-update-form input,
+.crm-update-form select,
+.review-actions textarea {
+  width: 100%;
+  color: #132752;
+  background: rgb(249 252 255 / 94%);
+  border: 1px solid rgb(255 255 255 / 40%);
+  border-radius: 8px;
+}
+
+.crm-update-form input,
+.crm-update-form select {
+  height: 40px;
+  padding: 0 10px;
+}
+
+.crm-update-form button,
+.cfm-link,
+.review-filters button,
+.review-actions button,
+.review-empty button {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 14px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #245fcf, #173f9d);
+  border: 1px solid rgb(126 197 255 / 30%);
+  border-radius: 9px;
+  text-decoration: none;
+}
+
+.admin-crm-page {
+  max-width: 1080px;
+}
+
+.cfm-link {
+  font-size: 12px;
+}
+
+.review-filters {
+  display: flex;
+  gap: 7px;
+  margin-bottom: 20px;
+}
+
+.review-filters button {
+  min-height: 36px;
+  color: #a9c0e4;
+  background: rgb(8 30 88 / 54%);
+}
+
+.review-filters button.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #2872df, #1d4eae);
+}
+
+.review-list {
+  display: grid;
+  gap: 14px;
+}
+
+.review-card,
+.review-empty {
+  padding: 22px;
+  color: var(--app-text);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 16px;
+  box-shadow: 0 22px 52px rgb(0 8 52 / 24%);
+}
+
+.review-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.review-identity > span {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: linear-gradient(145deg, #38cbed, #3566f3);
+  border-radius: 50%;
+  font-weight: 700;
+}
+
+.review-identity h2,
+.review-empty h2 {
+  margin: 0;
+  color: #ffffff;
+}
+
+.review-identity p {
+  margin: 3px 0 0;
+  color: #9fb8df;
+  font-size: 12px;
+}
+
+.review-card dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.review-card dl > div {
+  padding: 11px;
+  background: rgb(5 25 77 / 42%);
+  border: 1px solid rgb(142 200 255 / 14%);
+  border-radius: 9px;
+}
+
+.review-card dt {
+  color: #819ac4;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.review-card dd {
+  margin: 4px 0 0;
+  color: #e5f1ff;
+  font-size: 12px;
+}
+
+.review-reason {
+  color: #ffb1b8;
+  font-size: 12px;
+}
+
+.review-actions,
+.review-actions label > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.review-actions label {
+  width: 100%;
+}
+
+.review-actions textarea {
+  min-height: 80px;
+  margin-bottom: 9px;
+  padding: 10px;
+  resize: vertical;
+}
+
+.review-actions button.approve {
+  background: linear-gradient(135deg, #16845c, #096242);
+}
+
+.review-actions button.reject {
+  background: linear-gradient(135deg, #c34559, #92253e);
+}
+
+.review-actions button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.review-empty {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 48px 22px;
+  color: #7ee0ff;
+  text-align: center;
+}
+
+.loading-state.compact {
+  min-height: 260px;
 }
 
 .app-shell .account-card > svg {
@@ -3383,7 +3628,17 @@ body,
   .app-shell .results-filters,
   .app-shell .patient-results,
   .app-shell .account-card,
+  .app-shell .crm-status-card,
   .app-shell .danger-zone {
     border-radius: 14px;
+  }
+
+  .crm-update-form,
+  .review-card dl {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-update-form button {
+    width: 100%;
   }
 }

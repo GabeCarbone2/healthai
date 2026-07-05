@@ -1,6 +1,6 @@
 # Aviso de privacidade e controles LGPD
 
-Versão do aviso: **2026-07-04.3**
+Versão do aviso: **2026-07-05.1**
 
 Este documento descreve os controles técnicos implementados no HealthAI. Ele
 não substitui a definição, pelo responsável pelo projeto, do controlador, do
@@ -15,8 +15,9 @@ diagnóstico e não substitui avaliação profissional.
 
 ## Dados tratados
 
-- conta profissional: nome, e-mail, CRM, UF do CRM, estado da verificação,
-  hash da senha, sessões e data/versionamento do aceite;
+- conta profissional: nome, e-mail, CRM, UF do CRM, estado e data da análise,
+  administrador responsável, eventual motivo de rejeição, estado da
+  confirmação do e-mail, hash da senha, sessões e data/versionamento do aceite;
 - avaliação: identificador pseudonimizado `PAC-…`, modelo, resultado,
   probabilidade, limiar e data;
 - dados clínicos informados no formulário: processados transitoriamente para
@@ -35,6 +36,12 @@ novamente a uma pessoa, os dados continuam sujeitos à LGPD.
 O cadastro exige aceite livre e destacado da versão atual deste aviso. O
 usuário pode recusar o aceite e sair, ou excluir a conta. Quando o aviso muda,
 um novo aceite é exigido antes do acesso aos modelos e resultados.
+
+O CRM é analisado manualmente por uma conta administrativa. Enquanto estiver
+pendente ou rejeitado, o usuário pode administrar sua conta, mas não acessar
+avaliações ou resultados clínicos. A consulta ao portal público do CFM é feita
+pelo administrador em uma aba separada; o HealthAI não automatiza nem armazena
+o conteúdo dessa consulta.
 
 O aceite do usuário da conta não representa, por si só, consentimento do
 paciente nem define a hipótese legal para tratar dados de saúde de terceiros.

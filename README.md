@@ -103,12 +103,25 @@ pseudonimizado `PAC-…` e o resultado da avaliação; nomes de pacientes e valo
 clínicos enviados ao modelo não são armazenados.
 
 No primeiro acesso, use **Criar conta**. O cadastro profissional exige CRM e
-UF e impede a repetição desse par. A API cria automaticamente o banco SQLite
-`data/healthai.db`, armazena usuários, sessões e o histórico de resultados, e
-protege senhas com Argon2. A conta só abre uma sessão depois da confirmação do
-e-mail; o token expira em 24 horas e somente seu hash é persistido. O acesso
-permanece em um cookie `HttpOnly` por sete dias. Os valores clínicos dos
-formulários não são gravados.
+UF e impede a repetição desse par. Após confirmar o e-mail, a conta permanece
+com o CRM pendente e só recebe acesso às avaliações depois da aprovação manual
+por um administrador. A API registra o status, a data, o administrador
+responsável e eventual motivo de rejeição. A consulta é feita no portal público
+do CFM, sem automação pelo HealthAI.
+
+Defina uma ou mais contas administrativas, separadas por vírgula, antes de
+iniciar a API:
+
+```bash
+HEALTHAI_ADMIN_EMAILS=administrador@example.com
+```
+
+Contas existentes com esses e-mails são promovidas na inicialização. A API cria
+automaticamente o banco SQLite `data/healthai.db`, armazena usuários, sessões e
+o histórico de resultados, e protege senhas com Argon2. A conta só abre uma
+sessão depois da confirmação do e-mail; o token expira em 24 horas e somente
+seu hash é persistido. O acesso permanece em um cookie `HttpOnly` por sete
+dias. Os valores clínicos dos formulários não são gravados.
 Ao iniciar, a API aplica automaticamente as migrações pendentes do Alembic.
 Resultados vencidos são eliminados conforme
 `HEALTHAI_RESULT_RETENTION_DAYS` (180 dias por padrão), e o usuário pode excluir

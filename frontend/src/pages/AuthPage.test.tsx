@@ -9,7 +9,7 @@ import { AuthPage } from "./AuthPage";
 vi.mock("../api");
 
 const privacy = {
-  notice_version: "2026-07-04.3",
+  notice_version: "2026-07-05.1",
   result_retention_days: 180,
   contact: "privacidade@example.com",
 };
@@ -20,11 +20,15 @@ const registeredUser = {
   name: "Usuário Teste",
   crm: "123456",
   crm_uf: "SP",
+  crm_status: "approved" as const,
+  crm_verified_at: "2026-07-04T12:00:00Z",
+  crm_verified_by: 2,
+  crm_rejection_reason: null,
   role: "user",
   created_at: "2026-07-04T12:00:00Z",
   email_verified_at: "2026-07-04T12:00:00Z",
   privacy_accepted_at: "2026-07-04T12:00:00Z",
-  privacy_notice_version: "2026-07-04.3",
+  privacy_notice_version: "2026-07-05.1",
 };
 
 describe("AuthPage", () => {
@@ -91,6 +95,7 @@ describe("AccountPage", () => {
         user={registeredUser}
         privacy={privacy}
         onDeleted={onDeleted}
+        onUserUpdated={vi.fn()}
       />,
     );
 
