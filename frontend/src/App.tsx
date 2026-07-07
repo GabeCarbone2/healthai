@@ -51,6 +51,14 @@ const adminNavigation = {
   label: "Verificações",
   icon: ShieldEllipsis,
 };
+const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000;
+const ACTIVITY_EVENTS = [
+  "click",
+  "keydown",
+  "pointerdown",
+  "scroll",
+  "touchstart",
+] as const;
 
 const EMPTY_FILTERS: ResultFilters = {
   search: "",
@@ -156,6 +164,32 @@ export default function App() {
       active = false;
     };
   }, [privacyInfo, user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    let timeoutId = window.setTimeout(() => {
+      void expireIdleSession();
+    }, INACTIVITY_TIMEOUT_MS);
+
+    function resetTimer() {
+      window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => {
+        void expireIdleSession();
+      }, INACTIVITY_TIMEOUT_MS);
+    }
+
+    ACTIVITY_EVENTS.forEach((eventName) => {
+      window.addEventListener(eventName, resetTimer, { passive: true });
+    });
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      ACTIVITY_EVENTS.forEach((eventName) => {
+        window.removeEventListener(eventName, resetTimer);
+      });
+    };
+  }, [user]);
 
   async function retryPrivacyInfo() {
     setPrivacyInfo(undefined);
@@ -278,6 +312,12 @@ export default function App() {
     } finally {
       setLoggingOut(false);
     }
+  }
+
+  async function expireIdleSession() {
+    setLogoutError("");
+    await logout().catch(() => undefined);
+    clearLocalAccount();
   }
 
   function clearLocalAccount() {

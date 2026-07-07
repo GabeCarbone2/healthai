@@ -1,3 +1,4 @@
+import time
 from collections.abc import Generator
 from datetime import datetime, timedelta, timezone
 from urllib.parse import parse_qs, urlparse
@@ -9,6 +10,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from backend.app import app
+from backend.auth import SESSION_IDLE_TIMEOUT_SECONDS
 from backend.database import Base, get_db
 from backend.models import (
     EmailVerificationToken,
@@ -237,6 +239,36 @@ def test_login_cookie_expires_with_browser_session(
     assert "Max-Age" not in login_cookie
     assert "expires=" not in login_cookie.lower()
     assert client.get("/auth/me").status_code == 200
+
+
+def test_session_expires_after_idle_timeout_and_refreshes_on_activity(
+    client: TestClient,
+) -> None:
+    register(client)
+    db_override = app.dependency_overrides[get_db]
+
+    with next(db_override()) as db:
+        session = db.scalar(select(UserSession))
+        assert session is not None
+        session.expires_at = int(time.time()) + 5
+        original_expiration = session.expires_at
+        db.commit()
+
+    assert client.get("/auth/me").status_code == 200
+
+    with next(db_override()) as db:
+        refreshed_session = db.scalar(select(UserSession))
+        assert refreshed_session is not None
+        assert refreshed_session.expires_at > original_expiration
+        assert (
+            refreshed_session.expires_at
+            <= int(time.time()) + SESSION_IDLE_TIMEOUT_SECONDS + 2
+        )
+
+        refreshed_session.expires_at = int(time.time()) - 1
+        db.commit()
+
+    assert client.get("/auth/me").status_code == 401
 
 
 def test_invalid_email_verification_token_is_rejected(

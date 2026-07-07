@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as api from "./api";
 import App from "./App";
@@ -50,6 +50,11 @@ describe("App", () => {
     vi.mocked(api.fetchPrivacyInfo).mockResolvedValue(privacy);
     vi.mocked(api.fetchCatalog).mockResolvedValue(catalog);
     vi.mocked(api.fetchResults).mockResolvedValue(emptyResults);
+    vi.mocked(api.logout).mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("mantém a avaliação disponível quando somente o histórico falha", async () => {
@@ -142,5 +147,24 @@ describe("App", () => {
       screen.queryByRole("button", { name: "Avaliação" }),
     ).not.toBeInTheDocument();
     expect(api.fetchCatalog).not.toHaveBeenCalled();
+  });
+
+  it("encerra a sessão depois de 30 minutos sem atividade", async () => {
+    render(<App />);
+
+    expect(
+      await screen.findByRole("button", { name: "Avaliação" }),
+    ).toBeInTheDocument();
+
+    vi.useFakeTimers();
+    act(() => {
+      window.dispatchEvent(new Event("click"));
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30 * 60 * 1000);
+    });
+
+    expect(api.logout).toHaveBeenCalledOnce();
   });
 });

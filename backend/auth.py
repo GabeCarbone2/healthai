@@ -47,7 +47,7 @@ from backend.schemas import (
 from backend.settings import setting
 
 SESSION_COOKIE = "healthai_session"
-SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7
+SESSION_IDLE_TIMEOUT_SECONDS = 60 * 30
 EMAIL_VERIFICATION_DURATION_SECONDS = 60 * 60 * 24
 EMAIL_RESEND_INTERVAL_SECONDS = 60
 password_hash = PasswordHash.recommended()
@@ -102,7 +102,7 @@ def _create_session(db: Session, user: User, response: Response) -> None:
         UserSession(
             token_hash=_token_digest(token),
             user_id=user.id,
-            expires_at=now + SESSION_DURATION_SECONDS,
+            expires_at=now + SESSION_IDLE_TIMEOUT_SECONDS,
         )
     )
     db.commit()
@@ -173,6 +173,8 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Sessão inválida ou expirada.",
         )
+    user_session.expires_at = int(time.time()) + SESSION_IDLE_TIMEOUT_SECONDS
+    db.commit()
     return user
 
 
