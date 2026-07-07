@@ -190,10 +190,53 @@ def test_registration_requires_email_verification_before_creating_session(
     assert verification_response.json()["crm"] == "123456"
     assert verification_response.json()["crm_uf"] == "SP"
     assert verification_response.json()["crm_status"] == "pending"
-    assert "HttpOnly" in verification_response.headers["set-cookie"]
+    verification_cookie = verification_response.headers["set-cookie"]
+    assert "HttpOnly" in verification_cookie
+    assert "Max-Age" not in verification_cookie
+    assert "expires=" not in verification_cookie.lower()
     assert client.get("/auth/me").status_code == 200
     with next(db_override()) as db:
         assert db.scalar(select(EmailVerificationToken)) is None
+
+
+def test_login_cookie_expires_with_browser_session(
+    client: TestClient,
+) -> None:
+    registration = client.post(
+        "/auth/register",
+        json={
+            "name": "Usuário Teste",
+            "crm": "123456",
+            "crm_uf": "SP",
+            "email": "usuario@example.com",
+            "password": "senha-segura",
+            "privacy_accepted": True,
+        },
+    )
+    assert registration.status_code == 201
+
+    db_override = app.dependency_overrides[get_db]
+    with next(db_override()) as db:
+        user = db.scalar(select(User))
+        assert user is not None
+        user.email_verified_at = datetime.now(timezone.utc)
+        db.commit()
+
+    login_response = client.post(
+        "/auth/login",
+        json={
+            "email": "usuario@example.com",
+            "password": "senha-segura",
+        },
+    )
+
+    assert login_response.status_code == 200
+    login_cookie = login_response.headers["set-cookie"]
+    assert "healthai_session=" in login_cookie
+    assert "HttpOnly" in login_cookie
+    assert "Max-Age" not in login_cookie
+    assert "expires=" not in login_cookie.lower()
+    assert client.get("/auth/me").status_code == 200
 
 
 def test_invalid_email_verification_token_is_rejected(

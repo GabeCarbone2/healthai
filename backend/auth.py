@@ -87,7 +87,6 @@ def _set_session_cookie(response: Response, token: str) -> None:
     response.set_cookie(
         key=SESSION_COOKIE,
         value=token,
-        max_age=SESSION_DURATION_SECONDS,
         httponly=True,
         secure=setting("HEALTHAI_SECURE_COOKIE", "false").lower() == "true",
         samesite="lax",
