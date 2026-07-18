@@ -2,13 +2,19 @@ import {
   Activity,
   CheckCircle2,
   Clock3,
+  Database,
+  Eye,
+  EyeOff,
   ShieldCheck,
   Trash2,
+  UserRound,
   XCircle,
 } from "lucide-react";
 import { FormEvent, useState } from "react";
 
 import { deleteAccount, submitCrm } from "../api";
+import { ConfirmDialog } from "../components/ConfirmDialog";
+import { ErrorSummary } from "../components/ErrorSummary";
 import { PrivacyNotice } from "../components/PrivacyNotice";
 import type { PrivacyInfo, User } from "../types";
 
@@ -25,6 +31,20 @@ const BRAZILIAN_STATES = [
   "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
 ];
 
+function maskEmail(email: string) {
+  const [local, domain] = email.split("@");
+  return `${local.slice(0, 2)}${"•".repeat(Math.max(3, local.length - 2))}@${domain}`;
+}
+
+function maskCrm(crm: string) {
+  return `${"•".repeat(Math.max(2, crm.length - 2))}${crm.slice(-2)}`;
+}
+
+function formatDate(value: string | null) {
+  if (!value) return "Data não registrada";
+  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" }).format(new Date(value));
+}
+
 export function AccountPage({
   user,
   privacy,
@@ -33,6 +53,8 @@ export function AccountPage({
 }: Props) {
   const [confirming, setConfirming] = useState(false);
   const [password, setPassword] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  const [showData, setShowData] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [crm, setCrm] = useState(user.crm ?? "");
@@ -40,8 +62,8 @@ export function AccountPage({
   const [crmLoading, setCrmLoading] = useState(false);
   const [crmError, setCrmError] = useState("");
 
-  async function removeAccount(event: FormEvent) {
-    event.preventDefault();
+  async function removeAccount() {
+    if (confirmation !== "EXCLUIR" || password.length < 8) return;
     setLoading(true);
     setError("");
     try {
@@ -75,30 +97,76 @@ export function AccountPage({
     }
   }
 
+  function closeDeletion() {
+    if (loading) return;
+    setConfirming(false);
+    setPassword("");
+    setConfirmation("");
+    setError("");
+  }
+
   const canSubmitCrm = !user.crm || user.crm_status === "rejected";
 
   return (
     <div className="page account-page">
       <header className="page-header">
         <div>
+          <span className="page-eyebrow">Controle e transparência</span>
           <h1>Conta e privacidade</h1>
-          <p>Controle dos seus dados e do histórico armazenado.</p>
+          <p>Consulte dados armazenados, direitos e status do acesso profissional.</p>
         </div>
       </header>
 
-      <section className="account-card">
-        <ShieldCheck size={25} />
-        <div>
-          <h2>Aviso aceito</h2>
-          <p>
-            {user.name} · {user.email}
-          </p>
-          {user.crm && user.crm_uf && (
-            <p>CRM {user.crm}/{user.crm_uf}</p>
-          )}
-          <PrivacyNotice info={privacy} />
-        </div>
-      </section>
+      <div className="account-grid">
+        <section className="account-card account-data-card">
+          <header>
+            <UserRound size={22} aria-hidden="true" />
+            <div>
+              <h2>Dados da conta</h2>
+              <p>Dados usados para autenticação e análise do cadastro.</p>
+            </div>
+            <button type="button" className="show-data-button" onClick={() => setShowData((current) => !current)}>
+              {showData ? <EyeOff size={16} /> : <Eye size={16} />}
+              {showData ? "Ocultar dados" : "Mostrar dados"}
+            </button>
+          </header>
+          <dl className="account-data-list">
+            <div><dt>Nome</dt><dd>{showData ? user.name : `${user.name.slice(0, 1)}••••••`}</dd></div>
+            <div><dt>E-mail</dt><dd>{showData ? user.email : maskEmail(user.email)}</dd></div>
+            <div><dt>CRM</dt><dd>{user.crm && user.crm_uf ? `${showData ? user.crm : maskCrm(user.crm)}/${user.crm_uf}` : "Não informado"}</dd></div>
+            <div><dt>Aviso aceito</dt><dd>{user.privacy_notice_version ?? "Pendente"}</dd></div>
+            <div><dt>Termos aceitos</dt><dd>{user.terms_version ?? "Pendente"}</dd></div>
+          </dl>
+        </section>
+
+        <section className="account-card storage-card">
+          <header>
+            <Database size={22} aria-hidden="true" />
+            <div>
+              <h2>Dados das avaliações</h2>
+              <p>O que fica armazenado por até {privacy.result_retention_days} dias.</p>
+            </div>
+          </header>
+          <div className="storage-columns">
+            <div>
+              <h3>Armazenado</h3>
+              <ul>
+                <li>Identificador pseudonimizado</li>
+                <li>Resultado, probabilidade e limiar</li>
+                <li>Modelo, versão e completude</li>
+              </ul>
+            </div>
+            <div>
+              <h3>Não armazenado</h3>
+              <ul>
+                <li>Nome, CPF ou prontuário do paciente</li>
+                <li>Valores clínicos enviados ao cálculo</li>
+                <li>Tabela externa que liga código à pessoa</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </div>
 
       <section className={`crm-status-card ${user.crm_status ?? "missing"}`}>
         {user.crm_status === "approved" ? (
@@ -109,6 +177,7 @@ export function AccountPage({
           <Clock3 size={25} />
         )}
         <div>
+          <span className="status-kicker">Análise manual do cadastro</span>
           <h2>
             {user.crm_status === "approved"
               ? "Cadastro profissional aprovado"
@@ -120,22 +189,20 @@ export function AccountPage({
           </h2>
           <p>
             {user.crm_status === "approved"
-              ? "Seu acesso às funcionalidades clínicas está liberado."
+              ? `Aprovação administrativa registrada em ${formatDate(user.crm_verified_at)}.`
               : user.crm_status === "rejected"
-                ? user.crm_rejection_reason
-                  ?? "Revise os dados informados e envie novamente."
+                ? user.crm_rejection_reason ?? "Revise os dados informados e envie novamente."
                 : user.crm
-                  ? "Um administrador precisa verificar seu CRM antes de liberar as avaliações."
+                  ? "Um administrador precisa analisar manualmente os dados antes de liberar as avaliações."
                   : "Informe CRM e UF para iniciar a análise manual."}
           </p>
-          {user.crm && user.crm_uf && (
-            <strong>CRM {user.crm}/{user.crm_uf}</strong>
-          )}
+          {user.crm && user.crm_uf && <strong>CRM {showData ? user.crm : maskCrm(user.crm)}/{user.crm_uf}</strong>}
           {canSubmitCrm && (
             <form className="crm-update-form" onSubmit={saveCrm}>
-              <label>
+              <label htmlFor="account-crm">
                 <span>CRM</span>
                 <input
+                  id="account-crm"
                   type="text"
                   inputMode="numeric"
                   minLength={1}
@@ -143,22 +210,14 @@ export function AccountPage({
                   pattern="[0-9]{1,10}"
                   required
                   value={crm}
-                  onChange={(event) =>
-                    setCrm(event.target.value.replace(/\D/g, ""))
-                  }
+                  onChange={(event) => setCrm(event.target.value.replace(/\D/g, ""))}
                 />
               </label>
-              <label>
+              <label htmlFor="account-crm-uf">
                 <span>UF do CRM</span>
-                <select
-                  required
-                  value={crmUf}
-                  onChange={(event) => setCrmUf(event.target.value)}
-                >
+                <select id="account-crm-uf" required value={crmUf} onChange={(event) => setCrmUf(event.target.value)}>
                   <option value="" disabled>Selecione</option>
-                  {BRAZILIAN_STATES.map((state) => (
-                    <option key={state} value={state}>{state}</option>
-                  ))}
+                  {BRAZILIAN_STATES.map((state) => <option key={state} value={state}>{state}</option>)}
                 </select>
               </label>
               <button type="submit" disabled={crmLoading}>
@@ -167,61 +226,69 @@ export function AccountPage({
               </button>
             </form>
           )}
-          {crmError && <div className="form-error" role="alert">{crmError}</div>}
+          {crmError && <ErrorSummary title="Não foi possível enviar" message={crmError} />}
         </div>
       </section>
 
-      <section className="danger-zone">
-        <h2>Excluir conta e dados</h2>
-        <p>
-          Exclui permanentemente sua conta, sessões e todos os resultados
-          associados. Esta ação não pode ser desfeita.
-        </p>
-
-        {error && (
-          <div className="form-error" role="alert">
-            {error}
+      <section className="privacy-card">
+        <header>
+          <ShieldCheck size={23} aria-hidden="true" />
+          <div>
+            <h2>Privacidade e direitos</h2>
+            <p>Resumo do aviso aceito e canais disponíveis.</p>
           </div>
-        )}
-
-        {!confirming ? (
-          <button type="button" onClick={() => setConfirming(true)}>
-            <Trash2 size={16} />
-            Excluir minha conta
-          </button>
-        ) : (
-          <form onSubmit={removeAccount}>
-            <label>
-              <span>Confirme sua senha</span>
-              <input
-                type="password"
-                autoComplete="current-password"
-                minLength={8}
-                required
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-              />
-            </label>
-            <label>
-              <span>Digite EXCLUIR para confirmar</span>
-              <input type="text" pattern="EXCLUIR" required />
-            </label>
-            <div>
-              <button
-                type="button"
-                onClick={() => setConfirming(false)}
-                disabled={loading}
-              >
-                Cancelar
-              </button>
-              <button type="submit" disabled={loading}>
-                {loading ? <Activity size={16} /> : <Trash2 size={16} />}
-                {loading ? "Excluindo..." : "Excluir permanentemente"}
-              </button>
-            </div>
-          </form>
-        )}
+        </header>
+        <PrivacyNotice info={privacy} />
       </section>
+
+      <section className="danger-zone">
+        <div>
+          <h2>Excluir conta e dados</h2>
+          <p>Exclui permanentemente conta, sessões e resultados associados.</p>
+        </div>
+        <button type="button" onClick={() => setConfirming(true)}>
+          <Trash2 size={16} />
+          Excluir minha conta
+        </button>
+      </section>
+
+      <ConfirmDialog
+        open={confirming}
+        title="Excluir conta permanentemente?"
+        description="Esta ação apaga sua conta, sessões e resultados e não pode ser desfeita."
+        confirmLabel="Excluir permanentemente"
+        busyLabel="Excluindo..."
+        busy={loading}
+        confirmDisabled={password.length < 8 || confirmation !== "EXCLUIR"}
+        onCancel={closeDeletion}
+        onConfirm={removeAccount}
+      >
+        <div className="dialog-form">
+          <label htmlFor="delete-account-password">
+            <span>Confirme sua senha</span>
+            <input
+              id="delete-account-password"
+              type="password"
+              autoComplete="current-password"
+              minLength={8}
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+          </label>
+          <label htmlFor="delete-account-confirmation">
+            <span>Digite EXCLUIR para confirmar</span>
+            <input
+              id="delete-account-confirmation"
+              type="text"
+              autoComplete="off"
+              value={confirmation}
+              onChange={(event) => setConfirmation(event.target.value.toUpperCase())}
+            />
+          </label>
+          {error && <ErrorSummary title="Não foi possível excluir" message={error} />}
+        </div>
+      </ConfirmDialog>
     </div>
   );
 }

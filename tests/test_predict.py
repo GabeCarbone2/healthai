@@ -49,3 +49,5 @@ def test_predict_applies_artifact_mappings_and_filters(tmp_path: Path) -> None:
         result.loc[1, "predicted_probability"] >= 0.9
     )
     assert result.loc[1, "decision_threshold"] == 0.9
+    assert isinstance(result.loc[1, "model_version"], str)
+    assert len(result.loc[1, "model_version"]) == 16

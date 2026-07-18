@@ -17,8 +17,8 @@ frontend/dist/
 # Ambientes e editores
 .env
 .env.*
-.env.example
-.env.production.example
+!.env.example
+!.env.production.example
 .idea/
 .vscode/
 

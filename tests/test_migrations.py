@@ -16,6 +16,8 @@ EXPECTED_TABLES = {
     "prediction_results",
     "user_sessions",
     "users",
+    "crm_review_events",
+    "password_reset_tokens",
 }
 
 
@@ -34,9 +36,7 @@ def test_migrations_create_fresh_database(tmp_path: Path) -> None:
     engine = create_engine(f"sqlite:///{database_path}")
     inspector = inspect(engine)
     assert EXPECTED_TABLES <= set(inspector.get_table_names())
-    user_columns = {
-        column["name"] for column in inspector.get_columns("users")
-    }
+    user_columns = {column["name"] for column in inspector.get_columns("users")}
     assert {
         "crm",
         "crm_uf",
@@ -44,12 +44,48 @@ def test_migrations_create_fresh_database(tmp_path: Path) -> None:
         "crm_verified_at",
         "crm_verified_by",
         "crm_rejection_reason",
+        "terms_accepted_at",
+        "terms_version",
     } <= user_columns
     with engine.connect() as connection:
         revision = connection.exec_driver_sql(
             "SELECT version_num FROM alembic_version"
         ).scalar_one()
-    assert revision == "20260705_07"
+    result_columns = {
+        column["name"] for column in inspector.get_columns("prediction_results")
+    }
+    assert {
+        "model_version",
+        "input_completeness",
+        "missing_feature_count",
+    } <= result_columns
+    indexes = {
+        table: {index["name"] for index in inspector.get_indexes(table)}
+        for table in EXPECTED_TABLES - {"alembic_version"}
+    }
+    assert {
+        "ix_prediction_results_user_created_id",
+        "ix_prediction_results_created_at",
+    } <= indexes["prediction_results"]
+    assert {
+        "ix_users_created_at",
+        "ix_users_crm_status_created",
+        "ix_users_crm_verified_by",
+    } <= indexes["users"]
+    assert "ix_user_sessions_user_id" in indexes["user_sessions"]
+    assert (
+        "ix_email_verification_tokens_user_created"
+        in indexes["email_verification_tokens"]
+    )
+    assert (
+        "ix_password_reset_tokens_user_created"
+        in indexes["password_reset_tokens"]
+    )
+    assert {
+        "ix_crm_review_events_user_created_id",
+        "ix_crm_review_events_reviewer_id",
+    } <= indexes["crm_review_events"]
+    assert revision == "20260713_10"
     command.check(config)
     engine.dispose()
 
@@ -76,9 +112,7 @@ def test_migrations_adopt_legacy_database_without_losing_data(
 
     migrated_engine = create_engine(f"sqlite:///{database_path}")
     with Session(migrated_engine) as session:
-        user = session.scalar(
-            select(User).where(User.email == "legacy@example.com")
-        )
+        user = session.scalar(select(User).where(User.email == "legacy@example.com"))
         assert user is not None
         assert user.name == "Usuário existente"
         assert user.email_verified_at is not None
@@ -121,9 +155,7 @@ def test_privacy_migration_removes_existing_patient_names(
     migrated_engine = create_engine(f"sqlite:///{database_path}")
     columns = {
         column["name"]
-        for column in inspect(migrated_engine).get_columns(
-            "prediction_results"
-        )
+        for column in inspect(migrated_engine).get_columns("prediction_results")
     }
     assert "patient_name" not in columns
     assert "patient_identifier" in columns

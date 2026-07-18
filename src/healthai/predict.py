@@ -1,6 +1,7 @@
 """Predições em lote com um pipeline previamente treinado."""
 
 import argparse
+import hashlib
 from pathlib import Path
 
 import joblib
@@ -17,6 +18,10 @@ def predict(
 ) -> None:
     """Acrescenta classe e probabilidade preditas a um CSV."""
     artifact = joblib.load(model_path)
+    model_version = artifact.get(
+        "model_version",
+        hashlib.sha256(Path(model_path).read_bytes()).hexdigest()[:16],
+    )
     features = artifact["features"]
     pipeline = artifact["pipeline"]
     dataframe = load_dataset(input_path, features)
@@ -35,6 +40,7 @@ def predict(
     result["predicted_class"] = pd.Series(pd.NA, index=result.index, dtype="Int64")
     result["predicted_probability"] = np.nan
     result["decision_threshold"] = np.nan
+    result["model_version"] = model_version
     if eligible.any():
         eligible_input = model_input.loc[eligible]
         probabilities = pipeline.predict_proba(eligible_input)[:, 1]

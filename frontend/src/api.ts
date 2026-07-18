@@ -9,6 +9,7 @@ import type {
   ResultFilters,
   StoredPatientResult,
   StoredPatientResultPage,
+  TermsInfo,
   User,
 } from "./types";
 
@@ -23,10 +24,15 @@ export async function request<T>(
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    const detail =
+    const validationMessage =
       payload?.detail instanceof Array
-        ? "Revise os valores informados."
-        : payload?.detail;
+        ? payload.detail.find((item: { msg?: unknown }) =>
+            typeof item?.msg === "string"
+          )?.msg
+        : null;
+    const detail = validationMessage
+      ? validationMessage.replace(/^Value error, /, "")
+      : payload?.detail;
     throw new Error(detail || "Não foi possível concluir a solicitação.");
   }
   if (response.status === 204) return undefined as T;
@@ -51,6 +57,7 @@ export function register(
   email: string,
   password: string,
   privacyAccepted: boolean,
+  termsAccepted: boolean,
 ): Promise<RegistrationResponse> {
   return request<RegistrationResponse>("/auth/register", {
     method: "POST",
@@ -61,6 +68,7 @@ export function register(
       email,
       password,
       privacy_accepted: privacyAccepted,
+      terms_accepted: termsAccepted,
     }),
   });
 }
@@ -76,6 +84,20 @@ export function resendVerification(email: string): Promise<void> {
   return request<void>("/auth/resend-verification", {
     method: "POST",
     body: JSON.stringify({ email }),
+  });
+}
+
+export function requestPasswordReset(email: string): Promise<void> {
+  return request<void>("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function resetPassword(token: string, password: string): Promise<void> {
+  return request<void>("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ token, password }),
   });
 }
 
@@ -115,8 +137,19 @@ export function fetchPrivacyInfo(): Promise<PrivacyInfo> {
   return request<PrivacyInfo>("/privacy");
 }
 
+export function fetchTermsInfo(): Promise<TermsInfo> {
+  return request<TermsInfo>("/terms");
+}
+
 export function acceptPrivacyConsent(): Promise<User> {
   return request<User>("/auth/privacy-consent", {
+    method: "POST",
+    body: JSON.stringify({ accepted: true }),
+  });
+}
+
+export function acceptTermsConsent(): Promise<User> {
+  return request<User>("/auth/terms-consent", {
     method: "POST",
     body: JSON.stringify({ accepted: true }),
   });
@@ -154,9 +187,13 @@ function mapStoredResult(result: StoredPatientResult): PatientResult {
     createdAt: result.created_at,
     experiment: result.experiment,
     model: result.model,
+    modelVersion: result.model_version,
     predictedClass: result.predicted_class,
     probability: result.probability,
     decisionThreshold: result.decision_threshold,
+    inputCompleteness: result.input_completeness,
+    missingFeatureCount: result.missing_feature_count,
+    localExplanation: result.local_explanation,
   };
 }
 

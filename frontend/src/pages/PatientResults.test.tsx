@@ -10,9 +10,12 @@ const result = {
   createdAt: "2026-07-04T12:00:00Z",
   experiment: "Perfil feminino",
   model: "Random Forest",
+  modelVersion: "abc123def456",
   predictedClass: 1,
   probability: 0.81,
   decisionThreshold: 0.35,
+  inputCompleteness: 0.875,
+  missingFeatureCount: 1,
 };
 
 const defaultProps = {
@@ -43,9 +46,8 @@ describe("PatientResults", () => {
     const browser = userEvent.setup();
     render(<PatientResults {...defaultProps} />);
 
-    await browser.click(
-      screen.getByRole("button", { name: "Limpar resultados" }),
-    );
+    await browser.click(screen.getByRole("button", { name: "Mais ações" }));
+    await browser.click(screen.getByRole("button", { name: "Limpar resultados" }));
 
     expect(
       screen.getByRole("alertdialog", { name: "Apagar todo o histórico?" }),
@@ -81,9 +83,25 @@ describe("PatientResults", () => {
         name: "Excluir resultado PAC-A1B2C3D4",
       }),
     );
+    expect(defaultProps.onDelete).not.toHaveBeenCalled();
+    await browser.click(
+      screen.getByRole("button", { name: "Excluir resultado" }),
+    );
     await browser.click(screen.getByRole("button", { name: "Próxima página" }));
 
     expect(defaultProps.onDelete).toHaveBeenCalledWith(7);
     expect(defaultProps.onPageChange).toHaveBeenCalledWith(2);
+  });
+
+  it("mostra apenas metadados persistidos nos detalhes", async () => {
+    const browser = userEvent.setup();
+    render(<PatientResults {...defaultProps} />);
+
+    await browser.click(
+      screen.getByRole("button", { name: "Ver detalhes de PAC-A1B2C3D4" }),
+    );
+
+    expect(screen.getByText("abc123def456")).toBeInTheDocument();
+    expect(screen.getByText(/não os valores clínicos/)).toBeInTheDocument();
   });
 });

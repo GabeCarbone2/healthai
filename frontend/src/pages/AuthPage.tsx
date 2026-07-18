@@ -11,9 +11,12 @@ import {
   Sparkles,
   UserPlus,
 } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 import { login, register, resendVerification } from "../api";
+import { ErrorSummary } from "../components/ErrorSummary";
+import { HealthAiLogo } from "../components/HealthAiLogo";
+import { PageFooter } from "../components/PageFooter";
 import { PrivacyNotice } from "../components/PrivacyNotice";
 import type { PrivacyInfo, User } from "../types";
 
@@ -38,12 +41,22 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
   const [verificationEmailSent, setVerificationEmailSent] = useState(true);
   const [resending, setResending] = useState(false);
   const [resendNotice, setResendNotice] = useState("");
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [confirmationTouched, setConfirmationTouched] = useState(false);
+  const [capsLock, setCapsLock] = useState(false);
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (error) errorRef.current?.focus();
+  }, [error]);
 
   function changeMode(nextMode: "login" | "register") {
     setMode(nextMode);
@@ -51,6 +64,10 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
     setPassword("");
     setPasswordConfirmation("");
     setPrivacyAccepted(false);
+    setTermsAccepted(false);
+    setPrivacyOpen(false);
+    setPasswordTouched(false);
+    setConfirmationTouched(false);
   }
 
   async function submit(event: FormEvent) {
@@ -72,6 +89,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
           email,
           password,
           privacyAccepted,
+          termsAccepted,
         );
         setVerificationEmail(registration.email);
         setVerificationEmailSent(registration.email_sent);
@@ -121,7 +139,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
       <header className="auth-topbar">
         <div className="auth-brand">
           <span>
-            <Activity size={22} />
+            <HealthAiLogo className="healthai-logo" title="HealthAI" />
           </span>
           <div>
             <strong>HealthAI</strong>
@@ -141,16 +159,16 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
             Inteligência aplicada à saúde
           </div>
           <h1>
-            Plataforma de apoio clínico <em>para médicos.</em>
+            Inteligência clínica <em>para apoiar decisões.</em>
           </h1>
           <p>
-            Explore modelos preditivos com rastreabilidade e privacidade em
-            uma experiência criada para apoiar a prática médica.
+            Explore modelos preditivos acadêmicos com rastreabilidade,
+            privacidade e limites apresentados com clareza.
           </p>
           <div className="auth-highlights">
             <span>
               <BrainCircuit size={17} />
-              Modelos validados
+              Modelos rastreáveis
             </span>
             <span>
               <ShieldCheck size={17} />
@@ -216,7 +234,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
             <>
           <header className="auth-panel-header">
             <span className="auth-panel-icon">
-              <Activity size={24} />
+              <HealthAiLogo className="healthai-logo" title="HealthAI" />
             </span>
             <div>
               <small>{mode === "login" ? "Bem-vindo de volta" : "Novo acesso"}</small>
@@ -242,140 +260,109 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
           </div>
 
           <form onSubmit={submit} className="auth-form">
-            {mode === "register" && (
-              <>
-                <label>
+            {error && (
+              <ErrorSummary
+                ref={errorRef}
+                title="Não foi possível continuar"
+                message={error}
+              />
+            )}
+
+            {mode === "register" ? (
+              <fieldset className="auth-fieldset">
+                <legend>Dados profissionais</legend>
+                <label htmlFor="register-name">
                   <span>Nome</span>
-                  <input
-                    type="text"
-                    autoComplete="name"
-                    minLength={2}
-                    maxLength={120}
-                    placeholder="Como devemos chamar você?"
-                    required
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                  />
+                  <input id="register-name" type="text" autoComplete="name" minLength={2} maxLength={120} placeholder="Como devemos chamar você?" required value={name} onChange={(event) => setName(event.target.value)} />
                 </label>
                 <div className="professional-fields">
-                  <label>
+                  <label htmlFor="register-crm">
                     <span>CRM</span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      minLength={1}
-                      maxLength={10}
-                      pattern="[0-9]{1,10}"
-                      placeholder="Somente números"
-                      required
-                      value={crm}
-                      onChange={(event) =>
-                        setCrm(event.target.value.replace(/\D/g, ""))
-                      }
-                    />
+                    <input id="register-crm" type="text" inputMode="numeric" minLength={1} maxLength={10} pattern="[0-9]{1,10}" placeholder="Somente números" required value={crm} onChange={(event) => setCrm(event.target.value.replace(/\D/g, ""))} />
                   </label>
-                  <label>
+                  <label htmlFor="register-crm-uf">
                     <span>UF do CRM</span>
-                    <select
-                      aria-label="UF do CRM"
-                      required
-                      value={crmUf}
-                      onChange={(event) => setCrmUf(event.target.value)}
-                    >
+                    <select id="register-crm-uf" required value={crmUf} onChange={(event) => setCrmUf(event.target.value)}>
                       <option value="" disabled>Selecione</option>
-                      {BRAZILIAN_STATES.map((state) => (
-                        <option key={state} value={state}>{state}</option>
-                      ))}
+                      {BRAZILIAN_STATES.map((state) => <option key={state} value={state}>{state}</option>)}
                     </select>
                   </label>
                 </div>
-              </>
+                <label htmlFor="register-email">
+                  <span>E-mail</span>
+                  <input id="register-email" type="email" autoComplete="email" placeholder="voce@exemplo.com" required value={email} onChange={(event) => setEmail(event.target.value)} />
+                </label>
+                <small className="fieldset-note">O CRM passa por análise manual antes da liberação das avaliações.</small>
+              </fieldset>
+            ) : (
+              <label htmlFor="login-email">
+                <span>E-mail</span>
+                <input id="login-email" type="email" autoComplete="email" placeholder="voce@exemplo.com" required value={email} onChange={(event) => setEmail(event.target.value)} />
+              </label>
             )}
 
-            <label>
-              <span>E-mail</span>
-              <input
-                type="email"
-                autoComplete="email"
-                placeholder="voce@exemplo.com"
-                required
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-              />
-            </label>
-
-            <label>
-              <span>Senha</span>
-              <div className="password-input">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  aria-label="Senha"
-                  autoComplete={
-                    mode === "login" ? "current-password" : "new-password"
-                  }
-                  minLength={8}
-                  maxLength={128}
-                  placeholder="Digite sua senha"
-                  required
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((current) => !current)}
-                  title={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              {mode === "register" && (
-                <small>Mínimo de 8 caracteres</small>
-              )}
-            </label>
-
-            {mode === "register" && (
-              <>
-                <label>
-                  <span>Confirmar senha</span>
+            <fieldset className={mode === "register" ? "auth-fieldset" : "auth-fieldset login-security"}>
+              {mode === "register" && <legend>Segurança</legend>}
+              <label htmlFor="auth-password">
+                <span>Senha</span>
+                <div className="password-input">
                   <input
-                    type="password"
-                    aria-label="Confirmar senha"
-                    autoComplete="new-password"
+                    id="auth-password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete={mode === "login" ? "current-password" : "new-password"}
                     minLength={8}
                     maxLength={128}
-                    placeholder="Repita sua senha"
+                    placeholder="Digite sua senha"
                     required
-                    value={passwordConfirmation}
-                    onChange={(event) =>
-                      setPasswordConfirmation(event.target.value)
-                    }
+                    value={password}
+                    aria-describedby={mode === "register" ? "password-rules" : undefined}
+                    onBlur={() => setPasswordTouched(true)}
+                    onKeyUp={(event) => setCapsLock(event.getModifierState("CapsLock"))}
+                    onChange={(event) => setPassword(event.target.value)}
                   />
-                </label>
-                <details className="registration-privacy">
-                  <summary>Ler aviso de privacidade</summary>
+                  <button type="button" onClick={() => setShowPassword((current) => !current)} title={showPassword ? "Ocultar senha" : "Mostrar senha"} aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}>
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {capsLock && <small className="caps-lock-warning">Caps Lock está ativado.</small>}
+              </label>
+
+              {mode === "register" && (
+                <>
+                  <ul className="password-rules" id="password-rules">
+                    <li className={password.length >= 8 ? "met" : passwordTouched ? "unmet" : ""}>Mínimo de 8 caracteres</li>
+                    <li className={password && password === passwordConfirmation ? "met" : confirmationTouched ? "unmet" : ""}>As duas senhas devem coincidir</li>
+                  </ul>
+                  <label htmlFor="password-confirmation">
+                    <span>Confirmar senha</span>
+                    <input id="password-confirmation" type="password" autoComplete="new-password" minLength={8} maxLength={128} placeholder="Repita sua senha" required value={passwordConfirmation} onBlur={() => setConfirmationTouched(true)} onKeyUp={(event) => setCapsLock(event.getModifierState("CapsLock"))} onChange={(event) => setPasswordConfirmation(event.target.value)} />
+                  </label>
+                </>
+              )}
+            </fieldset>
+
+            {mode === "register" && (
+              <fieldset className="auth-fieldset privacy-fieldset">
+                <legend>Privacidade</legend>
+                <details className="registration-privacy" open={privacyOpen} onToggle={(event) => setPrivacyOpen(event.currentTarget.open)}>
+                  <summary aria-expanded={privacyOpen}>Ler aviso de privacidade</summary>
                   <PrivacyNotice info={privacy} />
                 </details>
                 <label className="consent-check">
-                  <input
-                    type="checkbox"
-                    required
-                    checked={privacyAccepted}
-                    onChange={(event) =>
-                      setPrivacyAccepted(event.target.checked)
-                    }
-                  />
-                  <span>
-                    Li o aviso e consinto com o tratamento descrito.
-                  </span>
+                  <input type="checkbox" required checked={privacyAccepted} onChange={(event) => setPrivacyAccepted(event.target.checked)} />
+                  <span>Li o aviso e consinto com o tratamento descrito.</span>
                 </label>
-              </>
+                <label className="consent-check">
+                  <input type="checkbox" required checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} />
+                  <span>Li e aceito os <a href="/terms" target="_blank" rel="noreferrer">Termos de Uso</a>.</span>
+                </label>
+              </fieldset>
             )}
 
-            {error && (
-              <div className="form-error" role="alert">
-                {error}
-              </div>
+            {mode === "login" && (
+              <a className="forgot-password-link" href="/forgot-password">
+                Esqueci minha senha
+              </a>
             )}
 
             <button className="auth-submit" disabled={loading}>
@@ -401,7 +388,12 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
             </>
           )}
         </section>
+
+        <div className="auth-monogram" aria-hidden="true">
+          <HealthAiLogo className="auth-monogram-logo" />
+        </div>
       </div>
+      <PageFooter contact={privacy.contact} variant="public" />
     </main>
   );
 }

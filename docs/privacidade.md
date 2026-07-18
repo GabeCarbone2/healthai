@@ -1,6 +1,6 @@
 # Aviso de privacidade e controles LGPD
 
-Versão do aviso: **2026-07-05.1**
+Versão do aviso: **2026-07-11.1**
 
 Este documento descreve os controles técnicos implementados no HealthAI. Ele
 não substitui a definição, pelo responsável pelo projeto, do controlador, do
@@ -10,16 +10,19 @@ atendimento aos titulares.
 ## Finalidade
 
 O HealthAI trata dados para autenticar usuários e executar, com finalidade
-acadêmica, avaliações de modelos de risco de diabetes. A saída não é
-diagnóstico e não substitui avaliação profissional.
+acadêmica, classificações dos desfechos de diabetes observados nas bases. A
+saída não representa risco futuro validado, não é diagnóstico e não substitui
+avaliação profissional.
 
 ## Dados tratados
 
 - conta profissional: nome, e-mail, CRM, UF do CRM, estado e data da análise,
   administrador responsável, eventual motivo de rejeição, estado da
-  confirmação do e-mail, hash da senha, sessões e data/versionamento do aceite;
-- avaliação: identificador pseudonimizado `PAC-…`, modelo, resultado,
-  probabilidade, limiar e data;
+  confirmação do e-mail, hash da senha, sessões e data/versionamento dos aceites
+  do aviso e dos Termos de Uso;
+- avaliação: identificador pseudonimizado `PAC-…`, modelo e sua versão,
+  resultado, probabilidade, limiar, completude da entrada, quantidade de
+  medidas imputadas e data;
 - dados clínicos informados no formulário: processados transitoriamente para
   inferência e não persistidos pelo aplicativo.
 
@@ -37,7 +40,8 @@ O cadastro exige aceite livre e destacado da versão atual deste aviso. O
 usuário pode recusar o aceite e sair, ou excluir a conta. Quando o aviso muda,
 um novo aceite é exigido antes do acesso aos modelos e resultados.
 
-O CRM é analisado manualmente por uma conta administrativa. Enquanto estiver
+O CRM é analisado manualmente por uma conta administrativa e cada decisão fica
+registrada em uma trilha de auditoria. Enquanto estiver
 pendente ou rejeitado, o usuário pode administrar sua conta, mas não acessar
 avaliações ou resultados clínicos. A consulta ao portal público do CFM é feita
 pelo administrador em uma aba separada; o HealthAI não automatiza nem armazena
@@ -53,7 +57,8 @@ titular.
 ## Retenção e eliminação
 
 Resultados são mantidos por até `HEALTHAI_RESULT_RETENTION_DAYS` dias
-(180 por padrão). Registros vencidos são eliminados na inicialização da API e
+(180 por padrão). Uma rotina periódica elimina registros vencidos, sessões e
+links de confirmação ou recuperação expirados; a limpeza também é executada na inicialização e
 ao acessar ou criar resultados. Dados da conta permanecem enquanto ela estiver
 ativa.
 
@@ -75,10 +80,11 @@ compartilhados com a Hostinger exclusivamente para enviar a confirmação
 transacional. O responsável pelo projeto deve documentar esse operador e seus
 termos no registro das operações de tratamento.
 
-As senhas usam hash Argon2, os links de confirmação armazenam somente o hash do
-token, as sessões usam tokens opacos em cookies `HttpOnly`, e o cookie deve ser
-marcado como seguro em produção com
-`HEALTHAI_SECURE_COOKIE=true`. A publicação deve usar HTTPS, controle de acesso,
+As senhas usam hash Argon2; links de confirmação e recuperação armazenam somente
+o hash do token. O link de recuperação expira em uma hora, é de uso único e sua
+utilização encerra todas as sessões existentes. As sessões usam tokens opacos em cookies `HttpOnly`, e o cookie deve ser
+marcado automaticamente como seguro quando `HEALTHAI_ENV=production`. A
+publicação deve usar HTTPS, controle de acesso,
 backup protegido, registro de incidentes e revisão periódica de permissões.
 
 ## Direitos e contato

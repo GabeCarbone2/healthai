@@ -9,7 +9,7 @@ import { AuthPage } from "./AuthPage";
 vi.mock("../api");
 
 const privacy = {
-  notice_version: "2026-07-05.1",
+  notice_version: "2026-07-11.1",
   result_retention_days: 180,
   contact: "privacidade@example.com",
 };
@@ -28,7 +28,9 @@ const registeredUser = {
   created_at: "2026-07-04T12:00:00Z",
   email_verified_at: "2026-07-04T12:00:00Z",
   privacy_accepted_at: "2026-07-04T12:00:00Z",
-  privacy_notice_version: "2026-07-05.1",
+  privacy_notice_version: "2026-07-11.1",
+  terms_accepted_at: "2026-07-04T12:00:00Z",
+  terms_version: "2026-07-11.1",
 };
 
 describe("AuthPage", () => {
@@ -67,6 +69,9 @@ describe("AuthPage", () => {
       }),
     );
     await browser.click(
+      screen.getByRole("checkbox", { name: /Li e aceito os Termos/ }),
+    );
+    await browser.click(
       screen.getByRole("button", { name: "Criar minha conta" }),
     );
 
@@ -76,6 +81,7 @@ describe("AuthPage", () => {
       "SP",
       "usuario@example.com",
       "senha-segura",
+      true,
       true,
     );
     expect(onAuthenticated).not.toHaveBeenCalled();

@@ -5,6 +5,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+from sklearn.inspection import permutation_importance
 from sklearn.metrics import (
     accuracy_score,
     brier_score_loss,
@@ -22,12 +23,24 @@ def _metric_values(
     y_probability: np.ndarray,
 ) -> dict[str, float | None]:
     has_both_classes = len(np.unique(y_true)) > 1
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
+    negative_count = tn + fp
+    positive_count = tp + fn
     return {
         "accuracy": float(accuracy_score(y_true, y_pred)),
         "precision": float(
             precision_score(y_true, y_pred, zero_division=0)
         ),
         "recall": float(recall_score(y_true, y_pred, zero_division=0)),
+        "specificity": (
+            float(tn / negative_count) if negative_count else None
+        ),
+        "false_positive_rate": (
+            float(fp / negative_count) if negative_count else None
+        ),
+        "false_negative_rate": (
+            float(fn / positive_count) if positive_count else None
+        ),
         "f1": float(f1_score(y_true, y_pred, zero_division=0)),
         "roc_auc": (
             float(roc_auc_score(y_true, y_probability))
@@ -305,6 +318,131 @@ def subgroup_evaluation(
     return results
 
 
+def subgroup_bias_summary(
+    subgroups: dict[str, object],
+    *,
+    metrics: tuple[str, ...] = (
+        "recall",
+        "precision",
+        "false_positive_rate",
+        "roc_auc",
+        "brier_score",
+    ),
+) -> dict[str, object]:
+    """Resume disparidades absolutas entre grupos auditados."""
+    summaries: dict[str, object] = {}
+    for name, subgroup in subgroups.items():
+        groups = subgroup["groups"]
+        metric_gaps: dict[str, object] = {}
+        for metric in metrics:
+            comparable = []
+            limited_groups = []
+            for group in groups:
+                group_metrics = group.get("metrics")
+                if not group_metrics or group_metrics.get(metric) is None:
+                    continue
+                comparable.append(
+                    {
+                        "label": group["label"],
+                        "value": float(group_metrics[metric]),
+                        "status": group["status"],
+                        "n": group["n"],
+                        "positives": group["positives"],
+                    }
+                )
+                if group["status"] != "estimated":
+                    limited_groups.append(group["label"])
+
+            if len(comparable) < 2:
+                metric_gaps[metric] = {
+                    "status": "insufficient_comparable_groups",
+                    "groups_compared": len(comparable),
+                }
+                continue
+
+            low = min(comparable, key=lambda item: item["value"])
+            high = max(comparable, key=lambda item: item["value"])
+            metric_gaps[metric] = {
+                "status": (
+                    "limited_estimates_included"
+                    if limited_groups
+                    else "estimated"
+                ),
+                "absolute_gap": float(high["value"] - low["value"]),
+                "lowest_group": low,
+                "highest_group": high,
+                "limited_groups": limited_groups,
+            }
+
+        summaries[name] = {
+            "label": subgroup["label"],
+            "dataset": subgroup["dataset"],
+            "minimum_size": subgroup["minimum_size"],
+            "minimum_events": subgroup["minimum_events"],
+            "metrics": metric_gaps,
+            "interpretation": (
+                "Diferenças são descritivas no conjunto de teste e não provam "
+                "causalidade ou equidade populacional."
+            ),
+        }
+    return summaries
+
+
+def explainability_summary(
+    pipeline: Any,
+    x_test: pd.DataFrame,
+    y_test: Any,
+    *,
+    scoring: str = "roc_auc",
+    n_repeats: int = 10,
+    random_state: int = 42,
+    n_jobs: int | None = None,
+) -> dict[str, object]:
+    """Calcula importância por permutação nas variáveis de entrada."""
+    if n_repeats < 1:
+        raise ValueError("n_repeats deve ser positivo.")
+    result = permutation_importance(
+        pipeline,
+        x_test,
+        y_test,
+        scoring=scoring,
+        n_repeats=n_repeats,
+        random_state=random_state,
+        n_jobs=n_jobs,
+    )
+    importances = []
+    for feature, mean, std, values in zip(
+        x_test.columns,
+        result.importances_mean,
+        result.importances_std,
+        result.importances,
+        strict=False,
+    ):
+        importances.append(
+            {
+                "feature": str(feature),
+                "importance_mean": float(mean),
+                "importance_std": float(std),
+                "importances": [float(value) for value in values],
+            }
+        )
+    importances.sort(key=lambda item: item["importance_mean"], reverse=True)
+    for rank, item in enumerate(importances, start=1):
+        item["rank"] = rank
+    return {
+        "method": "permutation_importance",
+        "dataset": "held_out_test",
+        "scoring": scoring,
+        "n_repeats": n_repeats,
+        "random_state": random_state,
+        "features": importances,
+        "interpretation": (
+            "Importância por permutação mede queda de desempenho ao embaralhar "
+            "uma variável no teste; não deve ser lida como efeito causal."
+        ),
+    }
+
+
 def save_calibration_plot(
     curves: dict[str, dict[str, object]],
     output_path: str | Path,
@@ -343,6 +481,48 @@ def save_calibration_plot(
     )
     axis.grid(alpha=0.2)
     axis.legend()
+    figure.tight_layout()
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(
+        output_path,
+        dpi=180,
+        facecolor="white",
+        transparent=False,
+    )
+    plt.close(figure)
+
+
+def save_feature_importance_plot(
+    explanation: dict[str, object],
+    output_path: str | Path,
+    *,
+    title: str,
+    top_n: int = 12,
+) -> None:
+    """Salva gráfico das maiores importâncias por permutação."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    features = explanation["features"][:top_n]
+    labels = [feature["feature"] for feature in features]
+    means = [feature["importance_mean"] for feature in features]
+    errors = [feature["importance_std"] for feature in features]
+
+    figure_height = max(3.8, 0.38 * len(features) + 1.4)
+    figure, axis = plt.subplots(figsize=(7, figure_height))
+    y_positions = np.arange(len(features))
+    axis.barh(y_positions, means, xerr=errors, color="#16bfa6", alpha=0.88)
+    axis.set_yticks(y_positions, labels=labels)
+    axis.invert_yaxis()
+    axis.axvline(0, color="#555555", linewidth=0.8)
+    axis.set(
+        title=title,
+        xlabel=f"Queda média em {explanation['scoring']}",
+    )
+    axis.grid(axis="x", alpha=0.2)
     figure.tight_layout()
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)

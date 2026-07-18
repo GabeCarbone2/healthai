@@ -20,7 +20,9 @@ pacientes com maior risco de diabetes no conjunto de dados selecionado?
 9. Comparação posterior com métodos de Gradient Boosting.
 10. Intervalos de confiança por bootstrap e análise por sexo/faixa etária,
     com explicitação de amostras pequenas.
-11. Análise de explicabilidade, vieses e limitações.
+11. Explicabilidade por importância de permutação no teste isolado.
+12. Resumo de disparidades por subgrupo e documentação de validação externa.
+13. Seção explícita de limitações.
 
 O SVM usa calibração sigmoide explícita sobre o `SVC`, equivalente à geração
 de probabilidades adotada nos notebooks e compatível com as versões atuais do
@@ -76,6 +78,11 @@ Estimativas com menos de 20 observações não são calculadas; grupos com menos
 dez eventos em qualquer classe são marcados como limitados, mesmo quando a
 métrica descritiva é exibida.
 
+Além das métricas por subgrupo, o relatório calcula um resumo de disparidades
+absolutas para recall, precisão, taxa de falso positivo, ROC-AUC e Brier score.
+Esse resumo facilita identificar onde há maior diferença observada, mas deve
+ser lido como auditoria descritiva no teste, não como prova causal de viés.
+
 Nos modelos selecionados, os resultados globais foram:
 
 | Base | Modelo | Brier | ECE | Recall (IC 95%) | ROC-AUC (IC 95%) |
@@ -100,6 +107,28 @@ Referências metodológicas centrais para essa seção incluem Brier (1950),
 *Verification of Forecasts Expressed in Terms of Probability*; Niculescu-Mizil
 e Caruana (2005), *Predicting Good Probabilities with Supervised Learning*; e
 Efron e Tibshirani (1993), *An Introduction to the Bootstrap*.
+
+## Explicabilidade e validação externa
+
+Para o modelo selecionado de cada base, o pipeline calcula importância por
+permutação no teste isolado, usando ROC-AUC como métrica. As figuras ficam em
+`reports/figures/pima_feature_importance.png` e
+`reports/figures/nhanes_feature_importance.png`. As importâncias indicam quanto
+o desempenho cai quando uma variável é embaralhada; elas não indicam efeito
+causal nem relevância clínica individual.
+
+O relatório também registra explicitamente o estado da validação externa.
+Neste estágio, ela está marcada como não realizada. Pima e NHANES são tratados
+como experimentos separados porque não compartilham o mesmo desenho, população,
+conjunto de variáveis e definição de desfecho. Portanto, testar um modelo em
+outra fonte sem compatibilização não seria validação externa adequada.
+
+A validação externa planejada deve congelar o artefato, variáveis,
+pré-processamento, hiperparâmetros e limiar, e então aplicar o modelo a uma
+coorte independente compatível, reportando métricas, calibração, intervalos de
+confiança e subgrupos sem reajuste.
+
+Um resumo pronto para o TCC está em [`docs/modelo.md`](modelo.md).
 
 ## Cuidados importantes
 

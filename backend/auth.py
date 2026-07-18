@@ -3,7 +3,7 @@
 import hashlib
 import secrets
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Annotated
 from urllib.parse import urlencode
 
@@ -13,6 +13,7 @@ from fastapi import (
     Depends,
     HTTPException,
     Query,
+    Request,
     Response,
     status,
 )
@@ -21,10 +22,16 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from backend.database import get_db
-from backend.email_service import EmailDeliveryError, send_verification_email
+from backend.database import get_db, get_read_db
+from backend.email_service import (
+    EmailDeliveryError,
+    send_password_reset_email,
+    send_verification_email,
+)
 from backend.models import (
+    CrmReviewEvent,
     EmailVerificationToken,
+    PasswordResetToken,
     PredictionResult,
     User,
     UserSession,
@@ -33,27 +40,36 @@ from backend.privacy import PRIVACY_NOTICE_VERSION
 from backend.schemas import (
     AdminCrmReviewResponse,
     CrmCredentialsInput,
+    CrmReviewEventResponse,
     CrmReviewInput,
     CrmStatus,
     DeleteAccountInput,
+    ForgotPasswordInput,
     LoginInput,
     PrivacyConsentInput,
     RegisterInput,
     RegistrationResponse,
     ResendEmailVerificationInput,
+    ResetPasswordInput,
+    TermsConsentInput,
     UserResponse,
     VerifyEmailInput,
 )
+from backend.security import check_rate_limit, secure_cookie_enabled
 from backend.settings import setting
+from backend.terms import TERMS_VERSION
 
 SESSION_COOKIE = "healthai_session"
 SESSION_IDLE_TIMEOUT_SECONDS = 60 * 30
 EMAIL_VERIFICATION_DURATION_SECONDS = 60 * 60 * 24
 EMAIL_RESEND_INTERVAL_SECONDS = 60
+PASSWORD_RESET_DURATION_SECONDS = 60 * 60
+PASSWORD_RESET_RESEND_INTERVAL_SECONDS = 60
 password_hash = PasswordHash.recommended()
 dummy_password_hash = password_hash.hash("healthai-dummy-password")
 router = APIRouter(prefix="/auth", tags=["Autenticação"])
 DatabaseSession = Annotated[Session, Depends(get_db)]
+ReadDatabaseSession = Annotated[Session, Depends(get_read_db)]
 
 
 def configured_admin_emails() -> set[str]:
@@ -88,7 +104,7 @@ def _set_session_cookie(response: Response, token: str) -> None:
         key=SESSION_COOKIE,
         value=token,
         httponly=True,
-        secure=setting("HEALTHAI_SECURE_COOKIE", "false").lower() == "true",
+        secure=secure_cookie_enabled(),
         samesite="lax",
         path="/",
     )
@@ -109,11 +125,27 @@ def _create_session(db: Session, user: User, response: Response) -> None:
     _set_session_cookie(response, token)
 
 
+def _is_legacy_long_session(user_session: UserSession, now: int) -> bool:
+    """Derruba sessões criadas antes do timeout de inatividade de 30 minutos."""
+    if user_session.expires_at <= now + SESSION_IDLE_TIMEOUT_SECONDS:
+        return False
+
+    created_at = user_session.created_at
+    if created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=timezone.utc)
+    return created_at <= datetime.now(timezone.utc) - timedelta(
+        seconds=SESSION_IDLE_TIMEOUT_SECONDS
+    )
+
+
 def _verification_url(token: str) -> str:
-    frontend_url = setting(
-        "HEALTHAI_FRONTEND_URL", "http://127.0.0.1:5173"
-    ).rstrip("/")
+    frontend_url = setting("HEALTHAI_FRONTEND_URL", "http://127.0.0.1:5173").rstrip("/")
     return f"{frontend_url}/verify-email?{urlencode({'token': token})}"
+
+
+def _password_reset_url(token: str) -> str:
+    frontend_url = setting("HEALTHAI_FRONTEND_URL", "http://127.0.0.1:5173").rstrip("/")
+    return f"{frontend_url}/reset-password?{urlencode({'token': token})}"
 
 
 def _issue_verification_token(db: Session, user: User) -> None:
@@ -121,9 +153,7 @@ def _issue_verification_token(db: Session, user: User) -> None:
     token = secrets.token_urlsafe(32)
     token_hash = _token_digest(token)
     db.execute(
-        delete(EmailVerificationToken).where(
-            EmailVerificationToken.user_id == user.id
-        )
+        delete(EmailVerificationToken).where(EmailVerificationToken.user_id == user.id)
     )
     db.add(
         EmailVerificationToken(
@@ -144,6 +174,36 @@ def _issue_verification_token(db: Session, user: User) -> None:
         db.execute(
             delete(EmailVerificationToken).where(
                 EmailVerificationToken.token_hash == token_hash
+            )
+        )
+        db.commit()
+        raise
+
+
+def _issue_password_reset_token(db: Session, user: User) -> None:
+    now = int(time.time())
+    token = secrets.token_urlsafe(32)
+    token_hash = _token_digest(token)
+    db.execute(delete(PasswordResetToken).where(PasswordResetToken.user_id == user.id))
+    db.add(
+        PasswordResetToken(
+            token_hash=token_hash,
+            user_id=user.id,
+            expires_at=now + PASSWORD_RESET_DURATION_SECONDS,
+            created_at=now,
+        )
+    )
+    db.commit()
+    try:
+        send_password_reset_email(
+            recipient=user.email,
+            recipient_name=user.name,
+            reset_url=_password_reset_url(token),
+        )
+    except EmailDeliveryError:
+        db.execute(
+            delete(PasswordResetToken).where(
+                PasswordResetToken.token_hash == token_hash
             )
         )
         db.commit()
@@ -173,7 +233,15 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Sessão inválida ou expirada.",
         )
-    user_session.expires_at = int(time.time()) + SESSION_IDLE_TIMEOUT_SECONDS
+    now = int(time.time())
+    if _is_legacy_long_session(user_session, now):
+        db.execute(delete(UserSession).where(UserSession.id == user_session.id))
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Sessão inválida ou expirada.",
+        )
+    user_session.expires_at = now + SESSION_IDLE_TIMEOUT_SECONDS
     db.commit()
     return user
 
@@ -189,6 +257,11 @@ def get_consented_user(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Aceite o aviso de privacidade para continuar.",
+        )
+    if not user.terms_accepted_at or user.terms_version != TERMS_VERSION:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Aceite os Termos de Uso vigentes para continuar.",
         )
     if user.crm_status != "approved":
         raise HTTPException(
@@ -213,8 +286,16 @@ def get_admin_user(
 def register(
     data: RegisterInput,
     db: DatabaseSession,
+    request: Request,
 ) -> RegistrationResponse:
     email = str(data.email).strip().lower()
+    check_rate_limit(
+        request,
+        scope="register",
+        limit=30,
+        window_seconds=60 * 60,
+        identifier=email,
+    )
     if db.scalar(select(User).where(User.email == email)):
         raise HTTPException(status_code=409, detail="Este e-mail já está cadastrado.")
     if db.scalar(
@@ -238,6 +319,8 @@ def register(
         password_hash=password_hash.hash(data.password),
         privacy_accepted_at=datetime.now(timezone.utc),
         privacy_notice_version=PRIVACY_NOTICE_VERSION,
+        terms_accepted_at=datetime.now(timezone.utc),
+        terms_version=TERMS_VERSION,
     )
     db.add(user)
     try:
@@ -266,7 +349,15 @@ def verify_email(
     data: VerifyEmailInput,
     response: Response,
     db: DatabaseSession,
+    request: Request,
 ) -> User:
+    check_rate_limit(
+        request,
+        scope="verify-email",
+        limit=30,
+        window_seconds=10 * 60,
+        identifier=data.token[:16],
+    )
     now = int(time.time())
     verification = db.scalar(
         select(EmailVerificationToken).where(
@@ -283,9 +374,7 @@ def verify_email(
 
     user.email_verified_at = datetime.now(timezone.utc)
     db.execute(
-        delete(EmailVerificationToken).where(
-            EmailVerificationToken.user_id == user.id
-        )
+        delete(EmailVerificationToken).where(EmailVerificationToken.user_id == user.id)
     )
     db.commit()
     db.refresh(user)
@@ -297,8 +386,16 @@ def verify_email(
 def resend_verification(
     data: ResendEmailVerificationInput,
     db: DatabaseSession,
+    request: Request,
 ) -> None:
     email = str(data.email).strip().lower()
+    check_rate_limit(
+        request,
+        scope="resend-verification",
+        limit=10,
+        window_seconds=60 * 60,
+        identifier=email,
+    )
     user = db.scalar(select(User).where(User.email == email))
     if not user or user.email_verified_at or not user.is_active:
         return
@@ -309,10 +406,7 @@ def resend_verification(
         .where(EmailVerificationToken.user_id == user.id)
         .order_by(EmailVerificationToken.created_at.desc())
     )
-    if (
-        latest_token
-        and latest_token.created_at > now - EMAIL_RESEND_INTERVAL_SECONDS
-    ):
+    if latest_token and latest_token.created_at > now - EMAIL_RESEND_INTERVAL_SECONDS:
         return
     try:
         _issue_verification_token(db, user)
@@ -321,13 +415,91 @@ def resend_verification(
         return
 
 
+@router.post("/forgot-password", status_code=204)
+def forgot_password(
+    data: ForgotPasswordInput,
+    db: DatabaseSession,
+    request: Request,
+) -> None:
+    """Solicita recuperação sem revelar se o e-mail está cadastrado."""
+    email = str(data.email).strip().lower()
+    check_rate_limit(
+        request,
+        scope="forgot-password",
+        limit=10,
+        window_seconds=60 * 60,
+        identifier=email,
+    )
+    user = db.scalar(select(User).where(User.email == email))
+    if not user or not user.is_active or not user.email_verified_at:
+        return
+
+    now = int(time.time())
+    latest_token = db.scalar(
+        select(PasswordResetToken)
+        .where(PasswordResetToken.user_id == user.id)
+        .order_by(PasswordResetToken.created_at.desc())
+    )
+    if (
+        latest_token
+        and latest_token.created_at
+        > now - PASSWORD_RESET_RESEND_INTERVAL_SECONDS
+    ):
+        return
+    try:
+        _issue_password_reset_token(db, user)
+    except EmailDeliveryError:
+        # Resposta genérica evita enumeração e não expõe falhas internas do SMTP.
+        return
+
+
+@router.post("/reset-password", status_code=204)
+def reset_password(
+    data: ResetPasswordInput,
+    db: DatabaseSession,
+    request: Request,
+) -> None:
+    check_rate_limit(
+        request,
+        scope="reset-password",
+        limit=20,
+        window_seconds=60 * 60,
+        identifier=data.token[:16],
+    )
+    reset = db.scalar(
+        select(PasswordResetToken).where(
+            PasswordResetToken.token_hash == _token_digest(data.token),
+            PasswordResetToken.expires_at > int(time.time()),
+        )
+    )
+    user = db.get(User, reset.user_id) if reset else None
+    if not reset or not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Link de recuperação inválido ou expirado.",
+        )
+
+    user.password_hash = password_hash.hash(data.password)
+    db.execute(delete(PasswordResetToken).where(PasswordResetToken.user_id == user.id))
+    db.execute(delete(UserSession).where(UserSession.user_id == user.id))
+    db.commit()
+
+
 @router.post("/login", response_model=UserResponse)
 def login(
     data: LoginInput,
     response: Response,
     db: DatabaseSession,
+    request: Request,
 ) -> User:
     email = str(data.email).strip().lower()
+    check_rate_limit(
+        request,
+        scope="login",
+        limit=20,
+        window_seconds=5 * 60,
+        identifier=email,
+    )
     user = db.scalar(select(User).where(User.email == email))
     stored_hash = user.password_hash if user else dummy_password_hash
     valid_password = password_hash.verify(data.password, stored_hash)
@@ -387,7 +559,7 @@ def submit_crm(
     response_model=list[AdminCrmReviewResponse],
 )
 def list_crm_reviews(
-    db: DatabaseSession,
+    db: ReadDatabaseSession,
     _: Annotated[User, Depends(get_admin_user)],
     review_status: Annotated[CrmStatus | None, Query(alias="status")] = None,
 ) -> list[User]:
@@ -417,15 +589,51 @@ def review_crm(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Cadastro profissional não encontrado.",
         )
+    reviewed_at = datetime.now(timezone.utc)
     target.crm_status = data.status
-    target.crm_verified_at = datetime.now(timezone.utc)
+    target.crm_verified_at = reviewed_at
     target.crm_verified_by = admin.id
     target.crm_rejection_reason = (
         data.rejection_reason if data.status == "rejected" else None
     )
+    db.add(
+        CrmReviewEvent(
+            user_id=target.id,
+            reviewer_id=admin.id,
+            status=data.status,
+            rejection_reason=target.crm_rejection_reason,
+            created_at=reviewed_at,
+        )
+    )
     db.commit()
     db.refresh(target)
     return target
+
+
+@router.get(
+    "/admin/crm-reviews/{user_id}/history",
+    response_model=list[CrmReviewEventResponse],
+)
+def crm_review_history(
+    user_id: int,
+    db: ReadDatabaseSession,
+    _: Annotated[User, Depends(get_admin_user)],
+) -> list[CrmReviewEvent]:
+    if not db.get(User, user_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cadastro profissional não encontrado.",
+        )
+    return list(
+        db.scalars(
+            select(CrmReviewEvent)
+            .where(CrmReviewEvent.user_id == user_id)
+            .order_by(
+                CrmReviewEvent.created_at.desc(),
+                CrmReviewEvent.id.desc(),
+            )
+        )
+    )
 
 
 @router.post("/privacy-consent", response_model=UserResponse)
@@ -436,6 +644,19 @@ def accept_privacy_notice(
 ) -> User:
     user.privacy_accepted_at = datetime.now(timezone.utc)
     user.privacy_notice_version = PRIVACY_NOTICE_VERSION
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.post("/terms-consent", response_model=UserResponse)
+def accept_terms(
+    _: TermsConsentInput,
+    db: DatabaseSession,
+    user: Annotated[User, Depends(get_current_user)],
+) -> User:
+    user.terms_accepted_at = datetime.now(timezone.utc)
+    user.terms_version = TERMS_VERSION
     db.commit()
     db.refresh(user)
     return user
@@ -467,13 +688,12 @@ def delete_account(
     if not password_hash.verify(data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Senha incorreta.")
 
+    db.execute(delete(PredictionResult).where(PredictionResult.user_id == user.id))
     db.execute(
-        delete(PredictionResult).where(PredictionResult.user_id == user.id)
+        delete(EmailVerificationToken).where(EmailVerificationToken.user_id == user.id)
     )
     db.execute(
-        delete(EmailVerificationToken).where(
-            EmailVerificationToken.user_id == user.id
-        )
+        delete(PasswordResetToken).where(PasswordResetToken.user_id == user.id)
     )
     db.execute(delete(UserSession).where(UserSession.user_id == user.id))
     db.execute(delete(User).where(User.id == user.id))

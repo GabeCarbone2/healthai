@@ -20,6 +20,7 @@ export function VerifyEmailPage({ token, onVerified }: Props) {
       setError("O link de verificação está incompleto.");
       return;
     }
+    window.history.replaceState({}, "", "/verify-email");
     verifyEmail(token)
       .then(onVerified)
       .catch((requestError) => {

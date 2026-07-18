@@ -7,28 +7,35 @@ type Props = {
 export function PrivacyNotice({ info }: Props) {
   return (
     <div className="privacy-notice">
-      <p>
-        O HealthAI usa seu nome, e-mail, CRM e UF do registro para administrar
-        a conta profissional e registrar a análise manual, incluindo status,
-        data, responsável e eventual motivo de rejeição. Senhas são armazenadas
-        somente como hash e a autenticação usa cookie protegido.
-      </p>
-      <p>
-        Nas avaliações, use apenas o identificador <code>PAC-…</code>. O
-        sistema não armazena o nome do paciente nem os valores clínicos
-        enviados ao modelo; conserva o código pseudonimizado e o resultado por
-        até <strong>{info.result_retention_days} dias</strong>.
-      </p>
-      <p>
-        Pseudonimização não é anonimização. Mantenha qualquer tabela que ligue o
-        código à pessoa fora do HealthAI, com acesso restrito. O sistema tem
-        finalidade acadêmica e não realiza diagnóstico.
-      </p>
-      <p>
-        Você pode apagar resultados individualmente ou excluir a conta e seus
-        dados. Canal de privacidade: <strong>{info.contact}</strong>.
-      </p>
-      <small>Versão do aviso: {info.notice_version}</small>
+      <section>
+        <h3>Dados da conta</h3>
+        <p>
+          Nome, e-mail, CRM e UF são usados para administrar a conta e registrar
+          a análise manual do cadastro profissional. A senha é armazenada
+          somente como hash e a autenticação usa cookie protegido.
+        </p>
+      </section>
+      <section>
+        <h3>Dados das avaliações</h3>
+        <p>
+          Use apenas o identificador <code>PAC-…</code>. O HealthAI não armazena
+          nome do paciente nem os valores clínicos enviados ao modelo. Conserva
+          o código, resultado, versão do modelo e metadados de completude por até{" "}
+          <strong>{info.result_retention_days} dias</strong>.
+        </p>
+      </section>
+      <section>
+        <h3>Cuidados e direitos</h3>
+        <p>
+          Pseudonimização não é anonimização. Mantenha a tabela de vínculo fora
+          do HealthAI e com acesso restrito. Você pode excluir resultados ou a
+          conta; o sistema é acadêmico e não realiza diagnóstico.
+        </p>
+      </section>
+      <footer>
+        <a href={`mailto:${info.contact}`}>{info.contact}</a>
+        <span>Aviso {info.notice_version}</span>
+      </footer>
     </div>
   );
 }

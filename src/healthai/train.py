@@ -1,6 +1,7 @@
 """Treinamento e selecao dos modelos do HealthAI por conjunto de dados."""
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -23,10 +24,43 @@ from healthai.evaluate import (
     bootstrap_confidence_intervals,
     calibration_summary,
     classification_metrics,
+    explainability_summary,
     save_calibration_plot,
+    save_feature_importance_plot,
+    subgroup_bias_summary,
     subgroup_evaluation,
 )
 from healthai.features import build_model_pipeline
+
+
+def _sha256_file(path: str | Path) -> str:
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _model_version(
+    *,
+    data_path: str | Path,
+    config_path: str | Path,
+    experiment_name: str,
+    model_name: str,
+    threshold: dict[str, object],
+    validation: dict[str, object],
+) -> str:
+    """Cria versão reproduzível a partir dos dados e decisões de treinamento."""
+    metadata = {
+        "data_sha256": _sha256_file(data_path),
+        "config_sha256": _sha256_file(config_path),
+        "experiment": experiment_name,
+        "model": model_name,
+        "threshold": threshold,
+        "best_params": validation.get("best_params", {}),
+    }
+    encoded = json.dumps(metadata, sort_keys=True, default=str).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()[:16]
 
 
 def _prepare_experiment(
@@ -75,6 +109,35 @@ def _enabled_models(experiment: dict[str, Any]) -> dict[str, dict[str, Any]]:
     if not enabled:
         raise ValueError("Nenhum modelo está habilitado no experimento.")
     return enabled
+
+
+def _external_validation_note(
+    experiment_name: str,
+    experiment: dict[str, Any],
+) -> dict[str, object]:
+    """Documenta o estado da validação externa do experimento."""
+    configured = experiment.get("external_validation", {})
+    return {
+        "status": configured.get("status", "not_performed"),
+        "target_dataset": configured.get("target_dataset"),
+        "reason": configured.get(
+            "reason",
+            (
+                "Validação externa verdadeira não foi executada neste "
+                f"experimento ({experiment_name}). O teste isolado vem da "
+                "mesma fonte de dados usada no treino."
+            ),
+        ),
+        "recommended_protocol": configured.get(
+            "recommended_protocol",
+            [
+                "congelar variáveis, pré-processamento, hiperparâmetros e limiar",
+                "aplicar o artefato salvo a uma coorte independente compatível",
+                "reportar métricas, calibração, intervalos de confiança e subgrupos",
+                "não reajustar o modelo nem o limiar com a coorte externa",
+            ],
+        ),
+    }
 
 
 def _optimize_threshold(
@@ -210,10 +273,7 @@ def train(config_path: str | Path) -> dict[str, object]:
             for feature in [
                 *experiment.get("numeric_features", []),
                 *experiment.get("categorical_features", []),
-                *[
-                    subgroup["column"]
-                    for subgroup in experiment.get("subgroups", [])
-                ],
+                *[subgroup["column"] for subgroup in experiment.get("subgroups", [])],
             ]
         }
     )
@@ -307,6 +367,7 @@ def train(config_path: str | Path) -> dict[str, object]:
         experiment_metrics: dict[str, object] = {
             "source_dataset": experiment["source_value"],
             "selected_model": selected_model,
+            "model_version": None,
             "selection": {
                 "metric": scoring,
                 "cv_folds": cv_folds,
@@ -337,7 +398,15 @@ def train(config_path: str | Path) -> dict[str, object]:
                     "subgroup_minimum_events",
                     10,
                 ),
+                "explainability": evaluation_config.get(
+                    "explainability",
+                    {"enabled": False},
+                ),
             },
+            "external_validation": _external_validation_note(
+                experiment_name,
+                experiment,
+            ),
             "models": {},
         }
 
@@ -369,8 +438,17 @@ def train(config_path: str | Path) -> dict[str, object]:
                 else 0
             ),
         }
+        explainability_config = evaluation_config.get("explainability", {})
         calibration_curves: dict[str, dict[str, object]] = {}
         for model_name, pipeline in pipelines.items():
+            model_version = _model_version(
+                data_path=data_config["path"],
+                config_path=config_path,
+                experiment_name=experiment_name,
+                model_name=model_name,
+                threshold=thresholds[model_name],
+                validation=cross_validation[model_name],
+            )
             probabilities = pipeline.predict_proba(x_test)[:, 1]
             decision_threshold = float(thresholds[model_name]["value"])
             predictions = (probabilities >= decision_threshold).astype(int)
@@ -408,8 +486,39 @@ def train(config_path: str | Path) -> dict[str, object]:
                 ),
                 confidence_settings=subgroup_confidence_settings,
             )
+            model_metrics["bias_summary"] = subgroup_bias_summary(
+                model_metrics["subgroups"]
+            )
+            if (
+                explainability_config.get("enabled", False)
+                and model_name == selected_model
+            ):
+                model_metrics["explainability"] = explainability_summary(
+                    pipeline,
+                    x_test,
+                    y_test,
+                    scoring=explainability_config.get("scoring", "roc_auc"),
+                    n_repeats=explainability_config.get("n_repeats", 10),
+                    random_state=explainability_config.get(
+                        "random_state",
+                        split_config["random_state"],
+                    ),
+                    n_jobs=explainability_config.get("n_jobs"),
+                )
+                save_feature_importance_plot(
+                    model_metrics["explainability"],
+                    figures_dir / f"{experiment_name}_feature_importance.png",
+                    title=(
+                        "Importância por permutação — "
+                        f"{experiment_name.upper()} ({model_name})"
+                    ),
+                    top_n=explainability_config.get("top_n", 12),
+                )
+            else:
+                model_metrics["explainability"] = None
             model_metrics["cross_validation"] = cross_validation[model_name]
             model_metrics["threshold"] = thresholds[model_name]
+            model_metrics["model_version"] = model_version
             experiment_metrics["models"][model_name] = model_metrics
 
             artifact = {
@@ -424,6 +533,7 @@ def train(config_path: str | Path) -> dict[str, object]:
                 "source_value": experiment["source_value"],
                 "experiment_name": experiment_name,
                 "model_name": model_name,
+                "model_version": model_version,
                 "selection_metric": scoring,
                 "cross_validation": cross_validation[model_name],
                 "decision_threshold": decision_threshold,
@@ -433,6 +543,7 @@ def train(config_path: str | Path) -> dict[str, object]:
             model_path = models_dir / f"{experiment_name}_{model_name}.joblib"
             joblib.dump(artifact, model_path)
             if artifact["selected"]:
+                experiment_metrics["model_version"] = model_version
                 joblib.dump(artifact, models_dir / f"{experiment_name}_selected.joblib")
 
         save_calibration_plot(

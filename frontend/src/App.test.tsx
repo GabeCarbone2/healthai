@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -21,7 +21,9 @@ const user = {
   created_at: "2026-07-04T12:00:00Z",
   email_verified_at: "2026-07-04T12:00:00Z",
   privacy_accepted_at: "2026-07-04T12:00:00Z",
-  privacy_notice_version: "2026-07-05.1",
+  privacy_notice_version: "2026-07-11.1",
+  terms_accepted_at: "2026-07-04T12:00:00Z",
+  terms_version: "2026-07-11.1",
 };
 
 const catalog = {
@@ -38,9 +40,14 @@ const emptyResults = {
 };
 
 const privacy = {
-  notice_version: "2026-07-05.1",
+  notice_version: "2026-07-11.1",
   result_retention_days: 180,
   contact: "privacidade@example.com",
+};
+
+const terms = {
+  version: "2026-07-11.1",
+  effective_date: "2026-07-11",
 };
 
 describe("App", () => {
@@ -48,6 +55,7 @@ describe("App", () => {
     vi.resetAllMocks();
     vi.mocked(api.fetchCurrentUser).mockResolvedValue(user);
     vi.mocked(api.fetchPrivacyInfo).mockResolvedValue(privacy);
+    vi.mocked(api.fetchTermsInfo).mockResolvedValue(terms);
     vi.mocked(api.fetchCatalog).mockResolvedValue(catalog);
     vi.mocked(api.fetchResults).mockResolvedValue(emptyResults);
     vi.mocked(api.logout).mockResolvedValue(undefined);
@@ -147,6 +155,50 @@ describe("App", () => {
       screen.queryByRole("button", { name: "Avaliação" }),
     ).not.toBeInTheDocument();
     expect(api.fetchCatalog).not.toHaveBeenCalled();
+  });
+
+  it("exige aceite quando uma nova versão dos termos está vigente", async () => {
+    vi.mocked(api.fetchCurrentUser).mockResolvedValue({
+      ...user,
+      terms_accepted_at: null,
+      terms_version: null,
+    });
+    vi.mocked(api.acceptTermsConsent).mockResolvedValue(user);
+    const browser = userEvent.setup();
+
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Termos de Uso" })).toBeInTheDocument();
+    await browser.click(screen.getByRole("checkbox", { name: /Li e aceito/ }));
+    await browser.click(screen.getByRole("button", { name: "Aceitar e continuar" }));
+
+    expect(api.acceptTermsConsent).toHaveBeenCalledOnce();
+    expect(await screen.findByRole("button", { name: "Avaliação" })).toBeInTheDocument();
+  });
+
+  it("pede confirmação antes de encerrar a sessão manualmente", async () => {
+    const browser = userEvent.setup();
+
+    render(<App />);
+
+    expect(
+      await screen.findByRole("button", { name: "Avaliação" }),
+    ).toBeInTheDocument();
+
+    await browser.click(screen.getByRole("button", { name: "Encerrar sessão" }));
+    const dialog = screen.getByRole("dialog", { name: "Sair do HealthAI?" });
+
+    await browser.click(within(dialog).getByRole("button", { name: "Cancelar" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(api.logout).not.toHaveBeenCalled();
+
+    await browser.click(screen.getByRole("button", { name: "Encerrar sessão" }));
+    await browser.click(
+      within(screen.getByRole("dialog", { name: "Sair do HealthAI?" }))
+        .getByRole("button", { name: "Sair" }),
+    );
+
+    expect(api.logout).toHaveBeenCalledOnce();
   });
 
   it("encerra a sessão depois de 30 minutos sem atividade", async () => {

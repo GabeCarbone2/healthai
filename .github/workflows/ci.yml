@@ -66,3 +66,23 @@ jobs:
 
       - name: Compilar frontend
         run: npm --prefix frontend run build
+
+  containers:
+    name: Imagens de produção
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validar Compose
+        run: |
+          cp .env.production.example .env.production
+          docker compose -f compose.production.yml config --quiet
+
+      - name: Construir API
+        run: docker build --target api --tag healthai-api:ci .
+
+      - name: Construir frontend
+        run: docker build --target web --tag healthai-web:ci .

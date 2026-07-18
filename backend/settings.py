@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 
 from dotenv import dotenv_values
 
@@ -15,3 +16,45 @@ def setting(name: str, default: str = "") -> str:
     if value is None:
         value = DOTENV_VALUES.get(name)
     return value if isinstance(value, str) else default
+
+
+def is_production_environment() -> bool:
+    return setting("HEALTHAI_ENV", "development").strip().lower() in {
+        "prod",
+        "production",
+    }
+
+
+def validate_production_settings() -> None:
+    """Interrompe a inicialização quando a produção está insegura/incompleta."""
+    if not is_production_environment():
+        return
+
+    required = {
+        "HEALTHAI_ADMIN_EMAILS": setting("HEALTHAI_ADMIN_EMAILS"),
+        "HEALTHAI_PRIVACY_CONTACT": setting("HEALTHAI_PRIVACY_CONTACT"),
+        "HEALTHAI_FRONTEND_URL": setting("HEALTHAI_FRONTEND_URL"),
+        "HEALTHAI_SMTP_HOST": setting("HEALTHAI_SMTP_HOST"),
+        "HEALTHAI_SMTP_USERNAME": setting("HEALTHAI_SMTP_USERNAME"),
+        "HEALTHAI_SMTP_PASSWORD": setting("HEALTHAI_SMTP_PASSWORD"),
+        "HEALTHAI_EMAIL_FROM": setting("HEALTHAI_EMAIL_FROM"),
+    }
+    missing = sorted(name for name, value in required.items() if not value.strip())
+    if missing:
+        raise RuntimeError("Configuração de produção incompleta: " + ", ".join(missing))
+
+    if "SUBSTITUA" in required["HEALTHAI_SMTP_PASSWORD"].upper():
+        raise RuntimeError("Substitua a senha SMTP de exemplo antes do deploy.")
+
+    if setting("HEALTHAI_EMAIL_DELIVERY", "console").strip().lower() != "smtp":
+        raise RuntimeError("Produção exige HEALTHAI_EMAIL_DELIVERY=smtp.")
+
+    frontend = urlparse(required["HEALTHAI_FRONTEND_URL"].strip())
+    if frontend.scheme != "https" or not frontend.hostname:
+        raise RuntimeError("HEALTHAI_FRONTEND_URL deve usar HTTPS em produção.")
+
+    if required["HEALTHAI_PRIVACY_CONTACT"].strip().lower() in {
+        "não configurado",
+        "nao configurado",
+    }:
+        raise RuntimeError("Configure um canal de privacidade válido em produção.")

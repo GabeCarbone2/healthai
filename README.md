@@ -64,7 +64,7 @@ Veja a descrição detalhada em [`docs/estrutura.md`](docs/estrutura.md).
 Requer Python 3.10 ou superior e Node.js 20 ou superior.
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e ".[dev]"
 npm --prefix frontend install
@@ -97,17 +97,18 @@ make frontend
 ```
 
 A interface fica disponível em `http://127.0.0.1:5173` e a documentação
-interativa da API em `http://127.0.0.1:8000/docs`. A API valida faixas e
-populações aceitas pelos modelos. Ela persiste somente um identificador
-pseudonimizado `PAC-…` e o resultado da avaliação; nomes de pacientes e valores
-clínicos enviados ao modelo não são armazenados.
+interativa da API em `http://127.0.0.1:8000/docs`. A API valida faixas,
+completude e populações aceitas pelos modelos. Ela persiste o identificador
+pseudonimizado `PAC-…`, resultado, versão do modelo e metadados de completude;
+nomes de pacientes e valores clínicos enviados ao modelo não são armazenados.
 
 No primeiro acesso, use **Criar conta**. O cadastro profissional exige CRM e
 UF e impede a repetição desse par. Após confirmar o e-mail, a conta permanece
 com o CRM pendente e só recebe acesso às avaliações depois da aprovação manual
 por um administrador. A API registra o status, a data, o administrador
 responsável e eventual motivo de rejeição. A consulta é feita no portal público
-do CFM, sem automação pelo HealthAI.
+do CFM, sem automação pelo HealthAI. Cada decisão administrativa também é
+preservada em uma trilha de auditoria imutável.
 
 Defina uma ou mais contas administrativas, separadas por vírgula, antes de
 iniciar a API:
@@ -119,13 +120,18 @@ HEALTHAI_ADMIN_EMAILS=administrador@example.com
 Contas existentes com esses e-mails são promovidas na inicialização. A API cria
 automaticamente o banco SQLite `data/healthai.db`, armazena usuários, sessões e
 o histórico de resultados, e protege senhas com Argon2. A conta só abre uma
-sessão depois da confirmação do e-mail; o token expira em 24 horas e somente
-seu hash é persistido. O acesso permanece em um cookie `HttpOnly` por sete
-dias. Os valores clínicos dos formulários não são gravados.
+sessão depois da confirmação do e-mail; o link de confirmação expira em 24
+horas e somente hashes de tokens são persistidos. A recuperação de senha usa
+resposta genérica contra enumeração, link de uso único válido por uma hora e
+encerra as sessões anteriores depois da redefinição. A sessão usa cookie
+`HttpOnly` de sessão e expira após 30 minutos sem atividade. Os valores clínicos
+dos formulários não são gravados.
 Ao iniciar, a API aplica automaticamente as migrações pendentes do Alembic.
 Resultados vencidos são eliminados conforme
 `HEALTHAI_RESULT_RETENTION_DAYS` (180 dias por padrão), e o usuário pode excluir
-seu histórico ou a conta inteira. Consulte o
+seu histórico ou a conta inteira. Os Termos de Uso são públicos, versionados e
+um novo aceite é exigido quando a versão muda. Uma rotina periódica remove resultados,
+sessões e links de autenticação expirados. Consulte o
 [aviso de privacidade](docs/privacidade.md) e configure
 `HEALTHAI_PRIVACY_CONTACT` antes de publicar o sistema.
 
@@ -141,6 +147,15 @@ As opções de ambiente estão documentadas em `.env.example`. Em uma publicaç�
 HTTPS, defina `HEALTHAI_SECURE_COOKIE=true` e configure
 `HEALTHAI_DATABASE_URL` para o banco do ambiente.
 Copie `.env.example` para `.env`; a API carrega esse arquivo automaticamente.
+Em produção, copie `.env.production.example` para `.env.production`. A API
+recusa a inicialização se HTTPS, SMTP, administrador ou canal de privacidade
+estiverem incompletos.
+
+A camada de persistência possui índices voltados às consultas reais, pool de
+conexões configurável e roteamento opcional para múltiplas read replicas
+PostgreSQL. O deploy SQLite mantém as leituras no primário. Consulte
+[`docs/escalabilidade.md`](docs/escalabilidade.md) para ativação, limites do
+pool, consistência eventual e critérios para cache/CDN.
 
 Para enviar confirmações reais pela caixa postal da Hostinger, crie o endereço
 remetente no hPanel e configure:
@@ -158,17 +173,21 @@ HEALTHAI_FRONTEND_URL=https://seu-frontend.example
 
 Também é possível usar STARTTLS com a porta 587. A senha SMTP deve existir
 somente no `.env` local ou no ambiente seguro do servidor.
-No modo padrão `console`, adequado ao desenvolvimento, o link de confirmação
-é exibido no log da API e nenhum e-mail externo é enviado.
+No modo padrão `console`, adequado ao desenvolvimento, links de confirmação e
+recuperação são exibidos no log da API e nenhum e-mail externo é enviado.
 
 O treinamento separa o teste antes de comparar os três algoritmos, executa
 busca aleatória de hiperparâmetros com validação cruzada somente no treino,
 aprende um limiar F2 com previsões out-of-fold e cria os modelos finais
 `models/pima_selected.joblib` e `models/nhanes_selected.joblib`. As métricas
 ficam em `reports/model_comparison.json`, incluindo Brier score, pontos da
-curva de calibração, intervalos bootstrap de 95% e métricas por subgrupos. As
-curvas renderizadas ficam em `reports/figures/pima_calibration.png` e
-`reports/figures/nhanes_calibration.png`.
+curva de calibração, intervalos bootstrap de 95%, métricas por subgrupos,
+resumo de disparidades, explicabilidade por permutação e estado da validação
+externa. As curvas renderizadas ficam em
+`reports/figures/pima_calibration.png` e
+`reports/figures/nhanes_calibration.png`; as importâncias ficam em
+`reports/figures/pima_feature_importance.png` e
+`reports/figures/nhanes_feature_importance.png`.
 
 Com cinco folds e F1 como critério de seleção, o ajuste resultou em:
 
@@ -178,6 +197,14 @@ Com cinco folds e F1 como critério de seleção, o ajuste resultou em:
 Os limiares F2 definidos apenas no treino foram 21% para Pima e 13% para
 NHANES. No teste isolado, os respectivos recalls foram 88,89% e 80,11%. O
 teste não participa do ajuste, da escolha do algoritmo nem do limiar.
+
+A discussão de explicabilidade, validação externa, viés e limitações está
+consolidada em [`docs/modelo.md`](docs/modelo.md). A validação externa
+verdadeira ainda está marcada como não realizada, pois exige uma coorte
+independente compatível com as mesmas variáveis e definição de desfecho.
+Na API interativa, cada nova predição também recebe uma explicação efêmera por
+substituição individual pela referência imputada do pipeline. Ela mede
+sensibilidade local, não é causal ou aditiva e não é armazenada no histórico.
 
 Para gerar previsões em lote:
 

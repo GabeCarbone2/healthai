@@ -1,6 +1,6 @@
 """Contratos de entrada e saída da API."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Literal
 
 from pydantic import (
@@ -8,16 +8,50 @@ from pydantic import (
     ConfigDict,
     EmailStr,
     Field,
+    field_serializer,
     field_validator,
     model_validator,
 )
 
 BrazilianState = Literal[
-    "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO",
-    "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI",
-    "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
+    "AC",
+    "AL",
+    "AP",
+    "AM",
+    "BA",
+    "CE",
+    "DF",
+    "ES",
+    "GO",
+    "MA",
+    "MT",
+    "MS",
+    "MG",
+    "PA",
+    "PB",
+    "PR",
+    "PE",
+    "PI",
+    "RJ",
+    "RN",
+    "RS",
+    "RO",
+    "RR",
+    "SC",
+    "SP",
+    "SE",
+    "TO",
 ]
 CrmStatus = Literal["pending", "approved", "rejected"]
+
+
+def ensure_utc(value: datetime | None) -> datetime | None:
+    """Marca timestamps SQLite sem fuso como UTC antes da serialização."""
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 
 class CrmCredentialsInput(BaseModel):
@@ -40,6 +74,7 @@ class RegisterInput(CrmCredentialsInput):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
     privacy_accepted: Literal[True]
+    terms_accepted: Literal[True]
 
     @field_validator("name", mode="before")
     @classmethod
@@ -52,6 +87,7 @@ class RegisterInput(CrmCredentialsInput):
         if len(value.strip()) < 2:
             raise ValueError("Informe um nome válido.")
         return value
+
 
 class LoginInput(BaseModel):
     email: EmailStr
@@ -66,6 +102,15 @@ class ResendEmailVerificationInput(BaseModel):
     email: EmailStr
 
 
+class ForgotPasswordInput(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordInput(BaseModel):
+    token: str = Field(min_length=32, max_length=256)
+    password: str = Field(min_length=8, max_length=128)
+
+
 class RegistrationResponse(BaseModel):
     email: EmailStr
     verification_required: Literal[True] = True
@@ -74,6 +119,10 @@ class RegistrationResponse(BaseModel):
 
 
 class PrivacyConsentInput(BaseModel):
+    accepted: Literal[True]
+
+
+class TermsConsentInput(BaseModel):
     accepted: Literal[True]
 
 
@@ -88,11 +137,7 @@ class CrmReviewInput(BaseModel):
 
     @model_validator(mode="after")
     def validate_rejection_reason(self) -> "CrmReviewInput":
-        reason = (
-            self.rejection_reason.strip()
-            if self.rejection_reason
-            else None
-        )
+        reason = self.rejection_reason.strip() if self.rejection_reason else None
         if self.status == "rejected" and not reason:
             raise ValueError("Informe o motivo da rejeição.")
         self.rejection_reason = reason
@@ -116,6 +161,18 @@ class UserResponse(BaseModel):
     email_verified_at: datetime | None
     privacy_accepted_at: datetime | None
     privacy_notice_version: str | None
+    terms_accepted_at: datetime | None
+    terms_version: str | None
+
+    @field_serializer(
+        "created_at",
+        "email_verified_at",
+        "crm_verified_at",
+        "privacy_accepted_at",
+        "terms_accepted_at",
+    )
+    def serialize_datetimes(self, value: datetime | None) -> datetime | None:
+        return ensure_utc(value)
 
 
 class AdminCrmReviewResponse(BaseModel):
@@ -132,6 +189,25 @@ class AdminCrmReviewResponse(BaseModel):
     crm_verified_at: datetime | None
     crm_verified_by: int | None
     crm_rejection_reason: str | None
+
+    @field_serializer("created_at", "email_verified_at", "crm_verified_at")
+    def serialize_datetimes(self, value: datetime | None) -> datetime | None:
+        return ensure_utc(value)
+
+
+class CrmReviewEventResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    user_id: int
+    reviewer_id: int | None
+    status: CrmStatus
+    rejection_reason: str | None
+    created_at: datetime
+
+    @field_serializer("created_at")
+    def serialize_created_at(self, value: datetime) -> datetime:
+        return ensure_utc(value) or value
 
 
 class PatientPredictionInput(BaseModel):
@@ -152,26 +228,49 @@ class PatientPredictionInput(BaseModel):
 class PimaPredictionInput(PatientPredictionInput):
     """Variáveis usadas pelo modelo Pima."""
 
-    pregnancies: int = Field(ge=0, le=20)
-    glucose_mg_dl: float | None = Field(default=None, ge=20, le=600)
-    diastolic_bp_mmhg: float | None = Field(default=None, ge=30, le=180)
-    skin_thickness_mm: float | None = Field(default=None, ge=1, le=100)
-    serum_insulin_muu_ml: float | None = Field(default=None, ge=1, le=1000)
-    bmi_kg_m2: float | None = Field(default=None, ge=10, le=80)
-    diabetes_pedigree_function: float | None = Field(default=None, ge=0, le=3)
-    age_years: int = Field(ge=21, le=100)
+    pregnancies: int = Field(ge=0, le=17)
+    glucose_mg_dl: float = Field(ge=44, le=199)
+    diastolic_bp_mmhg: float | None = Field(default=None, ge=30, le=122)
+    skin_thickness_mm: float | None = Field(default=None, ge=7, le=99)
+    serum_insulin_muu_ml: float | None = Field(default=None, ge=14, le=846)
+    bmi_kg_m2: float = Field(ge=18.2, le=67.1)
+    diabetes_pedigree_function: float = Field(ge=0.078, le=2.42)
+    age_years: int = Field(ge=21, le=81)
 
 
 class NhanesPredictionInput(PatientPredictionInput):
     """Variáveis usadas pelo modelo NHANES."""
 
     sex: Literal["female", "male"]
-    age_years: int = Field(ge=18, le=100)
-    bmi_kg_m2: float | None = Field(default=None, ge=10, le=90)
-    systolic_bp_mmhg: float | None = Field(default=None, ge=60, le=260)
-    diastolic_bp_mmhg: float | None = Field(default=None, ge=30, le=180)
-    hba1c_percent: float | None = Field(default=None, ge=2, le=20)
-    glucose_mg_dl: float | None = Field(default=None, ge=20, le=600)
+    age_years: int = Field(ge=18, le=80)
+    bmi_kg_m2: float = Field(ge=14.2, le=86.2)
+    systolic_bp_mmhg: float | None = Field(default=None, ge=73, le=238)
+    diastolic_bp_mmhg: float | None = Field(default=None, ge=31, le=136)
+    hba1c_percent: float = Field(ge=3.8, le=16.2)
+    glucose_mg_dl: float | None = Field(default=None, ge=47, le=421)
+
+    @model_validator(mode="after")
+    def validate_clinical_completeness(self) -> "NhanesPredictionInput":
+        measurements = (
+            self.bmi_kg_m2,
+            self.systolic_bp_mmhg,
+            self.diastolic_bp_mmhg,
+            self.hba1c_percent,
+            self.glucose_mg_dl,
+        )
+        if sum(value is not None for value in measurements) < 3:
+            raise ValueError(
+                "Informe ao menos três das cinco medidas clínicas do perfil geral."
+            )
+        if (
+            self.systolic_bp_mmhg is not None
+            and self.diastolic_bp_mmhg is not None
+            and self.systolic_bp_mmhg <= self.diastolic_bp_mmhg
+        ):
+            raise ValueError(
+                "A pressão sistólica deve ser maior que a pressão diastólica."
+            )
+        return self
 
 
 class PredictionResponse(BaseModel):
@@ -194,9 +293,34 @@ class PatientResultResponse(BaseModel):
     created_at: datetime
     experiment: str
     model: str
+    model_version: str
     predicted_class: int
     probability: float
     decision_threshold: float
+    input_completeness: float
+    missing_feature_count: int
+
+    @field_serializer("created_at")
+    def serialize_created_at(self, value: datetime) -> datetime:
+        return ensure_utc(value) or value
+
+
+class LocalFeatureEffect(BaseModel):
+    feature: str
+    probability_effect: float
+    direction: Literal["increases", "decreases", "neutral"]
+
+
+class LocalExplanation(BaseModel):
+    method: Literal["single_feature_reference_replacement"]
+    interpretation: str
+    features: list[LocalFeatureEffect]
+
+
+class PatientPredictionResponse(PatientResultResponse):
+    """Resultado recém-calculado com explicação efêmera, não persistida."""
+
+    local_explanation: LocalExplanation
 
 
 class PatientResultPageResponse(BaseModel):
@@ -213,3 +337,8 @@ class PrivacyInfoResponse(BaseModel):
     notice_version: str
     result_retention_days: int
     contact: str
+
+
+class TermsInfoResponse(BaseModel):
+    version: str
+    effective_date: str

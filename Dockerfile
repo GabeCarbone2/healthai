@@ -31,8 +31,15 @@ COPY reports/model_comparison.json reports/model_comparison.json
 COPY models/pima_selected.joblib models/pima_selected.joblib
 COPY models/nhanes_selected.joblib models/nhanes_selected.joblib
 
+RUN groupadd --system healthai \
+    && useradd --system --gid healthai --home-dir /app healthai \
+    && mkdir -p /app/data \
+    && chown -R healthai:healthai /app
+
+USER healthai
+
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3)"
 
-CMD ["uvicorn", "backend.app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--proxy-headers", "--forwarded-allow-ips=*"]
+CMD ["uvicorn", "backend.app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--proxy-headers", "--forwarded-allow-ips=*", "--no-access-log"]

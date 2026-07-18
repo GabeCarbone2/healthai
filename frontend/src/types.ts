@@ -25,10 +25,29 @@ export type ClassificationMetrics = {
   accuracy: number;
   precision: number;
   recall: number;
+  specificity?: number | null;
+  false_positive_rate?: number | null;
+  false_negative_rate?: number | null;
   f1: number;
   roc_auc: number | null;
   brier_score: number;
   confusion_matrix: number[][];
+};
+
+export type Explainability = {
+  method: string;
+  dataset: string;
+  scoring: string;
+  n_repeats: number;
+  random_state: number;
+  interpretation: string;
+  features: Array<{
+    feature: string;
+    importance_mean: number;
+    importance_std: number;
+    importances: number[];
+    rank: number;
+  }>;
 };
 
 export type ConfidenceIntervals = {
@@ -64,6 +83,8 @@ export type ModelMetrics = ClassificationMetrics & {
     }>;
   };
   confidence_intervals: ConfidenceIntervals | null;
+  explainability: Explainability | null;
+  bias_summary?: Record<string, unknown>;
   subgroups: Record<
     string,
     {
@@ -104,6 +125,7 @@ export type Experiment = {
   label: string;
   selected_model: string;
   selected_model_label: string;
+  model_version: string;
   source_dataset: string;
   n_train: number;
   n_test: number;
@@ -124,9 +146,23 @@ export type Catalog = {
 export type Prediction = {
   experiment: string;
   model: string;
+  model_version: string;
   predicted_class: number;
   probability: number;
   decision_threshold: number;
+  input_completeness: number;
+  missing_feature_count: number;
+  local_explanation?: LocalExplanation;
+};
+
+export type LocalExplanation = {
+  method: "single_feature_reference_replacement";
+  interpretation: string;
+  features: Array<{
+    feature: string;
+    probability_effect: number;
+    direction: "increases" | "decreases" | "neutral";
+  }>;
 };
 
 export type User = {
@@ -144,6 +180,8 @@ export type User = {
   email_verified_at: string | null;
   privacy_accepted_at: string | null;
   privacy_notice_version: string | null;
+  terms_accepted_at: string | null;
+  terms_version: string | null;
 };
 
 export type CrmStatus = "pending" | "approved" | "rejected";
@@ -175,9 +213,13 @@ export type PatientResult = {
   createdAt: string;
   experiment: string;
   model: string;
+  modelVersion: string;
   predictedClass: number;
   probability: number;
   decisionThreshold: number;
+  inputCompleteness: number;
+  missingFeatureCount: number;
+  localExplanation?: LocalExplanation;
 };
 
 export type StoredPatientResult = {
@@ -186,9 +228,13 @@ export type StoredPatientResult = {
   created_at: string;
   experiment: string;
   model: string;
+  model_version: string;
   predicted_class: number;
   probability: number;
   decision_threshold: number;
+  input_completeness: number;
+  missing_feature_count: number;
+  local_explanation?: LocalExplanation;
 };
 
 export type ResultFilters = {
@@ -217,4 +263,9 @@ export type PrivacyInfo = {
   notice_version: string;
   result_retention_days: number;
   contact: string;
+};
+
+export type TermsInfo = {
+  version: string;
+  effective_date: string;
 };

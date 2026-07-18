@@ -27,13 +27,36 @@
         "random_state": 42
       },
       "subgroup_minimum_size": 20,
-      "subgroup_minimum_events": 10
+      "subgroup_minimum_events": 10,
+      "explainability": {
+        "enabled": true,
+        "method": "permutation_importance",
+        "scoring": "roc_auc",
+        "n_repeats": 20,
+        "random_state": 42,
+        "n_jobs": -1,
+        "top_n": 12
+      }
+    },
+    "external_validation": {
+      "status": "not_performed",
+      "target_dataset": null,
+      "reason": "O modelo Pima usa variáveis específicas do conjunto clássico e foi testado somente em partição isolada da mesma fonte. O NHANES não é validação externa direta porque possui população, variáveis e definição de desfecho diferentes.\n",
+      "recommended_protocol": [
+        "congelar variáveis, pré-processamento, hiperparâmetros e limiar",
+        "aplicar o artefato salvo a uma coorte independente compatível",
+        "reportar métricas, calibração, intervalos de confiança e subgrupos",
+        "não reajustar o modelo nem o limiar com a coorte externa"
+      ]
     },
     "models": {
       "logistic_regression": {
         "accuracy": 0.6753246753246753,
         "precision": 0.5204081632653061,
         "recall": 0.9444444444444444,
+        "specificity": 0.53,
+        "false_positive_rate": 0.47,
+        "false_negative_rate": 0.05555555555555555,
         "f1": 0.6710526315789473,
         "roc_auc": 0.8105555555555556,
         "brier_score": 0.18161481201774296,
@@ -151,6 +174,24 @@
               "upper": 1.0,
               "valid_resamples": 2000
             },
+            "specificity": {
+              "estimate": 0.53,
+              "lower": 0.43133823529411774,
+              "upper": 0.63,
+              "valid_resamples": 2000
+            },
+            "false_positive_rate": {
+              "estimate": 0.47,
+              "lower": 0.37,
+              "upper": 0.5686617647058821,
+              "valid_resamples": 2000
+            },
+            "false_negative_rate": {
+              "estimate": 0.05555555555555555,
+              "lower": 0.0,
+              "upper": 0.125,
+              "valid_resamples": 2000
+            },
             "f1": {
               "estimate": 0.6710526315789473,
               "lower": 0.5757018716577541,
@@ -177,6 +218,7 @@
             "label": "Faixa etária",
             "dataset": "test",
             "minimum_size": 20,
+            "minimum_events": 10,
             "n_total": 154,
             "missing_or_unassigned": 0,
             "groups": [
@@ -190,6 +232,9 @@
                   "accuracy": 0.6956521739130435,
                   "precision": 0.5076923076923077,
                   "recall": 0.9166666666666666,
+                  "specificity": 0.5949367088607594,
+                  "false_positive_rate": 0.4050632911392405,
+                  "false_negative_rate": 0.08333333333333333,
                   "f1": 0.6534653465346535,
                   "roc_auc": 0.819268635724332,
                   "brier_score": 0.16958726924014567,
@@ -229,6 +274,24 @@
                       "upper": 1.0,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.5949367088607594,
+                      "lower": 0.4943601342477747,
+                      "upper": 0.7051470588235295,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.4050632911392405,
+                      "lower": 0.2948529411764706,
+                      "upper": 0.5056398657522253,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.08333333333333333,
+                      "lower": 0.0,
+                      "upper": 0.18181818181818182,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.6534653465346535,
                       "lower": 0.5306122448979592,
@@ -262,6 +325,9 @@
                   "accuracy": 0.6666666666666666,
                   "precision": 0.6071428571428571,
                   "recall": 1.0,
+                  "specificity": 0.3125,
+                  "false_positive_rate": 0.6875,
+                  "false_negative_rate": 0.0,
                   "f1": 0.7555555555555555,
                   "roc_auc": 0.8088235294117647,
                   "brier_score": 0.18599358122972318,
@@ -301,6 +367,24 @@
                       "upper": 1.0,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.3125,
+                      "lower": 0.09071969696969714,
+                      "upper": 0.55,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.6875,
+                      "lower": 0.45,
+                      "upper": 0.9092803030303028,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.0,
+                      "lower": 0.0,
+                      "upper": 0.0,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.7555555555555555,
                       "lower": 0.5881635581061694,
@@ -335,10 +419,116 @@
                 "status": "insufficient_sample",
                 "minimum_size": 20
               }
-            ],
-            "minimum_events": 10
+            ]
           }
         },
+        "bias_summary": {
+          "age_group": {
+            "label": "Faixa etária",
+            "dataset": "test",
+            "minimum_size": 20,
+            "minimum_events": 10,
+            "metrics": {
+              "recall": {
+                "status": "estimated",
+                "absolute_gap": 0.08333333333333337,
+                "lowest_group": {
+                  "label": "21–39",
+                  "value": 0.9166666666666666,
+                  "status": "estimated",
+                  "n": 115,
+                  "positives": 36
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 1.0,
+                  "status": "estimated",
+                  "n": 33,
+                  "positives": 17
+                },
+                "limited_groups": []
+              },
+              "precision": {
+                "status": "estimated",
+                "absolute_gap": 0.09945054945054943,
+                "lowest_group": {
+                  "label": "21–39",
+                  "value": 0.5076923076923077,
+                  "status": "estimated",
+                  "n": 115,
+                  "positives": 36
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 0.6071428571428571,
+                  "status": "estimated",
+                  "n": 33,
+                  "positives": 17
+                },
+                "limited_groups": []
+              },
+              "false_positive_rate": {
+                "status": "estimated",
+                "absolute_gap": 0.2824367088607595,
+                "lowest_group": {
+                  "label": "21–39",
+                  "value": 0.4050632911392405,
+                  "status": "estimated",
+                  "n": 115,
+                  "positives": 36
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 0.6875,
+                  "status": "estimated",
+                  "n": 33,
+                  "positives": 17
+                },
+                "limited_groups": []
+              },
+              "roc_auc": {
+                "status": "estimated",
+                "absolute_gap": 0.010445106312567232,
+                "lowest_group": {
+                  "label": "40–59",
+                  "value": 0.8088235294117647,
+                  "status": "estimated",
+                  "n": 33,
+                  "positives": 17
+                },
+                "highest_group": {
+                  "label": "21–39",
+                  "value": 0.819268635724332,
+                  "status": "estimated",
+                  "n": 115,
+                  "positives": 36
+                },
+                "limited_groups": []
+              },
+              "brier_score": {
+                "status": "estimated",
+                "absolute_gap": 0.01640631198957751,
+                "lowest_group": {
+                  "label": "21–39",
+                  "value": 0.16958726924014567,
+                  "status": "estimated",
+                  "n": 115,
+                  "positives": 36
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 0.18599358122972318,
+                  "status": "estimated",
+                  "n": 33,
+                  "positives": 17
+                },
+                "limited_groups": []
+              }
+            },
+            "interpretation": "Diferenças são descritivas no conjunto de teste e não provam causalidade ou equidade populacional."
+          }
+        },
+        "explainability": null,
         "cross_validation": {
           "mean": 0.6791895767639055,
           "std": 0.01774605093022565,
@@ -368,6 +558,9 @@
         "accuracy": 0.6558441558441559,
         "precision": 0.5052631578947369,
         "recall": 0.8888888888888888,
+        "specificity": 0.53,
+        "false_positive_rate": 0.47,
+        "false_negative_rate": 0.1111111111111111,
         "f1": 0.6442953020134228,
         "roc_auc": 0.8250000000000001,
         "brier_score": 0.16492256519242882,
@@ -485,6 +678,24 @@
               "upper": 0.9666666666666667,
               "valid_resamples": 2000
             },
+            "specificity": {
+              "estimate": 0.53,
+              "lower": 0.425531914893617,
+              "upper": 0.627277183600713,
+              "valid_resamples": 2000
+            },
+            "false_positive_rate": {
+              "estimate": 0.47,
+              "lower": 0.372722816399287,
+              "upper": 0.574468085106383,
+              "valid_resamples": 2000
+            },
+            "false_negative_rate": {
+              "estimate": 0.1111111111111111,
+              "lower": 0.03333333333333333,
+              "upper": 0.19642857142857142,
+              "valid_resamples": 2000
+            },
             "f1": {
               "estimate": 0.6442953020134228,
               "lower": 0.5454545454545454,
@@ -511,6 +722,7 @@
             "label": "Faixa etária",
             "dataset": "test",
             "minimum_size": 20,
+            "minimum_events": 10,
             "n_total": 154,
             "missing_or_unassigned": 0,
             "groups": [
@@ -524,6 +736,9 @@
                   "accuracy": 0.6782608695652174,
                   "precision": 0.4918032786885246,
                   "recall": 0.8333333333333334,
+                  "specificity": 0.6075949367088608,
+                  "false_positive_rate": 0.3924050632911392,
+                  "false_negative_rate": 0.16666666666666666,
                   "f1": 0.6185567010309279,
                   "roc_auc": 0.8196202531645569,
                   "brier_score": 0.16057071072100546,
@@ -563,6 +778,24 @@
                       "upper": 0.9473684210526315,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.6075949367088608,
+                      "lower": 0.5064893966792701,
+                      "upper": 0.7206115040953089,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.3924050632911392,
+                      "lower": 0.279388495904691,
+                      "upper": 0.4935106033207299,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.16666666666666666,
+                      "lower": 0.05263157894736842,
+                      "upper": 0.3030934343434343,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.6185567010309279,
                       "lower": 0.49340287372202274,
@@ -596,6 +829,9 @@
                   "accuracy": 0.6363636363636364,
                   "precision": 0.5862068965517241,
                   "recall": 1.0,
+                  "specificity": 0.25,
+                  "false_positive_rate": 0.75,
+                  "false_negative_rate": 0.0,
                   "f1": 0.7391304347826086,
                   "roc_auc": 0.8639705882352942,
                   "brier_score": 0.16157668546920362,
@@ -635,6 +871,24 @@
                       "upper": 1.0,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.25,
+                      "lower": 0.05555555555555555,
+                      "upper": 0.5,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.75,
+                      "lower": 0.5,
+                      "upper": 0.9444444444444444,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.0,
+                      "lower": 0.0,
+                      "upper": 0.0,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.7391304347826086,
                       "lower": 0.5714285714285714,
@@ -669,9 +923,348 @@
                 "status": "insufficient_sample",
                 "minimum_size": 20
               }
-            ],
-            "minimum_events": 10
+            ]
           }
+        },
+        "bias_summary": {
+          "age_group": {
+            "label": "Faixa etária",
+            "dataset": "test",
+            "minimum_size": 20,
+            "minimum_events": 10,
+            "metrics": {
+              "recall": {
+                "status": "estimated",
+                "absolute_gap": 0.16666666666666663,
+                "lowest_group": {
+                  "label": "21–39",
+                  "value": 0.8333333333333334,
+                  "status": "estimated",
+                  "n": 115,
+                  "positives": 36
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 1.0,
+                  "status": "estimated",
+                  "n": 33,
+                  "positives": 17
+                },
+                "limited_groups": []
+              },
+              "precision": {
+                "status": "estimated",
+                "absolute_gap": 0.09440361786319951,
+                "lowest_group": {
+                  "label": "21–39",
+                  "value": 0.4918032786885246,
+                  "status": "estimated",
+                  "n": 115,
+                  "positives": 36
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 0.5862068965517241,
+                  "status": "estimated",
+                  "n": 33,
+                  "positives": 17
+                },
+                "limited_groups": []
+              },
+              "false_positive_rate": {
+                "status": "estimated",
+                "absolute_gap": 0.3575949367088608,
+                "lowest_group": {
+                  "label": "21–39",
+                  "value": 0.3924050632911392,
+                  "status": "estimated",
+                  "n": 115,
+                  "positives": 36
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 0.75,
+                  "status": "estimated",
+                  "n": 33,
+                  "positives": 17
+                },
+                "limited_groups": []
+              },
+              "roc_auc": {
+                "status": "estimated",
+                "absolute_gap": 0.04435033507073727,
+                "lowest_group": {
+                  "label": "21–39",
+                  "value": 0.8196202531645569,
+                  "status": "estimated",
+                  "n": 115,
+                  "positives": 36
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 0.8639705882352942,
+                  "status": "estimated",
+                  "n": 33,
+                  "positives": 17
+                },
+                "limited_groups": []
+              },
+              "brier_score": {
+                "status": "estimated",
+                "absolute_gap": 0.001005974748198163,
+                "lowest_group": {
+                  "label": "21–39",
+                  "value": 0.16057071072100546,
+                  "status": "estimated",
+                  "n": 115,
+                  "positives": 36
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 0.16157668546920362,
+                  "status": "estimated",
+                  "n": 33,
+                  "positives": 17
+                },
+                "limited_groups": []
+              }
+            },
+            "interpretation": "Diferenças são descritivas no conjunto de teste e não provam causalidade ou equidade populacional."
+          }
+        },
+        "explainability": {
+          "method": "permutation_importance",
+          "dataset": "held_out_test",
+          "scoring": "roc_auc",
+          "n_repeats": 20,
+          "random_state": 42,
+          "features": [
+            {
+              "feature": "glucose_mg_dl",
+              "importance_mean": 0.10971759259259269,
+              "importance_std": 0.025584147233739134,
+              "importances": [
+                0.11018518518518527,
+                0.13203703703703717,
+                0.14055555555555566,
+                0.08444444444444454,
+                0.10981481481481481,
+                0.08166666666666678,
+                0.08222222222222231,
+                0.0444444444444444,
+                0.1074074074074074,
+                0.10814814814814833,
+                0.12703703703703717,
+                0.08777777777777784,
+                0.15333333333333343,
+                0.10518518518518538,
+                0.12194444444444452,
+                0.12444444444444447,
+                0.08722222222222231,
+                0.1283333333333334,
+                0.1451851851851853,
+                0.11296296296296304
+              ],
+              "rank": 1
+            },
+            {
+              "feature": "bmi_kg_m2",
+              "importance_mean": 0.06072222222222231,
+              "importance_std": 0.021227174459360353,
+              "importances": [
+                0.06166666666666687,
+                0.07907407407407419,
+                0.09870370370370374,
+                0.05407407407407405,
+                0.04851851851851863,
+                0.06092592592592594,
+                0.0798148148148149,
+                0.037407407407407445,
+                0.04888888888888909,
+                0.03500000000000014,
+                0.07314814814814818,
+                0.019444444444444486,
+                0.07518518518518524,
+                0.04703703703703721,
+                0.07907407407407419,
+                0.06148148148148158,
+                0.10000000000000009,
+                0.0437037037037038,
+                0.03500000000000003,
+                0.0762962962962963
+              ],
+              "rank": 2
+            },
+            {
+              "feature": "age_years",
+              "importance_mean": 0.033185185185185276,
+              "importance_std": 0.011489035746607786,
+              "importances": [
+                0.050555555555555576,
+                0.019074074074074243,
+                0.03648148148148156,
+                0.0185185185185186,
+                0.022222222222222254,
+                0.02444444444444449,
+                0.028333333333333433,
+                0.03851851851851862,
+                0.0218518518518519,
+                0.030740740740740735,
+                0.032777777777777795,
+                0.029629629629629783,
+                0.027407407407407436,
+                0.03222222222222226,
+                0.03462962962962979,
+                0.05444444444444452,
+                0.06425925925925946,
+                0.03833333333333344,
+                0.02722222222222237,
+                0.0320370370370372
+              ],
+              "rank": 3
+            },
+            {
+              "feature": "serum_insulin_muu_ml",
+              "importance_mean": 0.011629629629629712,
+              "importance_std": 0.007313197195727325,
+              "importances": [
+                0.007407407407407418,
+                0.008888888888888946,
+                0.011481481481481648,
+                0.012962962962963065,
+                0.009074074074074234,
+                0.016851851851852007,
+                0.005185185185185293,
+                0.01333333333333342,
+                0.0007407407407408195,
+                0.026666666666666727,
+                0.009814814814814832,
+                0.01796296296296307,
+                0.011851851851852002,
+                0.00666666666666671,
+                0.010370370370370363,
+                0.0218518518518519,
+                -0.004629629629629539,
+                0.006851851851851887,
+                0.023518518518518605,
+                0.015740740740740833
+              ],
+              "rank": 4
+            },
+            {
+              "feature": "pregnancies",
+              "importance_mean": 0.008787037037037121,
+              "importance_std": 0.0057447641217733825,
+              "importances": [
+                0.008703703703703769,
+                0.009814814814814832,
+                0.001481481481481639,
+                0.002962962962963056,
+                0.0092592592592593,
+                -0.00722222222222213,
+                0.010185185185185297,
+                0.01722222222222225,
+                0.011851851851851891,
+                0.008518518518518592,
+                0.00537037037037047,
+                0.012407407407407423,
+                0.0033333333333334103,
+                0.014814814814814836,
+                0.007407407407407529,
+                0.018148148148148247,
+                0.013518518518518707,
+                0.012962962962963176,
+                0.00537037037037047,
+                0.009629629629629655
+              ],
+              "rank": 5
+            },
+            {
+              "feature": "diabetes_pedigree_function",
+              "importance_mean": 0.006907407407407473,
+              "importance_std": 0.007633831097756961,
+              "importances": [
+                0.018333333333333424,
+                0.014444444444444593,
+                0.0092592592592593,
+                0.0005555555555555314,
+                0.00537037037037047,
+                0.012222222222222245,
+                0.012407407407407534,
+                0.0016666666666667052,
+                0.005925925925926001,
+                0.008518518518518592,
+                -0.00666666666666671,
+                -0.003148148148148122,
+                0.0007407407407408195,
+                0.026296296296296373,
+                0.012962962962963065,
+                0.007037037037037064,
+                -0.0016666666666664831,
+                0.007777777777777883,
+                0.0035185185185185874,
+                0.002592592592592591
+              ],
+              "rank": 6
+            },
+            {
+              "feature": "skin_thickness_mm",
+              "importance_mean": 0.005074074074074164,
+              "importance_std": 0.004382046549455059,
+              "importances": [
+                0.011481481481481426,
+                0.0125925925925926,
+                0.002777777777777879,
+                0.005185185185185182,
+                0.00018518518518528815,
+                -0.004999999999999893,
+                0.002777777777777879,
+                0.0003703703703704653,
+                0.004444444444444584,
+                0.0007407407407409305,
+                0.007222222222222352,
+                0.00796296296296306,
+                0.002592592592592702,
+                0.011111111111111294,
+                0.002962962962963056,
+                0.006111111111111289,
+                0.002962962962963056,
+                0.010925925925925895,
+                0.006111111111111178,
+                0.00796296296296306
+              ],
+              "rank": 7
+            },
+            {
+              "feature": "diastolic_bp_mmhg",
+              "importance_mean": 0.001685185185185256,
+              "importance_std": 0.006001514440788285,
+              "importances": [
+                0.004259259259259296,
+                0.00796296296296306,
+                -0.015555555555555434,
+                -0.004999999999999893,
+                0.005740740740740824,
+                0.001296296296296351,
+                -0.0009259259259258856,
+                -0.006111111111111067,
+                0.008703703703703769,
+                0.0011111111111111738,
+                0.004074074074074119,
+                0.00018518518518528815,
+                0.004814814814814938,
+                0.0024074074074075247,
+                -0.006111111111111067,
+                0.005185185185185293,
+                0.0018518518518518823,
+                0.0020370370370370594,
+                0.007592592592592706,
+                0.010185185185185186
+              ],
+              "rank": 8
+            }
+          ],
+          "interpretation": "Importância por permutação mede queda de desempenho ao embaralhar uma variável no teste; não deve ser lida como efeito causal."
         },
         "cross_validation": {
           "mean": 0.6834084293001549,
@@ -705,6 +1298,9 @@
         "accuracy": 0.6818181818181818,
         "precision": 0.5274725274725275,
         "recall": 0.8888888888888888,
+        "specificity": 0.57,
+        "false_positive_rate": 0.43,
+        "false_negative_rate": 0.1111111111111111,
         "f1": 0.6620689655172414,
         "roc_auc": 0.8124074074074074,
         "brier_score": 0.17437624145582822,
@@ -822,6 +1418,24 @@
               "upper": 0.967741935483871,
               "valid_resamples": 2000
             },
+            "specificity": {
+              "estimate": 0.57,
+              "lower": 0.46998469387755104,
+              "upper": 0.6666666666666666,
+              "valid_resamples": 2000
+            },
+            "false_positive_rate": {
+              "estimate": 0.43,
+              "lower": 0.3333333333333333,
+              "upper": 0.530015306122449,
+              "valid_resamples": 2000
+            },
+            "false_negative_rate": {
+              "estimate": 0.1111111111111111,
+              "lower": 0.03225806451612903,
+              "upper": 0.19642857142857142,
+              "valid_resamples": 2000
+            },
             "f1": {
               "estimate": 0.6620689655172414,
               "lower": 0.5645057899090158,
@@ -848,6 +1462,7 @@
             "label": "Faixa etária",
             "dataset": "test",
             "minimum_size": 20,
+            "minimum_events": 10,
             "n_total": 154,
             "missing_or_unassigned": 0,
             "groups": [
@@ -861,6 +1476,9 @@
                   "accuracy": 0.6869565217391305,
                   "precision": 0.5,
                   "recall": 0.8333333333333334,
+                  "specificity": 0.620253164556962,
+                  "false_positive_rate": 0.379746835443038,
+                  "false_negative_rate": 0.16666666666666666,
                   "f1": 0.625,
                   "roc_auc": 0.8164556962025317,
                   "brier_score": 0.16681759832016163,
@@ -900,6 +1518,24 @@
                       "upper": 0.9474021592442644,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.620253164556962,
+                      "lower": 0.5211122901794327,
+                      "upper": 0.7250256849315068,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.379746835443038,
+                      "lower": 0.2749743150684932,
+                      "upper": 0.4788877098205672,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.16666666666666666,
+                      "lower": 0.05259784075573552,
+                      "upper": 0.2972972972972973,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.625,
                       "lower": 0.49348767174854136,
@@ -933,6 +1569,9 @@
                   "accuracy": 0.7272727272727273,
                   "precision": 0.6538461538461539,
                   "recall": 1.0,
+                  "specificity": 0.4375,
+                  "false_positive_rate": 0.5625,
+                  "false_negative_rate": 0.0,
                   "f1": 0.7906976744186046,
                   "roc_auc": 0.7977941176470589,
                   "brier_score": 0.17898214827991982,
@@ -972,6 +1611,24 @@
                       "upper": 1.0,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.4375,
+                      "lower": 0.2,
+                      "upper": 0.6923076923076923,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.5625,
+                      "lower": 0.3076923076923077,
+                      "upper": 0.8,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.0,
+                      "lower": 0.0,
+                      "upper": 0.0,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.7906976744186046,
                       "lower": 0.625,
@@ -1006,10 +1663,116 @@
                 "status": "insufficient_sample",
                 "minimum_size": 20
               }
-            ],
-            "minimum_events": 10
+            ]
           }
         },
+        "bias_summary": {
+          "age_group": {
+            "label": "Faixa etária",
+            "dataset": "test",
+            "minimum_size": 20,
+            "minimum_events": 10,
+            "metrics": {
+              "recall": {
+                "status": "estimated",
+                "absolute_gap": 0.16666666666666663,
+                "lowest_group": {
+                  "label": "21–39",
+                  "value": 0.8333333333333334,
+                  "status": "estimated",
+                  "n": 115,
+                  "positives": 36
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 1.0,
+                  "status": "estimated",
+                  "n": 33,
+                  "positives": 17
+                },
+                "limited_groups": []
+              },
+              "precision": {
+                "status": "estimated",
+                "absolute_gap": 0.15384615384615385,
+                "lowest_group": {
+                  "label": "21–39",
+                  "value": 0.5,
+                  "status": "estimated",
+                  "n": 115,
+                  "positives": 36
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 0.6538461538461539,
+                  "status": "estimated",
+                  "n": 33,
+                  "positives": 17
+                },
+                "limited_groups": []
+              },
+              "false_positive_rate": {
+                "status": "estimated",
+                "absolute_gap": 0.182753164556962,
+                "lowest_group": {
+                  "label": "21–39",
+                  "value": 0.379746835443038,
+                  "status": "estimated",
+                  "n": 115,
+                  "positives": 36
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 0.5625,
+                  "status": "estimated",
+                  "n": 33,
+                  "positives": 17
+                },
+                "limited_groups": []
+              },
+              "roc_auc": {
+                "status": "estimated",
+                "absolute_gap": 0.01866157855547279,
+                "lowest_group": {
+                  "label": "40–59",
+                  "value": 0.7977941176470589,
+                  "status": "estimated",
+                  "n": 33,
+                  "positives": 17
+                },
+                "highest_group": {
+                  "label": "21–39",
+                  "value": 0.8164556962025317,
+                  "status": "estimated",
+                  "n": 115,
+                  "positives": 36
+                },
+                "limited_groups": []
+              },
+              "brier_score": {
+                "status": "estimated",
+                "absolute_gap": 0.012164549959758186,
+                "lowest_group": {
+                  "label": "21–39",
+                  "value": 0.16681759832016163,
+                  "status": "estimated",
+                  "n": 115,
+                  "positives": 36
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 0.17898214827991982,
+                  "status": "estimated",
+                  "n": 33,
+                  "positives": 17
+                },
+                "limited_groups": []
+              }
+            },
+            "interpretation": "Diferenças são descritivas no conjunto de teste e não provam causalidade ou equidade populacional."
+          }
+        },
+        "explainability": null,
         "cross_validation": {
           "mean": 0.6565667289249741,
           "std": 0.015196468542041222,
@@ -1067,13 +1830,36 @@
         "random_state": 42
       },
       "subgroup_minimum_size": 20,
-      "subgroup_minimum_events": 10
+      "subgroup_minimum_events": 10,
+      "explainability": {
+        "enabled": true,
+        "method": "permutation_importance",
+        "scoring": "roc_auc",
+        "n_repeats": 20,
+        "random_state": 42,
+        "n_jobs": -1,
+        "top_n": 12
+      }
+    },
+    "external_validation": {
+      "status": "not_performed",
+      "target_dataset": null,
+      "reason": "O modelo NHANES foi testado em partição isolada da própria onda 2017-2018. Uma validação externa exigiria outra onda, coorte ou serviço com as mesmas variáveis, mesma definição de desfecho e sem reajuste do limiar.\n",
+      "recommended_protocol": [
+        "congelar variáveis, pré-processamento, hiperparâmetros e limiar",
+        "aplicar o artefato salvo a uma coorte independente compatível",
+        "reportar métricas, calibração, intervalos de confiança e subgrupos",
+        "não reajustar o modelo nem o limiar com a coorte externa"
+      ]
     },
     "models": {
       "logistic_regression": {
         "accuracy": 0.8820422535211268,
         "precision": 0.5963302752293578,
         "recall": 0.7386363636363636,
+        "specificity": 0.9083333333333333,
+        "false_positive_rate": 0.09166666666666666,
+        "false_negative_rate": 0.26136363636363635,
         "f1": 0.6598984771573604,
         "roc_auc": 0.9091826467803029,
         "brier_score": 0.10547239451060884,
@@ -1191,6 +1977,24 @@
               "upper": 0.8031959717905809,
               "valid_resamples": 2000
             },
+            "specificity": {
+              "estimate": 0.9083333333333333,
+              "lower": 0.889927070112688,
+              "upper": 0.9260843146690192,
+              "valid_resamples": 2000
+            },
+            "false_positive_rate": {
+              "estimate": 0.09166666666666666,
+              "lower": 0.07391568533098081,
+              "upper": 0.11007292988731203,
+              "valid_resamples": 2000
+            },
+            "false_negative_rate": {
+              "estimate": 0.26136363636363635,
+              "lower": 0.19680402820941909,
+              "upper": 0.32704693687398084,
+              "valid_resamples": 2000
+            },
             "f1": {
               "estimate": 0.6598984771573604,
               "lower": 0.6,
@@ -1217,6 +2021,7 @@
             "label": "Sexo",
             "dataset": "test",
             "minimum_size": 20,
+            "minimum_events": 10,
             "n_total": 1136,
             "missing_or_unassigned": 0,
             "groups": [
@@ -1230,6 +2035,9 @@
                   "accuracy": 0.8829787234042553,
                   "precision": 0.6186440677966102,
                   "recall": 0.776595744680851,
+                  "specificity": 0.9042553191489362,
+                  "false_positive_rate": 0.09574468085106383,
+                  "false_negative_rate": 0.22340425531914893,
                   "f1": 0.6886792452830188,
                   "roc_auc": 0.9196921684019919,
                   "brier_score": 0.10821445328425394,
@@ -1269,6 +2077,24 @@
                       "upper": 0.8602522306108442,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.9042553191489362,
+                      "lower": 0.8765762759004312,
+                      "upper": 0.9288869413201125,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.09574468085106383,
+                      "lower": 0.07111305867988753,
+                      "upper": 0.12342372409956888,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.22340425531914893,
+                      "lower": 0.1397477693891558,
+                      "upper": 0.31648548026805656,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.6886792452830188,
                       "lower": 0.6120218579234973,
@@ -1302,6 +2128,9 @@
                   "accuracy": 0.8811188811188811,
                   "precision": 0.57,
                   "recall": 0.6951219512195121,
+                  "specificity": 0.9122448979591836,
+                  "false_positive_rate": 0.08775510204081632,
+                  "false_negative_rate": 0.3048780487804878,
                   "f1": 0.6263736263736264,
                   "roc_auc": 0.8974240915878545,
                   "brier_score": 0.1027686862093224,
@@ -1341,6 +2170,24 @@
                       "upper": 0.7922196705733291,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.9122448979591836,
+                      "lower": 0.8870243383783597,
+                      "upper": 0.9356154562228141,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.08775510204081632,
+                      "lower": 0.06438454377718594,
+                      "upper": 0.11297566162164023,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.3048780487804878,
+                      "lower": 0.2077803294266709,
+                      "upper": 0.4066558441558441,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.6263736263736264,
                       "lower": 0.5365727935629873,
@@ -1364,14 +2211,14 @@
                 "status": "estimated",
                 "minimum_events": 10
               }
-            ],
-            "minimum_events": 10
+            ]
           },
           "age_group": {
             "column": "age_years",
             "label": "Faixa etária",
             "dataset": "test",
             "minimum_size": 20,
+            "minimum_events": 10,
             "n_total": 1136,
             "missing_or_unassigned": 0,
             "groups": [
@@ -1385,6 +2232,9 @@
                   "accuracy": 0.9772727272727273,
                   "precision": 0.4,
                   "recall": 0.25,
+                  "specificity": 0.9922680412371134,
+                  "false_positive_rate": 0.007731958762886598,
+                  "false_negative_rate": 0.75,
                   "f1": 0.3076923076923077,
                   "roc_auc": 0.902061855670103,
                   "brier_score": 0.024290876058298896,
@@ -1424,6 +2274,24 @@
                       "upper": 0.6,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.9922680412371134,
+                      "lower": 0.9820051413881749,
+                      "upper": 1.0,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.007731958762886598,
+                      "lower": 0.0,
+                      "upper": 0.017994858611825194,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.75,
+                      "lower": 0.4,
+                      "upper": 1.0,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.3076923076923077,
                       "lower": 0.0,
@@ -1457,6 +2325,9 @@
                   "accuracy": 0.890282131661442,
                   "precision": 0.6274509803921569,
                   "recall": 0.6666666666666666,
+                  "specificity": 0.9298892988929889,
+                  "false_positive_rate": 0.07011070110701106,
+                  "false_negative_rate": 0.3333333333333333,
                   "f1": 0.6464646464646465,
                   "roc_auc": 0.8802275522755227,
                   "brier_score": 0.10305331803858875,
@@ -1496,6 +2367,24 @@
                       "upper": 0.8,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.9298892988929889,
+                      "lower": 0.900346975088968,
+                      "upper": 0.9589590384508684,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.07011070110701106,
+                      "lower": 0.04104096154913167,
+                      "upper": 0.09965302491103202,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.3333333333333333,
+                      "lower": 0.2,
+                      "upper": 0.4651550387596899,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.6464646464646465,
                       "lower": 0.5128048780487805,
@@ -1529,6 +2418,9 @@
                   "accuracy": 0.7862232779097387,
                   "precision": 0.5925925925925926,
                   "recall": 0.8,
+                  "specificity": 0.7807308970099668,
+                  "false_positive_rate": 0.21926910299003322,
+                  "false_negative_rate": 0.2,
                   "f1": 0.6808510638297872,
                   "roc_auc": 0.8696982281284606,
                   "brier_score": 0.18366613964526238,
@@ -1568,6 +2460,24 @@
                       "upper": 0.8684318377911994,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.7807308970099668,
+                      "lower": 0.7355758730519849,
+                      "upper": 0.8274678241864983,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.21926910299003322,
+                      "lower": 0.1725321758135017,
+                      "upper": 0.264424126948015,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.2,
+                      "lower": 0.1315681622088007,
+                      "upper": 0.2767988445378151,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.6808510638297872,
                       "lower": 0.6153846153846154,
@@ -1591,10 +2501,230 @@
                 "status": "estimated",
                 "minimum_events": 10
               }
-            ],
-            "minimum_events": 10
+            ]
           }
         },
+        "bias_summary": {
+          "sex": {
+            "label": "Sexo",
+            "dataset": "test",
+            "minimum_size": 20,
+            "minimum_events": 10,
+            "metrics": {
+              "recall": {
+                "status": "estimated",
+                "absolute_gap": 0.08147379346133887,
+                "lowest_group": {
+                  "label": "Feminino",
+                  "value": 0.6951219512195121,
+                  "status": "estimated",
+                  "n": 572,
+                  "positives": 82
+                },
+                "highest_group": {
+                  "label": "Masculino",
+                  "value": 0.776595744680851,
+                  "status": "estimated",
+                  "n": 564,
+                  "positives": 94
+                },
+                "limited_groups": []
+              },
+              "precision": {
+                "status": "estimated",
+                "absolute_gap": 0.048644067796610235,
+                "lowest_group": {
+                  "label": "Feminino",
+                  "value": 0.57,
+                  "status": "estimated",
+                  "n": 572,
+                  "positives": 82
+                },
+                "highest_group": {
+                  "label": "Masculino",
+                  "value": 0.6186440677966102,
+                  "status": "estimated",
+                  "n": 564,
+                  "positives": 94
+                },
+                "limited_groups": []
+              },
+              "false_positive_rate": {
+                "status": "estimated",
+                "absolute_gap": 0.007989578810247505,
+                "lowest_group": {
+                  "label": "Feminino",
+                  "value": 0.08775510204081632,
+                  "status": "estimated",
+                  "n": 572,
+                  "positives": 82
+                },
+                "highest_group": {
+                  "label": "Masculino",
+                  "value": 0.09574468085106383,
+                  "status": "estimated",
+                  "n": 564,
+                  "positives": 94
+                },
+                "limited_groups": []
+              },
+              "roc_auc": {
+                "status": "estimated",
+                "absolute_gap": 0.02226807681413734,
+                "lowest_group": {
+                  "label": "Feminino",
+                  "value": 0.8974240915878545,
+                  "status": "estimated",
+                  "n": 572,
+                  "positives": 82
+                },
+                "highest_group": {
+                  "label": "Masculino",
+                  "value": 0.9196921684019919,
+                  "status": "estimated",
+                  "n": 564,
+                  "positives": 94
+                },
+                "limited_groups": []
+              },
+              "brier_score": {
+                "status": "estimated",
+                "absolute_gap": 0.005445767074931537,
+                "lowest_group": {
+                  "label": "Feminino",
+                  "value": 0.1027686862093224,
+                  "status": "estimated",
+                  "n": 572,
+                  "positives": 82
+                },
+                "highest_group": {
+                  "label": "Masculino",
+                  "value": 0.10821445328425394,
+                  "status": "estimated",
+                  "n": 564,
+                  "positives": 94
+                },
+                "limited_groups": []
+              }
+            },
+            "interpretation": "Diferenças são descritivas no conjunto de teste e não provam causalidade ou equidade populacional."
+          },
+          "age_group": {
+            "label": "Faixa etária",
+            "dataset": "test",
+            "minimum_size": 20,
+            "minimum_events": 10,
+            "metrics": {
+              "recall": {
+                "status": "limited_estimates_included",
+                "absolute_gap": 0.55,
+                "lowest_group": {
+                  "label": "18–39",
+                  "value": 0.25,
+                  "status": "limited_events",
+                  "n": 396,
+                  "positives": 8
+                },
+                "highest_group": {
+                  "label": "60+",
+                  "value": 0.8,
+                  "status": "estimated",
+                  "n": 421,
+                  "positives": 120
+                },
+                "limited_groups": [
+                  "18–39"
+                ]
+              },
+              "precision": {
+                "status": "limited_estimates_included",
+                "absolute_gap": 0.22745098039215683,
+                "lowest_group": {
+                  "label": "18–39",
+                  "value": 0.4,
+                  "status": "limited_events",
+                  "n": 396,
+                  "positives": 8
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 0.6274509803921569,
+                  "status": "estimated",
+                  "n": 319,
+                  "positives": 48
+                },
+                "limited_groups": [
+                  "18–39"
+                ]
+              },
+              "false_positive_rate": {
+                "status": "limited_estimates_included",
+                "absolute_gap": 0.21153714422714662,
+                "lowest_group": {
+                  "label": "18–39",
+                  "value": 0.007731958762886598,
+                  "status": "limited_events",
+                  "n": 396,
+                  "positives": 8
+                },
+                "highest_group": {
+                  "label": "60+",
+                  "value": 0.21926910299003322,
+                  "status": "estimated",
+                  "n": 421,
+                  "positives": 120
+                },
+                "limited_groups": [
+                  "18–39"
+                ]
+              },
+              "roc_auc": {
+                "status": "limited_estimates_included",
+                "absolute_gap": 0.03236362754164235,
+                "lowest_group": {
+                  "label": "60+",
+                  "value": 0.8696982281284606,
+                  "status": "estimated",
+                  "n": 421,
+                  "positives": 120
+                },
+                "highest_group": {
+                  "label": "18–39",
+                  "value": 0.902061855670103,
+                  "status": "limited_events",
+                  "n": 396,
+                  "positives": 8
+                },
+                "limited_groups": [
+                  "18–39"
+                ]
+              },
+              "brier_score": {
+                "status": "limited_estimates_included",
+                "absolute_gap": 0.15937526358696347,
+                "lowest_group": {
+                  "label": "18–39",
+                  "value": 0.024290876058298896,
+                  "status": "limited_events",
+                  "n": 396,
+                  "positives": 8
+                },
+                "highest_group": {
+                  "label": "60+",
+                  "value": 0.18366613964526238,
+                  "status": "estimated",
+                  "n": 421,
+                  "positives": 120
+                },
+                "limited_groups": [
+                  "18–39"
+                ]
+              }
+            },
+            "interpretation": "Diferenças são descritivas no conjunto de teste e não provam causalidade ou equidade populacional."
+          }
+        },
+        "explainability": null,
         "cross_validation": {
           "mean": 0.6575212188585893,
           "std": 0.01267104334589307,
@@ -1623,6 +2753,9 @@
         "accuracy": 0.8213028169014085,
         "precision": 0.459214501510574,
         "recall": 0.8636363636363636,
+        "specificity": 0.8135416666666667,
+        "false_positive_rate": 0.18645833333333334,
+        "false_negative_rate": 0.13636363636363635,
         "f1": 0.5996055226824457,
         "roc_auc": 0.9170188210227274,
         "brier_score": 0.08562547157112856,
@@ -1740,6 +2873,24 @@
               "upper": 0.9123760633203762,
               "valid_resamples": 2000
             },
+            "specificity": {
+              "estimate": 0.8135416666666667,
+              "lower": 0.7881604491444403,
+              "upper": 0.8377246183122938,
+              "valid_resamples": 2000
+            },
+            "false_positive_rate": {
+              "estimate": 0.18645833333333334,
+              "lower": 0.16227538168770608,
+              "upper": 0.21183955085555967,
+              "valid_resamples": 2000
+            },
+            "false_negative_rate": {
+              "estimate": 0.13636363636363635,
+              "lower": 0.08762393667962369,
+              "upper": 0.19210180018949358,
+              "valid_resamples": 2000
+            },
             "f1": {
               "estimate": 0.5996055226824457,
               "lower": 0.5477507546241507,
@@ -1766,6 +2917,7 @@
             "label": "Sexo",
             "dataset": "test",
             "minimum_size": 20,
+            "minimum_events": 10,
             "n_total": 1136,
             "missing_or_unassigned": 0,
             "groups": [
@@ -1779,6 +2931,9 @@
                   "accuracy": 0.824468085106383,
                   "precision": 0.48502994011976047,
                   "recall": 0.8617021276595744,
+                  "specificity": 0.8170212765957446,
+                  "false_positive_rate": 0.1829787234042553,
+                  "false_negative_rate": 0.13829787234042554,
                   "f1": 0.6206896551724138,
                   "roc_auc": 0.9192847442281575,
                   "brier_score": 0.08817074079332579,
@@ -1818,6 +2973,24 @@
                       "upper": 0.9268356199186992,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.8170212765957446,
+                      "lower": 0.7818604469448351,
+                      "upper": 0.8489412142333088,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.1829787234042553,
+                      "lower": 0.15105878576669113,
+                      "upper": 0.21813955305516486,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.13829787234042554,
+                      "lower": 0.07316438008130081,
+                      "upper": 0.21505376344086022,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.6206896551724138,
                       "lower": 0.5454165081780145,
@@ -1851,6 +3024,9 @@
                   "accuracy": 0.8181818181818182,
                   "precision": 0.4329268292682927,
                   "recall": 0.8658536585365854,
+                  "specificity": 0.810204081632653,
+                  "false_positive_rate": 0.18979591836734694,
+                  "false_negative_rate": 0.13414634146341464,
                   "f1": 0.5772357723577236,
                   "roc_auc": 0.9135017421602786,
                   "brier_score": 0.08311580051987116,
@@ -1890,6 +3066,24 @@
                       "upper": 0.9333333333333333,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.810204081632653,
+                      "lower": 0.7735800023535873,
+                      "upper": 0.844584270091072,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.18979591836734694,
+                      "lower": 0.1554157299089281,
+                      "upper": 0.22641999764641274,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.13414634146341464,
+                      "lower": 0.06666666666666667,
+                      "upper": 0.20551487954652806,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.5772357723577236,
                       "lower": 0.4979574614655989,
@@ -1913,14 +3107,14 @@
                 "status": "estimated",
                 "minimum_events": 10
               }
-            ],
-            "minimum_events": 10
+            ]
           },
           "age_group": {
             "column": "age_years",
             "label": "Faixa etária",
             "dataset": "test",
             "minimum_size": 20,
+            "minimum_events": 10,
             "n_total": 1136,
             "missing_or_unassigned": 0,
             "groups": [
@@ -1934,6 +3128,9 @@
                   "accuracy": 0.9696969696969697,
                   "precision": 0.25,
                   "recall": 0.25,
+                  "specificity": 0.9845360824742269,
+                  "false_positive_rate": 0.015463917525773196,
+                  "false_negative_rate": 0.75,
                   "f1": 0.25,
                   "roc_auc": 0.8337628865979381,
                   "brier_score": 0.019829377259615994,
@@ -1973,6 +3170,24 @@
                       "upper": 0.6,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.9845360824742269,
+                      "lower": 0.9717223650385605,
+                      "upper": 0.9948721227621483,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.015463917525773196,
+                      "lower": 0.005127877237851662,
+                      "upper": 0.028277634961439587,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.75,
+                      "lower": 0.4,
+                      "upper": 1.0,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.25,
                       "lower": 0.0,
@@ -2006,6 +3221,9 @@
                   "accuracy": 0.8338557993730408,
                   "precision": 0.47058823529411764,
                   "recall": 0.8333333333333334,
+                  "specificity": 0.8339483394833949,
+                  "false_positive_rate": 0.16605166051660517,
+                  "false_negative_rate": 0.16666666666666666,
                   "f1": 0.6015037593984962,
                   "roc_auc": 0.8919126691266913,
                   "brier_score": 0.09006292250057332,
@@ -2045,6 +3263,24 @@
                       "upper": 0.930272198731501,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.8339483394833949,
+                      "lower": 0.7939971610220321,
+                      "upper": 0.8787962037962038,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.16605166051660517,
+                      "lower": 0.12120379620379622,
+                      "upper": 0.20600283897796792,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.16666666666666666,
+                      "lower": 0.06972780126849898,
+                      "upper": 0.2727272727272727,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.6015037593984962,
                       "lower": 0.49273636991028297,
@@ -2078,6 +3314,9 @@
                   "accuracy": 0.672209026128266,
                   "precision": 0.46218487394957986,
                   "recall": 0.9166666666666666,
+                  "specificity": 0.574750830564784,
+                  "false_positive_rate": 0.42524916943521596,
+                  "false_negative_rate": 0.08333333333333333,
                   "f1": 0.6145251396648045,
                   "roc_auc": 0.8803017718715394,
                   "brier_score": 0.14415209033803142,
@@ -2117,6 +3356,24 @@
                       "upper": 0.9636396574440053,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.574750830564784,
+                      "lower": 0.5193517369727048,
+                      "upper": 0.6296325597749649,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.42524916943521596,
+                      "lower": 0.37036744022503515,
+                      "upper": 0.4806482630272953,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.08333333333333333,
+                      "lower": 0.03636034255599473,
+                      "upper": 0.13862677572105037,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.6145251396648045,
                       "lower": 0.5546206093056693,
@@ -2140,10 +3397,230 @@
                 "status": "estimated",
                 "minimum_events": 10
               }
-            ],
-            "minimum_events": 10
+            ]
           }
         },
+        "bias_summary": {
+          "sex": {
+            "label": "Sexo",
+            "dataset": "test",
+            "minimum_size": 20,
+            "minimum_events": 10,
+            "metrics": {
+              "recall": {
+                "status": "estimated",
+                "absolute_gap": 0.004151530877010923,
+                "lowest_group": {
+                  "label": "Masculino",
+                  "value": 0.8617021276595744,
+                  "status": "estimated",
+                  "n": 564,
+                  "positives": 94
+                },
+                "highest_group": {
+                  "label": "Feminino",
+                  "value": 0.8658536585365854,
+                  "status": "estimated",
+                  "n": 572,
+                  "positives": 82
+                },
+                "limited_groups": []
+              },
+              "precision": {
+                "status": "estimated",
+                "absolute_gap": 0.05210311085146779,
+                "lowest_group": {
+                  "label": "Feminino",
+                  "value": 0.4329268292682927,
+                  "status": "estimated",
+                  "n": 572,
+                  "positives": 82
+                },
+                "highest_group": {
+                  "label": "Masculino",
+                  "value": 0.48502994011976047,
+                  "status": "estimated",
+                  "n": 564,
+                  "positives": 94
+                },
+                "limited_groups": []
+              },
+              "false_positive_rate": {
+                "status": "estimated",
+                "absolute_gap": 0.006817194963091633,
+                "lowest_group": {
+                  "label": "Masculino",
+                  "value": 0.1829787234042553,
+                  "status": "estimated",
+                  "n": 564,
+                  "positives": 94
+                },
+                "highest_group": {
+                  "label": "Feminino",
+                  "value": 0.18979591836734694,
+                  "status": "estimated",
+                  "n": 572,
+                  "positives": 82
+                },
+                "limited_groups": []
+              },
+              "roc_auc": {
+                "status": "estimated",
+                "absolute_gap": 0.005783002067878962,
+                "lowest_group": {
+                  "label": "Feminino",
+                  "value": 0.9135017421602786,
+                  "status": "estimated",
+                  "n": 572,
+                  "positives": 82
+                },
+                "highest_group": {
+                  "label": "Masculino",
+                  "value": 0.9192847442281575,
+                  "status": "estimated",
+                  "n": 564,
+                  "positives": 94
+                },
+                "limited_groups": []
+              },
+              "brier_score": {
+                "status": "estimated",
+                "absolute_gap": 0.005054940273454628,
+                "lowest_group": {
+                  "label": "Feminino",
+                  "value": 0.08311580051987116,
+                  "status": "estimated",
+                  "n": 572,
+                  "positives": 82
+                },
+                "highest_group": {
+                  "label": "Masculino",
+                  "value": 0.08817074079332579,
+                  "status": "estimated",
+                  "n": 564,
+                  "positives": 94
+                },
+                "limited_groups": []
+              }
+            },
+            "interpretation": "Diferenças são descritivas no conjunto de teste e não provam causalidade ou equidade populacional."
+          },
+          "age_group": {
+            "label": "Faixa etária",
+            "dataset": "test",
+            "minimum_size": 20,
+            "minimum_events": 10,
+            "metrics": {
+              "recall": {
+                "status": "limited_estimates_included",
+                "absolute_gap": 0.6666666666666666,
+                "lowest_group": {
+                  "label": "18–39",
+                  "value": 0.25,
+                  "status": "limited_events",
+                  "n": 396,
+                  "positives": 8
+                },
+                "highest_group": {
+                  "label": "60+",
+                  "value": 0.9166666666666666,
+                  "status": "estimated",
+                  "n": 421,
+                  "positives": 120
+                },
+                "limited_groups": [
+                  "18–39"
+                ]
+              },
+              "precision": {
+                "status": "limited_estimates_included",
+                "absolute_gap": 0.22058823529411764,
+                "lowest_group": {
+                  "label": "18–39",
+                  "value": 0.25,
+                  "status": "limited_events",
+                  "n": 396,
+                  "positives": 8
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 0.47058823529411764,
+                  "status": "estimated",
+                  "n": 319,
+                  "positives": 48
+                },
+                "limited_groups": [
+                  "18–39"
+                ]
+              },
+              "false_positive_rate": {
+                "status": "limited_estimates_included",
+                "absolute_gap": 0.40978525190944276,
+                "lowest_group": {
+                  "label": "18–39",
+                  "value": 0.015463917525773196,
+                  "status": "limited_events",
+                  "n": 396,
+                  "positives": 8
+                },
+                "highest_group": {
+                  "label": "60+",
+                  "value": 0.42524916943521596,
+                  "status": "estimated",
+                  "n": 421,
+                  "positives": 120
+                },
+                "limited_groups": [
+                  "18–39"
+                ]
+              },
+              "roc_auc": {
+                "status": "limited_estimates_included",
+                "absolute_gap": 0.05814978252875325,
+                "lowest_group": {
+                  "label": "18–39",
+                  "value": 0.8337628865979381,
+                  "status": "limited_events",
+                  "n": 396,
+                  "positives": 8
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 0.8919126691266913,
+                  "status": "estimated",
+                  "n": 319,
+                  "positives": 48
+                },
+                "limited_groups": [
+                  "18–39"
+                ]
+              },
+              "brier_score": {
+                "status": "limited_estimates_included",
+                "absolute_gap": 0.12432271307841543,
+                "lowest_group": {
+                  "label": "18–39",
+                  "value": 0.019829377259615994,
+                  "status": "limited_events",
+                  "n": 396,
+                  "positives": 8
+                },
+                "highest_group": {
+                  "label": "60+",
+                  "value": 0.14415209033803142,
+                  "status": "estimated",
+                  "n": 421,
+                  "positives": 120
+                },
+                "limited_groups": [
+                  "18–39"
+                ]
+              }
+            },
+            "interpretation": "Diferenças são descritivas no conjunto de teste e não provam causalidade ou equidade populacional."
+          }
+        },
+        "explainability": null,
         "cross_validation": {
           "mean": 0.6906061424659853,
           "std": 0.023040058872694173,
@@ -2175,6 +3652,9 @@
         "accuracy": 0.8371478873239436,
         "precision": 0.4845360824742268,
         "recall": 0.8011363636363636,
+        "specificity": 0.84375,
+        "false_positive_rate": 0.15625,
+        "false_negative_rate": 0.19886363636363635,
         "f1": 0.6038543897216274,
         "roc_auc": 0.9005119554924242,
         "brier_score": 0.07331094605983064,
@@ -2292,6 +3772,24 @@
               "upper": 0.8588294512435846,
               "valid_resamples": 2000
             },
+            "specificity": {
+              "estimate": 0.84375,
+              "lower": 0.820673691765627,
+              "upper": 0.866531417714362,
+              "valid_resamples": 2000
+            },
+            "false_positive_rate": {
+              "estimate": 0.15625,
+              "lower": 0.1334685822856379,
+              "upper": 0.17932630823437296,
+              "valid_resamples": 2000
+            },
+            "false_negative_rate": {
+              "estimate": 0.19886363636363635,
+              "lower": 0.14117054875641533,
+              "upper": 0.26219762095161936,
+              "valid_resamples": 2000
+            },
             "f1": {
               "estimate": 0.6038543897216274,
               "lower": 0.5477153724560364,
@@ -2318,6 +3816,7 @@
             "label": "Sexo",
             "dataset": "test",
             "minimum_size": 20,
+            "minimum_events": 10,
             "n_total": 1136,
             "missing_or_unassigned": 0,
             "groups": [
@@ -2331,6 +3830,9 @@
                   "accuracy": 0.824468085106383,
                   "precision": 0.48484848484848486,
                   "recall": 0.851063829787234,
+                  "specificity": 0.8191489361702128,
+                  "false_positive_rate": 0.18085106382978725,
+                  "false_negative_rate": 0.14893617021276595,
                   "f1": 0.6177606177606177,
                   "roc_auc": 0.9143730194658216,
                   "brier_score": 0.07385121234338823,
@@ -2370,6 +3872,24 @@
                       "upper": 0.9231132075471699,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.8191489361702128,
+                      "lower": 0.784165726109857,
+                      "upper": 0.8503596180006617,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.18085106382978725,
+                      "lower": 0.14964038199933824,
+                      "upper": 0.21583427389014295,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.14893617021276595,
+                      "lower": 0.07688679245283023,
+                      "upper": 0.22727272727272727,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.6177606177606177,
                       "lower": 0.5461819976150335,
@@ -2403,6 +3923,9 @@
                   "accuracy": 0.8496503496503497,
                   "precision": 0.48412698412698413,
                   "recall": 0.7439024390243902,
+                  "specificity": 0.8673469387755102,
+                  "false_positive_rate": 0.1326530612244898,
+                  "false_negative_rate": 0.25609756097560976,
                   "f1": 0.5865384615384616,
                   "roc_auc": 0.8832877053260327,
                   "brier_score": 0.07277823594807106,
@@ -2442,6 +3965,24 @@
                       "upper": 0.8333333333333334,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.8673469387755102,
+                      "lower": 0.8357192630893183,
+                      "upper": 0.8980954488992257,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.1326530612244898,
+                      "lower": 0.10190455110077438,
+                      "upper": 0.16428073691068174,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.25609756097560976,
+                      "lower": 0.16666666666666666,
+                      "upper": 0.35304621848739487,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.5865384615384616,
                       "lower": 0.5,
@@ -2465,14 +4006,14 @@
                 "status": "estimated",
                 "minimum_events": 10
               }
-            ],
-            "minimum_events": 10
+            ]
           },
           "age_group": {
             "column": "age_years",
             "label": "Faixa etária",
             "dataset": "test",
             "minimum_size": 20,
+            "minimum_events": 10,
             "n_total": 1136,
             "missing_or_unassigned": 0,
             "groups": [
@@ -2486,6 +4027,9 @@
                   "accuracy": 0.9722222222222222,
                   "precision": 0.2857142857142857,
                   "recall": 0.25,
+                  "specificity": 0.9871134020618557,
+                  "false_positive_rate": 0.01288659793814433,
+                  "false_negative_rate": 0.75,
                   "f1": 0.26666666666666666,
                   "roc_auc": 0.8556701030927835,
                   "brier_score": 0.018810562897749954,
@@ -2525,6 +4069,24 @@
                       "upper": 0.6,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.9871134020618557,
+                      "lower": 0.9743573264781491,
+                      "upper": 0.9974160206718347,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.01288659793814433,
+                      "lower": 0.002583979328165375,
+                      "upper": 0.025642673521850897,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.75,
+                      "lower": 0.4,
+                      "upper": 1.0,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.26666666666666666,
                       "lower": 0.0,
@@ -2558,6 +4120,9 @@
                   "accuracy": 0.8463949843260188,
                   "precision": 0.49333333333333335,
                   "recall": 0.7708333333333334,
+                  "specificity": 0.8597785977859779,
+                  "false_positive_rate": 0.14022140221402213,
+                  "false_negative_rate": 0.22916666666666666,
                   "f1": 0.6016260162601627,
                   "roc_auc": 0.8689268142681427,
                   "brier_score": 0.07702683987435971,
@@ -2597,6 +4162,24 @@
                       "upper": 0.8837209302325582,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.8597785977859779,
+                      "lower": 0.8197806508400199,
+                      "upper": 0.9033546743769792,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.14022140221402213,
+                      "lower": 0.0966453256230208,
+                      "upper": 0.18021934915998009,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.22916666666666666,
+                      "lower": 0.11627906976744186,
+                      "upper": 0.35136386386386387,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.6016260162601627,
                       "lower": 0.4859676980310317,
@@ -2630,6 +4213,9 @@
                   "accuracy": 0.7030878859857482,
                   "precision": 0.4880382775119617,
                   "recall": 0.85,
+                  "specificity": 0.6445182724252492,
+                  "false_positive_rate": 0.3554817275747508,
+                  "false_negative_rate": 0.15,
                   "f1": 0.6200607902735562,
                   "roc_auc": 0.8587070874861572,
                   "brier_score": 0.12175935842408048,
@@ -2669,6 +4255,24 @@
                       "upper": 0.9091095380029806,
                       "valid_resamples": 1000
                     },
+                    "specificity": {
+                      "estimate": 0.6445182724252492,
+                      "lower": 0.5929787416423795,
+                      "upper": 0.6979184144295302,
+                      "valid_resamples": 1000
+                    },
+                    "false_positive_rate": {
+                      "estimate": 0.3554817275747508,
+                      "lower": 0.30208158557046977,
+                      "upper": 0.40702125835762043,
+                      "valid_resamples": 1000
+                    },
+                    "false_negative_rate": {
+                      "estimate": 0.15,
+                      "lower": 0.09089046199701939,
+                      "upper": 0.21430240320427232,
+                      "valid_resamples": 1000
+                    },
                     "f1": {
                       "estimate": 0.6200607902735562,
                       "lower": 0.5566993627598172,
@@ -2692,9 +4296,434 @@
                 "status": "estimated",
                 "minimum_events": 10
               }
-            ],
-            "minimum_events": 10
+            ]
           }
+        },
+        "bias_summary": {
+          "sex": {
+            "label": "Sexo",
+            "dataset": "test",
+            "minimum_size": 20,
+            "minimum_events": 10,
+            "metrics": {
+              "recall": {
+                "status": "estimated",
+                "absolute_gap": 0.10716139076284381,
+                "lowest_group": {
+                  "label": "Feminino",
+                  "value": 0.7439024390243902,
+                  "status": "estimated",
+                  "n": 572,
+                  "positives": 82
+                },
+                "highest_group": {
+                  "label": "Masculino",
+                  "value": 0.851063829787234,
+                  "status": "estimated",
+                  "n": 564,
+                  "positives": 94
+                },
+                "limited_groups": []
+              },
+              "precision": {
+                "status": "estimated",
+                "absolute_gap": 0.0007215007215007341,
+                "lowest_group": {
+                  "label": "Feminino",
+                  "value": 0.48412698412698413,
+                  "status": "estimated",
+                  "n": 572,
+                  "positives": 82
+                },
+                "highest_group": {
+                  "label": "Masculino",
+                  "value": 0.48484848484848486,
+                  "status": "estimated",
+                  "n": 564,
+                  "positives": 94
+                },
+                "limited_groups": []
+              },
+              "false_positive_rate": {
+                "status": "estimated",
+                "absolute_gap": 0.04819800260529744,
+                "lowest_group": {
+                  "label": "Feminino",
+                  "value": 0.1326530612244898,
+                  "status": "estimated",
+                  "n": 572,
+                  "positives": 82
+                },
+                "highest_group": {
+                  "label": "Masculino",
+                  "value": 0.18085106382978725,
+                  "status": "estimated",
+                  "n": 564,
+                  "positives": 94
+                },
+                "limited_groups": []
+              },
+              "roc_auc": {
+                "status": "estimated",
+                "absolute_gap": 0.031085314139788878,
+                "lowest_group": {
+                  "label": "Feminino",
+                  "value": 0.8832877053260327,
+                  "status": "estimated",
+                  "n": 572,
+                  "positives": 82
+                },
+                "highest_group": {
+                  "label": "Masculino",
+                  "value": 0.9143730194658216,
+                  "status": "estimated",
+                  "n": 564,
+                  "positives": 94
+                },
+                "limited_groups": []
+              },
+              "brier_score": {
+                "status": "estimated",
+                "absolute_gap": 0.0010729763953171711,
+                "lowest_group": {
+                  "label": "Feminino",
+                  "value": 0.07277823594807106,
+                  "status": "estimated",
+                  "n": 572,
+                  "positives": 82
+                },
+                "highest_group": {
+                  "label": "Masculino",
+                  "value": 0.07385121234338823,
+                  "status": "estimated",
+                  "n": 564,
+                  "positives": 94
+                },
+                "limited_groups": []
+              }
+            },
+            "interpretation": "Diferenças são descritivas no conjunto de teste e não provam causalidade ou equidade populacional."
+          },
+          "age_group": {
+            "label": "Faixa etária",
+            "dataset": "test",
+            "minimum_size": 20,
+            "minimum_events": 10,
+            "metrics": {
+              "recall": {
+                "status": "limited_estimates_included",
+                "absolute_gap": 0.6,
+                "lowest_group": {
+                  "label": "18–39",
+                  "value": 0.25,
+                  "status": "limited_events",
+                  "n": 396,
+                  "positives": 8
+                },
+                "highest_group": {
+                  "label": "60+",
+                  "value": 0.85,
+                  "status": "estimated",
+                  "n": 421,
+                  "positives": 120
+                },
+                "limited_groups": [
+                  "18–39"
+                ]
+              },
+              "precision": {
+                "status": "limited_estimates_included",
+                "absolute_gap": 0.20761904761904765,
+                "lowest_group": {
+                  "label": "18–39",
+                  "value": 0.2857142857142857,
+                  "status": "limited_events",
+                  "n": 396,
+                  "positives": 8
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 0.49333333333333335,
+                  "status": "estimated",
+                  "n": 319,
+                  "positives": 48
+                },
+                "limited_groups": [
+                  "18–39"
+                ]
+              },
+              "false_positive_rate": {
+                "status": "limited_estimates_included",
+                "absolute_gap": 0.3425951296366065,
+                "lowest_group": {
+                  "label": "18–39",
+                  "value": 0.01288659793814433,
+                  "status": "limited_events",
+                  "n": 396,
+                  "positives": 8
+                },
+                "highest_group": {
+                  "label": "60+",
+                  "value": 0.3554817275747508,
+                  "status": "estimated",
+                  "n": 421,
+                  "positives": 120
+                },
+                "limited_groups": [
+                  "18–39"
+                ]
+              },
+              "roc_auc": {
+                "status": "limited_estimates_included",
+                "absolute_gap": 0.013256711175359204,
+                "lowest_group": {
+                  "label": "18–39",
+                  "value": 0.8556701030927835,
+                  "status": "limited_events",
+                  "n": 396,
+                  "positives": 8
+                },
+                "highest_group": {
+                  "label": "40–59",
+                  "value": 0.8689268142681427,
+                  "status": "estimated",
+                  "n": 319,
+                  "positives": 48
+                },
+                "limited_groups": [
+                  "18–39"
+                ]
+              },
+              "brier_score": {
+                "status": "limited_estimates_included",
+                "absolute_gap": 0.10294879552633052,
+                "lowest_group": {
+                  "label": "18–39",
+                  "value": 0.018810562897749954,
+                  "status": "limited_events",
+                  "n": 396,
+                  "positives": 8
+                },
+                "highest_group": {
+                  "label": "60+",
+                  "value": 0.12175935842408048,
+                  "status": "estimated",
+                  "n": 421,
+                  "positives": 120
+                },
+                "limited_groups": [
+                  "18–39"
+                ]
+              }
+            },
+            "interpretation": "Diferenças são descritivas no conjunto de teste e não provam causalidade ou equidade populacional."
+          }
+        },
+        "explainability": {
+          "method": "permutation_importance",
+          "dataset": "held_out_test",
+          "scoring": "roc_auc",
+          "n_repeats": 20,
+          "random_state": 42,
+          "features": [
+            {
+              "feature": "hba1c_percent",
+              "importance_mean": 0.18806374289772726,
+              "importance_std": 0.011295882001008681,
+              "importances": [
+                0.16592092803030312,
+                0.19167554450757573,
+                0.18536339962121196,
+                0.19526515151515145,
+                0.1837328361742424,
+                0.1831468986742424,
+                0.20763790246212122,
+                0.19854699337121218,
+                0.18408499053030303,
+                0.1809422348484847,
+                0.1949840198863636,
+                0.18283617424242427,
+                0.17816347064393945,
+                0.19344815340909094,
+                0.20059481534090906,
+                0.19027580492424245,
+                0.19396010890151516,
+                0.16039595170454557,
+                0.18733723958333326,
+                0.20296223958333337
+              ],
+              "rank": 1
+            },
+            {
+              "feature": "age_years",
+              "importance_mean": 0.03656442353219698,
+              "importance_std": 0.006841381130512343,
+              "importances": [
+                0.033623342803030254,
+                0.03755030776515145,
+                0.036641808712121304,
+                0.03932883522727271,
+                0.03932883522727282,
+                0.03618016098484844,
+                0.028163470643939315,
+                0.04652876420454555,
+                0.03879616477272718,
+                0.022043678977272663,
+                0.04599017518939397,
+                0.03214962121212128,
+                0.02182173295454548,
+                0.039808238636363735,
+                0.04069010416666685,
+                0.039130563446969746,
+                0.048709753787878673,
+                0.033084753787878673,
+                0.03429214015151516,
+                0.03742601799242429
+              ],
+              "rank": 2
+            },
+            {
+              "feature": "glucose_mg_dl",
+              "importance_mean": 0.01413159919507575,
+              "importance_std": 0.004283629156000714,
+              "importances": [
+                0.009022845643939292,
+                0.013852391098484795,
+                0.017113517992424332,
+                0.021087831439393967,
+                0.012266216856060663,
+                0.014464962121212066,
+                0.021555397727272774,
+                0.017515980113636198,
+                0.016767282196969546,
+                0.008868963068181857,
+                0.016648910984848442,
+                0.015219578598484884,
+                0.009620620265151314,
+                0.013843513257575824,
+                0.014633641098484973,
+                0.013017874053030454,
+                0.016119199810606055,
+                0.002394057765151447,
+                0.012372750946969657,
+                0.016246448863636465
+              ],
+              "rank": 3
+            },
+            {
+              "feature": "bmi_kg_m2",
+              "importance_mean": 0.01387591737689392,
+              "importance_std": 0.005770931698806537,
+              "importances": [
+                0.0015891335227274928,
+                0.011905184659090962,
+                0.014438328598484818,
+                0.01295868844696968,
+                0.018871330492424176,
+                0.004939038825757525,
+                0.0213571259469697,
+                0.011171283143939337,
+                0.024718868371212177,
+                0.02082149621212115,
+                0.012171519886363558,
+                0.017871093749999845,
+                0.01906664299242422,
+                0.01166844223484853,
+                0.009283262310605944,
+                0.011739464962121193,
+                0.013988517992424288,
+                0.00527047821969695,
+                0.014828953598484795,
+                0.018859493371212066
+              ],
+              "rank": 4
+            },
+            {
+              "feature": "systolic_bp_mmhg",
+              "importance_mean": 0.008289683948863636,
+              "importance_std": 0.003815442209639009,
+              "importances": [
+                0.008028527462121349,
+                0.011035156249999956,
+                0.012325402462121327,
+                0.009224076704545392,
+                0.0009025804924243097,
+                0.005205374053030343,
+                0.008845288825757636,
+                0.009957978219696906,
+                0.01104107481060601,
+                0.0020093513257575246,
+                0.010431463068181768,
+                0.007182173295454564,
+                0.003027343750000022,
+                0.01592388731060601,
+                0.0070993134469696795,
+                0.013367069128787934,
+                0.010919744318181768,
+                0.006424597537878829,
+                0.009235913825757502,
+                0.003607362689393878
+              ],
+              "rank": 5
+            },
+            {
+              "feature": "diastolic_bp_mmhg",
+              "importance_mean": 0.004432705965909095,
+              "importance_std": 0.002857642305573132,
+              "importances": [
+                0.0037967566287878673,
+                0.00838955965909094,
+                0.006951349431818077,
+                0.004483309659090939,
+                0.0026189630681817677,
+                0.007412997159090939,
+                0.004246567234848508,
+                0.004305752840909172,
+                0.005430279356060663,
+                0.00286754261363642,
+                0.00016867897727268488,
+                0.0023763020833332815,
+                0.0029563210227272485,
+                0.003571851325757547,
+                0.0070460464015151825,
+                -0.00037582859848483974,
+                0.00439453125,
+                -0.0003343986742424532,
+                0.010242069128787779,
+                0.008105468750000178
+              ],
+              "rank": 6
+            },
+            {
+              "feature": "sex",
+              "importance_mean": 0.0004604640151514794,
+              "importance_std": 0.002200408166079217,
+              "importances": [
+                0.0003196022727272041,
+                0.004450757575757303,
+                0.001305042613636398,
+                -0.0027965198863636465,
+                -0.0004586884469698349,
+                0.0019708806818180546,
+                0.0012192234848485972,
+                0.0005681818181818565,
+                0.0028172348484847287,
+                0.001571377840909105,
+                -0.001571377840909105,
+                0.003471235795454497,
+                0.0005977746212122437,
+                0.0002604166666667629,
+                0.0021869081439392923,
+                -0.00017459753787885113,
+                -0.004643110795454541,
+                0.0016749526515151825,
+                -0.003341027462121282,
+                -0.00021898674242437632
+              ],
+              "rank": 7
+            }
+          ],
+          "interpretation": "Importância por permutação mede queda de desempenho ao embaralhar uma variável no teste; não deve ser lida como efeito causal."
         },
         "cross_validation": {
           "mean": 0.7152424283703785,

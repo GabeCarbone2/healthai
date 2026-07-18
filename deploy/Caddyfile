@@ -1,22 +1,36 @@
 healthai.net.br, www.healthai.net.br {
 	encode zstd gzip
 
+	@api_docs {
+		path /api/docs /api/docs/* /api/redoc /api/openapi.json
+	}
+	respond @api_docs 404
+
 	handle /api/* {
 		uri strip_prefix /api
 		reverse_proxy api:8000
 	}
 
+	handle /assets/* {
+		root * /srv
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+
 	handle {
 		root * /srv
 		try_files {path} /index.html
+		header Cache-Control "no-cache"
 		file_server
 	}
 
 	header {
 		-Server
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "strict-origin-when-cross-origin"
 		X-Frame-Options "DENY"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
 	}
 }

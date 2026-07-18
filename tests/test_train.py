@@ -93,6 +93,8 @@ def test_train_saves_selected_model_per_experiment(tmp_path: Path) -> None:
         assert "threshold" in results[experiment]["models"][model_name]
         assert "brier_score" in results[experiment]["models"][model_name]
         assert "calibration" in results[experiment]["models"][model_name]
+        assert "bias_summary" in results[experiment]["models"][model_name]
+        assert "external_validation" in results[experiment]
         assert (
             results[experiment]["models"][model_name][
                 "confidence_intervals"
@@ -107,5 +109,7 @@ def test_train_saves_selected_model_per_experiment(tmp_path: Path) -> None:
         ).exists()
         artifact = joblib.load(tmp_path / "models" / f"{experiment}_selected.joblib")
         assert artifact["selected"] is True
+        assert len(artifact["model_version"]) == 16
+        assert results[experiment]["model_version"] == artifact["model_version"]
         assert artifact["cross_validation"] == validation
         assert 0.1 <= artifact["decision_threshold"] <= 0.9

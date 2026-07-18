@@ -7,6 +7,12 @@ O ambiente de produção usa dois contêineres:
 - `api`: executa FastAPI, aplica as migrações Alembic na inicialização e mantém
   o SQLite em um volume persistente.
 
+Esse formato é adequado ao volume inicial, mas não oferece read replicas. A API
+já aceita PostgreSQL com pools e réplicas externas; a arquitetura, as variáveis
+e os trade-offs de consistência estão em
+[`escalabilidade.md`](escalabilidade.md). Não configure uma réplica SQLite nem
+duas URLs para o mesmo banco.
+
 ## 1. Preparar o VPS
 
 Selecione o template **Ubuntu 24.04 com Docker**, que já inclui Docker Engine e
@@ -58,18 +64,31 @@ do clone.
 docker compose -f compose.production.yml up -d --build
 docker compose -f compose.production.yml ps
 docker compose -f compose.production.yml logs --tail=100
+curl --fail https://healthai.net.br/api/ready
 ```
 
 Quando os registros DNS apontarem para o VPS, o Caddy solicitará e renovará o
 certificado HTTPS automaticamente.
+
+O contêiner da API roda sem privilégios, com sistema de arquivos somente para
+leitura e volume gravável apenas para o banco. A rota `/api/ready` só responde
+com sucesso quando banco, relatório e artefatos estão consistentes.
 
 ## 5. Atualizar
 
 ```bash
 cd /opt/healthai
 git pull --ff-only
-docker compose -f compose.production.yml up -d --build
+./deploy/deploy.sh
 ```
+
+O script valida a configuração, cria backup consistente do SQLite com a API de
+backup nativa, constrói e valida a nova imagem antes de substituir a API e
+aguarda `/api/ready`. Também existe o workflow manual **Deploy de produção**,
+que sincroniza a release sem transferir `.env.production` nem o diretório de
+dados. Configure no ambiente `production` do
+GitHub os segredos `VPS_HOST`, `VPS_USER`, `VPS_DEPLOY_PATH`,
+`VPS_SSH_PRIVATE_KEY` e `VPS_KNOWN_HOSTS` antes de executá-lo.
 
 ## Backup
 

@@ -3,6 +3,7 @@ import { FormEvent, useState } from "react";
 
 import { acceptPrivacyConsent, deleteAccount } from "../api";
 import { PrivacyNotice } from "../components/PrivacyNotice";
+import { PageFooter } from "../components/PageFooter";
 import type { PrivacyInfo, User } from "../types";
 
 type Props = {
@@ -148,6 +149,7 @@ export function PrivacyConsentPage({
           </form>
         )}
       </section>
+      <PageFooter contact={info.contact} variant="public" />
     </main>
   );
 }

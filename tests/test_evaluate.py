@@ -6,8 +6,11 @@ from healthai.evaluate import (
     bootstrap_confidence_intervals,
     calibration_summary,
     classification_metrics,
+    explainability_summary,
+    subgroup_bias_summary,
     subgroup_evaluation,
 )
+from healthai.features import build_model_pipeline
 
 
 def test_metrics_include_brier_score_and_calibration_curve() -> None:
@@ -87,3 +90,83 @@ def test_subgroups_report_small_samples_instead_of_hiding_them() -> None:
     assert groups[1]["label"] == "Feminino"
     assert groups[1]["status"] == "insufficient_sample"
     assert groups[1]["metrics"] is None
+
+
+def test_subgroup_bias_summary_reports_metric_gaps() -> None:
+    subgroup_result = {
+        "sex": {
+            "label": "Sexo",
+            "dataset": "test",
+            "minimum_size": 2,
+            "minimum_events": 1,
+            "groups": [
+                {
+                    "label": "Grupo A",
+                    "status": "estimated",
+                    "n": 20,
+                    "positives": 10,
+                    "metrics": {
+                        "recall": 0.9,
+                        "precision": 0.6,
+                        "false_positive_rate": 0.2,
+                        "roc_auc": 0.8,
+                        "brier_score": 0.1,
+                    },
+                },
+                {
+                    "label": "Grupo B",
+                    "status": "estimated",
+                    "n": 20,
+                    "positives": 10,
+                    "metrics": {
+                        "recall": 0.7,
+                        "precision": 0.5,
+                        "false_positive_rate": 0.4,
+                        "roc_auc": 0.75,
+                        "brier_score": 0.2,
+                    },
+                },
+            ],
+        }
+    }
+
+    summary = subgroup_bias_summary(subgroup_result)
+
+    recall_gap = summary["sex"]["metrics"]["recall"]
+    assert recall_gap["status"] == "estimated"
+    assert recall_gap["absolute_gap"] == pytest.approx(0.2)
+    assert recall_gap["lowest_group"]["label"] == "Grupo B"
+    assert recall_gap["highest_group"]["label"] == "Grupo A"
+
+
+def test_explainability_summary_returns_ranked_features() -> None:
+    dataframe = pd.DataFrame(
+        {
+            "strong": [0, 0, 0, 1, 1, 1],
+            "weak": [0, 1, 0, 1, 0, 1],
+        }
+    )
+    labels = np.array([0, 0, 0, 1, 1, 1])
+    pipeline = build_model_pipeline(
+        "logistic_regression",
+        {"max_iter": 200},
+        numeric_features=["strong", "weak"],
+        categorical_features=[],
+    )
+    pipeline.fit(dataframe, labels)
+
+    explanation = explainability_summary(
+        pipeline,
+        dataframe,
+        labels,
+        scoring="accuracy",
+        n_repeats=3,
+        random_state=7,
+    )
+
+    assert explanation["method"] == "permutation_importance"
+    assert [feature["rank"] for feature in explanation["features"]] == [1, 2]
+    assert {feature["feature"] for feature in explanation["features"]} == {
+        "strong",
+        "weak",
+    }

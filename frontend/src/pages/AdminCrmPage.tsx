@@ -96,6 +96,7 @@ export function AdminCrmPage() {
             <button
               type="button"
               className={filter === status ? "active" : ""}
+              aria-pressed={filter === status}
               onClick={() => setFilter(status)}
               key={status}
             >

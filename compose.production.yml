@@ -1,21 +1,38 @@
 services:
   api:
+    image: healthai-api:latest
     build:
       context: .
       target: api
     restart: unless-stopped
+    init: true
+    read_only: true
     env_file:
       - .env.production
     volumes:
       - healthai_data:/app/data
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - healthai
 
   web:
+    image: healthai-web:latest
     build:
       context: .
       target: web
     restart: unless-stopped
+    init: true
     depends_on:
       api:
         condition: service_healthy
@@ -28,6 +45,11 @@ services:
       - caddy_config:/config
     networks:
       - healthai
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   healthai:

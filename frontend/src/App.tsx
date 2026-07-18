@@ -17,14 +17,21 @@ import {
   fetchCurrentUser,
   fetchPrivacyInfo,
   fetchResults,
+  fetchTermsInfo,
   logout,
 } from "./api";
+import { HealthAiLogo } from "./components/HealthAiLogo";
+import { PageFooter } from "./components/PageFooter";
 import { Assessment } from "./pages/Assessment";
 import { AccountPage } from "./pages/AccountPage";
 import { AdminCrmPage } from "./pages/AdminCrmPage";
 import { AuthPage } from "./pages/AuthPage";
 import { PatientResults } from "./pages/PatientResults";
 import { PrivacyConsentPage } from "./pages/PrivacyConsentPage";
+import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage";
+import { TermsConsentPage } from "./pages/TermsConsentPage";
+import { TermsPage } from "./pages/TermsPage";
 import { VerifyEmailPage } from "./pages/VerifyEmailPage";
 import type {
   Catalog,
@@ -32,6 +39,7 @@ import type {
   PatientResultPage,
   PrivacyInfo,
   ResultFilters,
+  TermsInfo,
   User,
 } from "./types";
 
@@ -78,6 +86,7 @@ export default function App() {
   const [privacyInfo, setPrivacyInfo] = useState<
     PrivacyInfo | null | undefined
   >(undefined);
+  const [termsInfo, setTermsInfo] = useState<TermsInfo | null | undefined>(undefined);
   const [catalogError, setCatalogError] = useState("");
   const [resultsError, setResultsError] = useState("");
   const [resultsNotice, setResultsNotice] = useState("");
@@ -91,9 +100,16 @@ export default function App() {
   const [resultTotal, setResultTotal] = useState(0);
   const [historyTotal, setHistoryTotal] = useState(0);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [confirmingLogout, setConfirmingLogout] = useState(false);
   const [logoutError, setLogoutError] = useState("");
   const verificationRoute = window.location.pathname === "/verify-email";
+  const forgotPasswordRoute = window.location.pathname === "/forgot-password";
+  const resetPasswordRoute = window.location.pathname === "/reset-password";
+  const termsRoute = window.location.pathname === "/terms";
   const verificationToken = verificationRoute
+    ? new URLSearchParams(window.location.search).get("token") ?? ""
+    : "";
+  const resetToken = resetPasswordRoute
     ? new URLSearchParams(window.location.search).get("token") ?? ""
     : "";
 
@@ -104,15 +120,21 @@ export default function App() {
     fetchPrivacyInfo()
       .then(setPrivacyInfo)
       .catch(() => setPrivacyInfo(null));
+    fetchTermsInfo()
+      .then(setTermsInfo)
+      .catch(() => setTermsInfo(null));
   }, []);
 
   useEffect(() => {
     if (
       !user
       || !privacyInfo
+      || !termsInfo
       || user.crm_status !== "approved"
       || !user.privacy_accepted_at
       || user.privacy_notice_version !== privacyInfo.notice_version
+      || !user.terms_accepted_at
+      || user.terms_version !== termsInfo.version
     ) {
       return;
     }
@@ -163,7 +185,7 @@ export default function App() {
     return () => {
       active = false;
     };
-  }, [privacyInfo, user]);
+  }, [privacyInfo, termsInfo, user]);
 
   useEffect(() => {
     if (!user) return;
@@ -191,12 +213,30 @@ export default function App() {
     };
   }, [user]);
 
+  useEffect(() => {
+    if (!confirmingLogout) return;
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape" && !loggingOut) {
+        setConfirmingLogout(false);
+      }
+    }
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [confirmingLogout, loggingOut]);
+
   async function retryPrivacyInfo() {
     setPrivacyInfo(undefined);
+    setTermsInfo(undefined);
     try {
-      setPrivacyInfo(await fetchPrivacyInfo());
+      const [privacy, terms] = await Promise.all([
+        fetchPrivacyInfo(),
+        fetchTermsInfo(),
+      ]);
+      setPrivacyInfo(privacy);
+      setTermsInfo(terms);
     } catch {
       setPrivacyInfo(null);
+      setTermsInfo(null);
     }
   }
 
@@ -299,6 +339,7 @@ export default function App() {
 
   async function endSession() {
     setLoggingOut(true);
+    setConfirmingLogout(false);
     setLogoutError("");
     try {
       await logout();
@@ -344,7 +385,28 @@ export default function App() {
     );
   }
 
-  if (user === undefined || privacyInfo === undefined) {
+  if (forgotPasswordRoute || resetPasswordRoute || termsRoute) {
+    if (privacyInfo === undefined || termsInfo === undefined) {
+      return <div className="loading-state"><Activity size={24} /><span>Carregando...</span></div>;
+    }
+    if (!privacyInfo || !termsInfo) {
+      return (
+        <div className="connection-error">
+          <WifiOff size={28} />
+          <h1>Conteúdo indisponível</h1>
+          <p>Não foi possível carregar as configurações públicas.</p>
+          <button type="button" className="retry-button" onClick={retryPrivacyInfo}>
+            <RefreshCw size={16} /> Tentar novamente
+          </button>
+        </div>
+      );
+    }
+    if (termsRoute) return <TermsPage info={termsInfo} privacy={privacyInfo} />;
+    if (forgotPasswordRoute) return <ForgotPasswordPage privacy={privacyInfo} />;
+    return <ResetPasswordPage token={resetToken} privacy={privacyInfo} />;
+  }
+
+  if (user === undefined || privacyInfo === undefined || termsInfo === undefined) {
     return (
       <div className="loading-state">
         <Activity size={24} />
@@ -353,7 +415,7 @@ export default function App() {
     );
   }
 
-  if (!privacyInfo) {
+  if (!privacyInfo || !termsInfo) {
     return (
       <div className="connection-error">
         <WifiOff size={28} />
@@ -389,6 +451,17 @@ export default function App() {
     );
   }
 
+  if (!user.terms_accepted_at || user.terms_version !== termsInfo.version) {
+    return (
+      <TermsConsentPage
+        info={termsInfo}
+        privacy={privacyInfo}
+        onAccepted={setUser}
+        onLogout={endSession}
+      />
+    );
+  }
+
   const clinicalAccess = user.crm_status === "approved";
   const adminAccess = user.role === "admin";
   const navigation = [
@@ -405,20 +478,25 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <div className="app-monogram" aria-hidden="true">
+        <HealthAiLogo className="app-monogram-logo" />
+      </div>
+
       <header className="topbar">
         <div className="topbar-inner">
           <div className="brand">
             <span className="brand-mark">
-              <Activity size={21} />
+              <HealthAiLogo className="healthai-logo" title="HealthAI" />
             </span>
             <strong>HealthAI</strong>
           </div>
 
-          <nav className="primary-nav">
+          <nav className="primary-nav" aria-label="Navegação principal">
             {navigation.map((item) => (
               <button
                 type="button"
                 className={effectivePage === item.id ? "active" : ""}
+                aria-current={effectivePage === item.id ? "page" : undefined}
                 onClick={() => setPage(item.id)}
                 key={item.id}
               >
@@ -433,13 +511,14 @@ export default function App() {
             <div>
               <strong>{user.name}</strong>
               <small>{user.email}</small>
+              {user.crm_status === "approved" && <em>Cadastro aprovado</em>}
             </div>
             <button
               type="button"
-              onClick={endSession}
+              onClick={() => setConfirmingLogout(true)}
               disabled={loggingOut}
-              title={loggingOut ? "Saindo..." : "Sair"}
-              aria-label={loggingOut ? "Saindo..." : "Sair"}
+              title={loggingOut ? "Encerrando sessão..." : "Encerrar sessão"}
+              aria-label={loggingOut ? "Encerrando sessão..." : "Encerrar sessão"}
             >
               {loggingOut ? <Activity size={17} /> : <LogOut size={17} />}
             </button>
@@ -451,6 +530,52 @@ export default function App() {
         {logoutError && (
           <div className="app-message error" role="alert">
             {logoutError} Tente novamente.
+          </div>
+        )}
+        {confirmingLogout && (
+          <div
+            className="confirm-overlay"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget && !loggingOut) {
+                setConfirmingLogout(false);
+              }
+            }}
+          >
+            <section
+              className="confirm-dialog logout-confirm-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="logout-confirm-title"
+              aria-describedby="logout-confirm-description"
+            >
+              <LogOut size={34} />
+              <h2 id="logout-confirm-title">Sair do HealthAI?</h2>
+              <p id="logout-confirm-description">
+                Você será desconectado desta sessão. Para voltar, basta entrar
+                novamente com seu e-mail e senha.
+              </p>
+              <div>
+                <button
+                  type="button"
+                  className="dialog-confirm"
+                  onClick={endSession}
+                  disabled={loggingOut}
+                >
+                  {loggingOut ? <Activity size={16} /> : <LogOut size={16} />}
+                  {loggingOut ? "Saindo..." : "Sair"}
+                </button>
+                <button
+                  type="button"
+                  className="dialog-cancel"
+                  autoFocus
+                  onClick={() => setConfirmingLogout(false)}
+                  disabled={loggingOut}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </section>
           </div>
         )}
         {effectivePage === "admin" ? (
@@ -512,6 +637,7 @@ export default function App() {
           />
         ) : null}
       </main>
+      <PageFooter contact={privacyInfo.contact} />
     </div>
   );
 }
