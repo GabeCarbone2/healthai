@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 
 import { fetchCrmReviews, reviewCrm } from "../api";
 import type { AdminCrmReview, CrmStatus } from "../types";
+import { formatBrazilianDate } from "../utils/date";
 
 const STATUS_LABELS: Record<CrmStatus, string> = {
   pending: "Pendente",
@@ -148,7 +149,7 @@ export function AdminCrmPage() {
                 </div>
                 <div>
                   <dt>Cadastro</dt>
-                  <dd>{new Date(review.created_at).toLocaleDateString("pt-BR")}</dd>
+                  <dd>{formatBrazilianDate(review.created_at)}</dd>
                 </div>
               </dl>
               {review.crm_rejection_reason && (

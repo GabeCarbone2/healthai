@@ -9,6 +9,7 @@ import {
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { createPrediction } from "../api";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorSummary } from "../components/ErrorSummary";
 import { ResultPanel } from "../components/ResultPanel";
 import type { Experiment, InputField, PatientResult, Prediction } from "../types";
@@ -22,31 +23,54 @@ const PRESENTATION = {
   pima: {
     title: "Pima — mulheres adultas",
     short: "Mulheres adultas",
-    description: "Perfil acadêmico baseado no conjunto Pima.",
+    description: "Base Pima",
+    population: "mulheres adultas representadas na base Pima",
   },
   nhanes: {
     title: "NHANES — adultos",
     short: "Adultos",
-    description: "Perfil acadêmico baseado no conjunto NHANES.",
+    description: "Base NHANES",
+    population: "adultos representados na base NHANES",
   },
 } as const;
 
 const FIELD_HELP: Record<string, string> = {
+  pregnancies: "Número de gestações.",
   diabetes_pedigree_function:
-    "Índice histórico da base Pima; consulte a documentação do estudo.",
+    "Diabetes Pedigree Function, variável utilizada pela base Pima.",
   skin_thickness_mm:
-    "Se não estiver disponível, deixe em branco para o pipeline estimar.",
+    "Refere-se à espessura da prega cutânea do tríceps, em milímetros.",
   insulin_miu_l:
-    "Se não estiver disponível, deixe em branco para o pipeline estimar.",
+    "Informe a concentração de insulina sérica na unidade indicada.",
+  serum_insulin_muu_ml:
+    "Informe a concentração de insulina sérica na unidade indicada.",
 };
+
+const FIELD_LABELS: Record<string, string> = {
+  diabetes_pedigree_function: "Índice de histórico familiar",
+};
+
+const OPTIONAL_FIELD_HELP =
+  "Se não informado, o modelo utilizará uma estimativa estatística. Isso pode reduzir a confiabilidade da avaliação.";
 
 function createPatientIdentifier() {
   const randomPart = crypto.randomUUID().replaceAll("-", "").slice(0, 12);
   return `PAC-${randomPart.toUpperCase()}`;
 }
 
+function createEmptyValues(fields: InputField[]) {
+  return Object.fromEntries(fields.map((field) => [field.key, ""]));
+}
+
 function parseDecimal(value: string) {
   return Number(value.trim().replace(",", "."));
+}
+
+function formatClinicalNumber(value: number) {
+  return new Intl.NumberFormat("pt-BR", {
+    maximumFractionDigits: 3,
+    useGrouping: false,
+  }).format(value);
 }
 
 function validateField(field: InputField, value: string) {
@@ -56,10 +80,10 @@ function validateField(field: InputField, value: string) {
   const number = parseDecimal(value);
   if (!Number.isFinite(number)) return "Informe um número válido.";
   if (field.min !== undefined && number < field.min) {
-    return `O valor mínimo é ${field.min}.`;
+    return `O valor mínimo permitido é ${formatClinicalNumber(field.min)}.`;
   }
   if (field.max !== undefined && number > field.max) {
-    return `O valor máximo é ${field.max}.`;
+    return `O valor máximo permitido é ${formatClinicalNumber(field.max)}.`;
   }
   if (field.step === 1 && !Number.isInteger(number)) {
     return "Informe um número inteiro.";
@@ -72,13 +96,18 @@ export function Assessment({ experiments, onResult }: Props) {
   const [patientIdentifier, setPatientIdentifier] = useState(
     createPatientIdentifier,
   );
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>(() =>
+    createEmptyValues(experiments[0]?.input_fields ?? []),
+  );
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [prediction, setPrediction] = useState<Prediction | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [confirmingClear, setConfirmingClear] = useState(false);
+  const [patientIdentifierError, setPatientIdentifierError] = useState("");
   const errorRef = useRef<HTMLDivElement>(null);
+  const submittingRef = useRef(false);
   const experiment = useMemo(
     () =>
       experiments.find((item) => item.id === experimentId) ?? experiments[0],
@@ -86,13 +115,16 @@ export function Assessment({ experiments, onResult }: Props) {
   );
 
   useEffect(() => {
-    setValues({});
+    const selectedExperiment = experiments.find((item) => item.id === experimentId);
+    setValues(createEmptyValues(selectedExperiment?.input_fields ?? []));
     setFieldErrors({});
     setPatientIdentifier(createPatientIdentifier());
     setPrediction(null);
     setError("");
     setCopied(false);
-  }, [experimentId]);
+    setConfirmingClear(false);
+    setPatientIdentifierError("");
+  }, [experimentId, experiments]);
 
   useEffect(() => {
     if (error) errorRef.current?.focus();
@@ -101,6 +133,19 @@ export function Assessment({ experiments, onResult }: Props) {
   if (!experiment) return null;
 
   const presentation = PRESENTATION[experiment.id];
+  const requiredFields = experiment.input_fields.filter((field) => field.required);
+  const completedRequiredFields = requiredFields.filter(
+    (field) => Boolean(values[field.key]?.trim()),
+  ).length;
+  const allRequiredFieldsCompleted =
+    completedRequiredFields === requiredFields.length;
+  const hasEnteredValues = Object.values(values).some((value) => value.trim());
+
+  function validatePatientIdentifier(value: string) {
+    return /^PAC-[A-Z0-9]{8,20}$/.test(value)
+      ? ""
+      : "Use um identificador no formato PAC- seguido de 8 a 20 letras ou números.";
+  }
 
   function updateValue(field: InputField, value: string) {
     setValues((current) => ({ ...current, [field.key]: value }));
@@ -124,6 +169,7 @@ export function Assessment({ experiments, onResult }: Props) {
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (submittingRef.current || loading) return;
     const nextErrors = Object.fromEntries(
       experiment.input_fields.map((field) => [
         field.key,
@@ -131,11 +177,42 @@ export function Assessment({ experiments, onResult }: Props) {
       ]),
     );
     setFieldErrors(nextErrors);
-    if (Object.values(nextErrors).some(Boolean)) {
+    const nextPatientIdentifierError = validatePatientIdentifier(patientIdentifier);
+    setPatientIdentifierError(nextPatientIdentifierError);
+    if (Object.values(nextErrors).some(Boolean) || nextPatientIdentifierError) {
       setError("Há campos ausentes ou com valores fora do intervalo permitido.");
       return;
     }
 
+    if (experiment.id === "nhanes") {
+      const clinicalMeasurementKeys = [
+        "bmi_kg_m2",
+        "systolic_bp_mmhg",
+        "diastolic_bp_mmhg",
+        "hba1c_percent",
+        "glucose_mg_dl",
+      ];
+      const completedMeasurements = clinicalMeasurementKeys.filter(
+        (key) => Boolean(values[key]?.trim()),
+      ).length;
+      if (completedMeasurements < 3) {
+        setError("Informe ao menos três das cinco medidas clínicas do perfil NHANES.");
+        return;
+      }
+      const systolic = values.systolic_bp_mmhg?.trim();
+      const diastolic = values.diastolic_bp_mmhg?.trim();
+      if (systolic && diastolic && parseDecimal(systolic) <= parseDecimal(diastolic)) {
+        setFieldErrors((current) => ({
+          ...current,
+          diastolic_bp_mmhg:
+            "A pressão diastólica deve ser menor que a pressão sistólica.",
+        }));
+        setError("Revise os valores de pressão arterial informados.");
+        return;
+      }
+    }
+
+    submittingRef.current = true;
     setLoading(true);
     setError("");
     const payload = Object.fromEntries(
@@ -173,17 +250,28 @@ export function Assessment({ experiments, onResult }: Props) {
           : "Não foi possível calcular a previsão.",
       );
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
   }
 
-  function clear() {
-    setValues({});
+  function resetForm() {
+    setValues(createEmptyValues(experiment.input_fields));
     setFieldErrors({});
     setPatientIdentifier(createPatientIdentifier());
     setPrediction(null);
     setError("");
     setCopied(false);
+    setPatientIdentifierError("");
+    setConfirmingClear(false);
+  }
+
+  function requestClear() {
+    if (hasEnteredValues) {
+      setConfirmingClear(true);
+      return;
+    }
+    resetForm();
   }
 
   return (
@@ -194,19 +282,31 @@ export function Assessment({ experiments, onResult }: Props) {
           <h1>Nova avaliação</h1>
           <p>Preencha as medidas disponíveis e revise antes de calcular.</p>
         </div>
-        <div className="model-switch" aria-label="Tipo de avaliação">
-          {experiments.map((item) => (
-            <button
-              key={item.id}
-              className={item.id === experiment.id ? "active" : ""}
-              aria-pressed={item.id === experiment.id}
-              type="button"
-              onClick={() => setExperimentId(item.id)}
-            >
-              <strong>{PRESENTATION[item.id].title}</strong>
-              <small>{PRESENTATION[item.id].description}</small>
-            </button>
-          ))}
+        <div className="model-selector">
+          <span>Selecione o perfil do modelo</span>
+          <div className="model-switch" aria-label="Perfil do modelo">
+            {experiments.map((item) => {
+              const selected = item.id === experiment.id;
+              return (
+                <button
+                  key={item.id}
+                  className={selected ? "active" : ""}
+                  aria-pressed={selected}
+                  type="button"
+                  onClick={() => setExperimentId(item.id)}
+                >
+                  <strong>{PRESENTATION[item.id].title}</strong>
+                  <small>{PRESENTATION[item.id].description}</small>
+                  {selected && (
+                    <span className="model-selected">
+                      <Check size={13} aria-hidden="true" />
+                      Selecionado
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </header>
 
@@ -217,12 +317,15 @@ export function Assessment({ experiments, onResult }: Props) {
         </summary>
         <div>
           <p>
-            <strong>{presentation.title}</strong> usa {experiment.n_train} registros
-            de treino e {experiment.n_test} de teste da base {experiment.source_dataset}.
+            <strong>{presentation.title}</strong> foi treinado para a população de {presentation.population},
+            com {experiment.n_train} registros de treino e {experiment.n_test} de teste
+            da base {experiment.source_dataset}.
           </p>
           <p>
-            Modelo selecionado: {experiment.selected_model_label}. Resultados não
-            equivalem a diagnóstico, risco futuro validado ou recomendação clínica.
+            Modelo utilizado: {experiment.selected_model_label}. A população e os
+            intervalos observados nessa base limitam a generalização para outros grupos.
+            O uso é acadêmico e os resultados não equivalem a diagnóstico, risco futuro
+            validado ou recomendação clínica.
           </p>
         </div>
       </details>
@@ -234,14 +337,6 @@ export function Assessment({ experiments, onResult }: Props) {
               <h2 id="patient-data-title">Informações do paciente</h2>
               <p>{presentation.short} · {experiment.selected_model_label}</p>
             </div>
-            <button
-              className="clear-form-button"
-              type="button"
-              onClick={clear}
-            >
-              <RotateCcw size={16} aria-hidden="true" />
-              Limpar formulário
-            </button>
           </div>
 
           <form onSubmit={submit} noValidate>
@@ -260,12 +355,17 @@ export function Assessment({ experiments, onResult }: Props) {
                     pattern="PAC-[A-Z0-9]{8,20}"
                     required
                     value={patientIdentifier}
+                    aria-invalid={Boolean(patientIdentifierError)}
                     onChange={(event) => {
                       setPatientIdentifier(event.target.value.toUpperCase());
+                      setPatientIdentifierError("");
                       setPrediction(null);
                       setError("");
                     }}
-                    aria-describedby="patient-identifier-help"
+                    onBlur={(event) => setPatientIdentifierError(
+                      validatePatientIdentifier(event.target.value),
+                    )}
+                    aria-describedby={`patient-identifier-help${patientIdentifierError ? " patient-identifier-error" : ""}`}
                   />
                   <button
                     type="button"
@@ -280,22 +380,37 @@ export function Assessment({ experiments, onResult }: Props) {
                   Não informe nome, CPF ou prontuário. Guarde a associação fora do HealthAI.
                 </small>
                 {copied && <small className="field-success" role="status">Identificador copiado.</small>}
+                {patientIdentifierError && (
+                  <small className="field-error" id="patient-identifier-error">
+                    {patientIdentifierError}
+                  </small>
+                )}
               </div>
 
               {experiment.input_fields.map((field) => {
                 const inputId = `assessment-${field.key}`;
                 const helpId = `${inputId}-help`;
+                const optionalHelpId = `${inputId}-optional-help`;
+                const rangeId = `${inputId}-range`;
                 const errorId = `${inputId}-error`;
                 const fieldError = fieldErrors[field.key];
-                const help = FIELD_HELP[field.key]
-                  ?? (!field.required
-                    ? "Opcional. Em branco, o pipeline usa uma estimativa estatística."
-                    : "");
+                const help = FIELD_HELP[field.key] ?? "";
+                const range = field.type === "number"
+                  && field.min !== undefined
+                  && field.max !== undefined
+                  ? `Faixa aceita: ${formatClinicalNumber(field.min)} a ${formatClinicalNumber(field.max)}${field.unit ? ` ${field.unit}` : ""}.`
+                  : "";
+                const describedBy = [
+                  help && helpId,
+                  !field.required && optionalHelpId,
+                  range && rangeId,
+                  fieldError && errorId,
+                ].filter(Boolean).join(" ") || undefined;
 
                 return (
                   <div className="field" key={field.key}>
                     <label htmlFor={inputId}>
-                      {field.label}
+                      {FIELD_LABELS[field.key] ?? field.label}
                       {field.required && <b aria-label="obrigatório">*</b>}
                     </label>
                     <div className="input-wrap">
@@ -305,7 +420,7 @@ export function Assessment({ experiments, onResult }: Props) {
                           required={field.required}
                           value={values[field.key] ?? ""}
                           aria-invalid={Boolean(fieldError)}
-                          aria-describedby={[help && helpId, fieldError && errorId].filter(Boolean).join(" ") || undefined}
+                          aria-describedby={describedBy}
                           onBlur={(event) => setFieldErrors((current) => ({
                             ...current,
                             [field.key]: validateField(field, event.target.value),
@@ -325,11 +440,10 @@ export function Assessment({ experiments, onResult }: Props) {
                           type="text"
                           inputMode="decimal"
                           autoComplete="off"
-                          placeholder="0"
                           required={field.required}
                           value={values[field.key] ?? ""}
                           aria-invalid={Boolean(fieldError)}
-                          aria-describedby={[help && helpId, fieldError && errorId].filter(Boolean).join(" ") || undefined}
+                          aria-describedby={describedBy}
                           onBlur={(event) => setFieldErrors((current) => ({
                             ...current,
                             [field.key]: validateField(field, event.target.value),
@@ -340,6 +454,13 @@ export function Assessment({ experiments, onResult }: Props) {
                       {field.unit && <em>{field.unit}</em>}
                     </div>
                     {help && <small id={helpId}>{help}</small>}
+                    {!field.required && (
+                      <small className="optional-field-help" id={optionalHelpId}>
+                        <Info size={14} aria-hidden="true" />
+                        {OPTIONAL_FIELD_HELP}
+                      </small>
+                    )}
+                    {range && <small className="field-range" id={rangeId}>{range}</small>}
                     {fieldError && <small className="field-error" id={errorId}>{fieldError}</small>}
                   </div>
                 );
@@ -348,19 +469,45 @@ export function Assessment({ experiments, onResult }: Props) {
 
             {error && <ErrorSummary ref={errorRef} message={error} />}
 
-            <div className="form-actions">
-              <span>* Campos obrigatórios</span>
-              <button className="primary-button" type="submit" disabled={loading}>
-                {loading ? <Activity className="spin" size={17} /> : null}
-                {loading ? "Calculando..." : "Calcular resultado"}
-                {!loading && <ArrowRight size={17} aria-hidden="true" />}
-              </button>
+            <div className="form-actions" aria-live="polite">
+              <span>
+                Campos obrigatórios preenchidos: <strong>{completedRequiredFields} de {requiredFields.length}</strong>
+              </span>
+              <div>
+                <button
+                  className="clear-form-button"
+                  type="button"
+                  onClick={requestClear}
+                  disabled={loading}
+                >
+                  <RotateCcw size={16} aria-hidden="true" />
+                  Limpar formulário
+                </button>
+                <button
+                  className="primary-button"
+                  type="submit"
+                  disabled={loading || !allRequiredFieldsCompleted}
+                >
+                  {loading ? <Activity className="spin" size={17} /> : null}
+                  {loading ? "Calculando..." : "Calcular avaliação"}
+                  {!loading && <ArrowRight size={17} aria-hidden="true" />}
+                </button>
+              </div>
             </div>
           </form>
         </section>
 
-        <ResultPanel experiment={experiment} prediction={prediction} onReset={clear} />
+        <ResultPanel experiment={experiment} prediction={prediction} onReset={resetForm} />
       </div>
+
+      <ConfirmDialog
+        open={confirmingClear}
+        title="Limpar o formulário?"
+        description="Os valores clínicos preenchidos serão removidos. Esta ação não exclui resultados já salvos."
+        confirmLabel="Limpar formulário"
+        onCancel={() => setConfirmingClear(false)}
+        onConfirm={resetForm}
+      />
     </div>
   );
 }

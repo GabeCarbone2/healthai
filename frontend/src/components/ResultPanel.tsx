@@ -19,9 +19,18 @@ export function ResultPanel({ experiment, prediction, onReset }: Props) {
     ? Math.round(prediction.decision_threshold * 100)
     : 50;
   const positive = prediction?.predicted_class === 1;
+  const totalFields = experiment.input_fields.length;
+  const completedFields = prediction
+    ? Math.max(0, totalFields - prediction.missing_feature_count)
+    : 0;
   const selectedMetrics = experiment.models[experiment.selected_model];
   const featureLabels = Object.fromEntries(
-    experiment.input_fields.map((field) => [field.key, field.label]),
+    experiment.input_fields.map((field) => [
+      field.key,
+      field.key === "diabetes_pedigree_function"
+        ? "Índice de histórico familiar"
+        : field.label,
+    ]),
   );
   const importantFeatures =
     selectedMetrics?.explainability?.features.slice(0, 5) ?? [];
@@ -53,35 +62,60 @@ export function ResultPanel({ experiment, prediction, onReset }: Props) {
       {prediction ? (
         <div className="result-content">
           <div className={`result-status ${positive ? "attention" : "neutral"}`}>
-            {positive ? <AlertTriangle size={22} /> : <CheckCircle2 size={22} />}
+            {positive
+              ? <AlertTriangle size={22} aria-hidden="true" />
+              : <CheckCircle2 size={22} aria-hidden="true" />}
             <div>
-              <small>Interpretação pelo limiar configurado</small>
+              <small>Classificação da triagem</small>
               <strong>
                 {positive
-                  ? "Acima do limiar do modelo"
-                  : "Abaixo do limiar do modelo"}
+                  ? "Acima do limiar"
+                  : "Abaixo do limiar"}
               </strong>
             </div>
           </div>
 
-          <div className="probability-readout">
-            <span>Probabilidade estimada da classe do estudo</span>
-            <strong>{probability}%</strong>
-          </div>
-          <progress
-            className="probability-track"
-            value={probability}
-            max={100}
-            aria-label="Probabilidade estimada da classe do estudo"
-          >
-            {probability}%
-          </progress>
-          <p className="threshold-note">
-            O resultado muda de faixa a partir de {threshold}%; esse corte é
-            configurado no modelo e não representa um diagnóstico.
-          </p>
+          <section className="result-measure" aria-labelledby="probability-label">
+            <div className="probability-readout">
+              <span id="probability-label">Probabilidade estimada</span>
+              <strong>{probability}%</strong>
+            </div>
+            <progress
+              className="probability-track"
+              value={probability}
+              max={100}
+              aria-label="Probabilidade estimada da classe do estudo"
+            >
+              {probability}%
+            </progress>
+          </section>
 
-          <dl className="result-details">
+          <dl className="result-summary">
+            <div>
+              <dt>Limiar utilizado</dt>
+              <dd>{threshold}%</dd>
+              <small>Define a mudança de faixa e não representa diagnóstico.</small>
+            </div>
+            <div>
+              <dt>Completude dos dados</dt>
+              <dd>{completedFields} de {totalFields} campos informados</dd>
+              <small>
+                {prediction.missing_feature_count === 0
+                  ? "Nenhum campo estimado estatisticamente."
+                  : `${prediction.missing_feature_count} ${prediction.missing_feature_count === 1 ? "campo estimado" : "campos estimados"} estatisticamente.`}
+              </small>
+            </div>
+            <div className={`result-guidance ${positive ? "attention" : "information"}`}>
+              <dt>Orientação de interpretação</dt>
+              <dd>
+                {positive
+                  ? "O resultado sugere necessidade de avaliação clínica complementar."
+                  : "O resultado ficou abaixo do limiar, mas deve ser interpretado junto à avaliação clínica."}
+              </dd>
+            </div>
+          </dl>
+
+          <dl className="result-details" aria-label="Rastreabilidade técnica">
             <div>
               <dt>Perfil</dt>
               <dd>{experiment.label}</dd>
@@ -94,17 +128,14 @@ export function ResultPanel({ experiment, prediction, onReset }: Props) {
               <dt>Versão</dt>
               <dd><code>{prediction.model_version}</code></dd>
             </div>
-            <div>
-              <dt>Completude</dt>
-              <dd>{Math.round(prediction.input_completeness * 100)}%</dd>
-            </div>
           </dl>
           {prediction.missing_feature_count > 0 && (
             <p className="result-warning">
               <AlertTriangle size={17} aria-hidden="true" />
               <span>
-                {prediction.missing_feature_count} medida(s) ausente(s) foram
-                estimadas pelo pipeline. Revise este resultado com cautela.
+                Há {prediction.missing_feature_count} {prediction.missing_feature_count === 1 ? "campo ausente" : "campos ausentes"}.
+                O modelo utilizou estimativas estatísticas, o que pode reduzir a
+                confiabilidade desta avaliação.
               </span>
             </p>
           )}
@@ -156,9 +187,15 @@ export function ResultPanel({ experiment, prediction, onReset }: Props) {
           <ClipboardCheck size={34} aria-hidden="true" />
           <strong>Pronto para calcular</strong>
           <span>
-            Preencha os campos obrigatórios. O resultado e sua rastreabilidade
-            aparecerão aqui.
+            Preencha os campos obrigatórios. O resultado exibirá:
           </span>
+          <ul>
+            <li>probabilidade estimada;</li>
+            <li>limiar utilizado;</li>
+            <li>classificação da triagem;</li>
+            <li>completude dos dados;</li>
+            <li>orientação de interpretação.</li>
+          </ul>
         </div>
       )}
 
@@ -189,9 +226,9 @@ export function ResultPanel({ experiment, prediction, onReset }: Props) {
               ))}
             </ol>
             <p>
-              Importância por permutação no teste global. Não explica esta
-              avaliação individual, não indica causalidade e não deve ser usada
-              isoladamente para decidir condutas.
+              Esses valores descrevem o comportamento geral do modelo e não explicam
+              individualmente esta avaliação. A importância por permutação não indica
+              causalidade e não deve ser usada isoladamente para decidir condutas.
             </p>
           </div>
         </details>

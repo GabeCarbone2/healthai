@@ -35,6 +35,7 @@ const defaultProps = {
   onPageChange: vi.fn(),
   onDelete: vi.fn(),
   onClear: vi.fn(async () => true),
+  onNewAssessment: vi.fn(),
 };
 
 describe("PatientResults", () => {
@@ -63,8 +64,8 @@ describe("PatientResults", () => {
     render(<PatientResults {...defaultProps} />);
 
     await browser.type(screen.getByLabelText("Identificador"), "PAC-A1");
-    await browser.type(screen.getByLabelText("Data inicial"), "2026-07-01");
-    await browser.type(screen.getByLabelText("Data final"), "2026-07-04");
+    await browser.type(screen.getByLabelText("Data inicial"), "01072026");
+    await browser.type(screen.getByLabelText("Data final"), "04072026");
     await browser.click(screen.getByRole("button", { name: "Buscar" }));
 
     expect(defaultProps.onSearch).toHaveBeenCalledWith({

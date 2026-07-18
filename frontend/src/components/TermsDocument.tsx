@@ -1,4 +1,5 @@
 import type { TermsInfo } from "../types";
+import { formatBrazilianDate } from "../utils/date";
 
 type Props = {
   info: TermsInfo;
@@ -6,10 +7,7 @@ type Props = {
 };
 
 export function TermsDocument({ info, contact }: Props) {
-  const effectiveDate = new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "long",
-    timeZone: "UTC",
-  }).format(new Date(`${info.effective_date}T00:00:00Z`));
+  const effectiveDate = formatBrazilianDate(info.effective_date, "long");
 
   return (
     <article className="terms-document">

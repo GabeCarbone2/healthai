@@ -20,6 +20,12 @@ import { Fragment, FormEvent, useEffect, useMemo, useState } from "react";
 
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import type { PatientResult, ResultFilters } from "../types";
+import {
+  brazilianDateToIso,
+  formatBrazilianDateTime,
+  isoDateToBrazilian,
+  maskBrazilianDateInput,
+} from "../utils/date";
 
 type Props = {
   results: PatientResult[];
@@ -38,19 +44,13 @@ type Props = {
   onPageChange: (page: number) => void | Promise<void>;
   onDelete: (resultId: number) => void | Promise<void>;
   onClear: () => Promise<boolean>;
+  onNewAssessment: () => void;
 };
 
 type SortKey = "createdAt" | "patientIdentifier" | "probability";
 
 function percent(value: number) {
   return `${Math.round(value * 100)}%`;
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date(value));
 }
 
 function displayVersion(value: string) {
@@ -81,8 +81,14 @@ export function PatientResults({
   onPageChange,
   onDelete,
   onClear,
+  onNewAssessment,
 }: Props) {
-  const [draftFilters, setDraftFilters] = useState(filters);
+  const [draftFilters, setDraftFilters] = useState(() => ({
+    search: filters.search,
+    dateFrom: isoDateToBrazilian(filters.dateFrom),
+    dateTo: isoDateToBrazilian(filters.dateTo),
+  }));
+  const [dateError, setDateError] = useState("");
   const [confirmingClear, setConfirmingClear] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState<PatientResult | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -90,6 +96,9 @@ export function PatientResults({
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [actionsOpen, setActionsOpen] = useState(false);
   const hasFilters = Boolean(filters.search || filters.dateFrom || filters.dateTo);
+  const hasDraftFilters = Boolean(
+    draftFilters.search || draftFilters.dateFrom || draftFilters.dateTo,
+  );
 
   const sortedResults = useMemo(() => {
     return [...results].sort((first, second) => {
@@ -103,17 +112,34 @@ export function PatientResults({
   }, [results, sortDirection, sortKey]);
 
   useEffect(() => {
-    setDraftFilters(filters);
+    setDraftFilters({
+      search: filters.search,
+      dateFrom: isoDateToBrazilian(filters.dateFrom),
+      dateTo: isoDateToBrazilian(filters.dateTo),
+    });
+    setDateError("");
   }, [filters]);
 
   function submitSearch(event: FormEvent) {
     event.preventDefault();
-    void onSearch(draftFilters);
+    const dateFrom = brazilianDateToIso(draftFilters.dateFrom);
+    const dateTo = brazilianDateToIso(draftFilters.dateTo);
+    if (dateFrom === null || dateTo === null) {
+      setDateError("Informe as datas no formato dd/mm/aaaa.");
+      return;
+    }
+    if (dateFrom && dateTo && dateFrom > dateTo) {
+      setDateError("A data inicial não pode ser posterior à data final.");
+      return;
+    }
+    setDateError("");
+    void onSearch({ search: draftFilters.search, dateFrom, dateTo });
   }
 
   function clearFilters() {
     const emptyFilters = { search: "", dateFrom: "", dateTo: "" };
     setDraftFilters(emptyFilters);
+    setDateError("");
     void onSearch(emptyFilters);
   }
 
@@ -212,7 +238,7 @@ export function PatientResults({
         )}
       </header>
 
-      <form className="results-filters" onSubmit={submitSearch} lang="pt-BR">
+      <form className="results-filters" onSubmit={submitSearch} lang="pt-BR" noValidate>
         <label className="results-search">
           <span>Identificador</span>
           <div>
@@ -232,29 +258,39 @@ export function PatientResults({
         <label>
           <span>Data inicial</span>
           <input
-            type="date"
-            max={draftFilters.dateTo || undefined}
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            placeholder="dd/mm/aaaa"
+            maxLength={10}
             value={draftFilters.dateFrom}
+            aria-invalid={Boolean(dateError)}
+            aria-describedby={dateError ? "results-date-error" : undefined}
             onChange={(event) => setDraftFilters((current) => ({
               ...current,
-              dateFrom: event.target.value,
+              dateFrom: maskBrazilianDateInput(event.target.value),
             }))}
           />
         </label>
         <label>
           <span>Data final</span>
           <input
-            type="date"
-            min={draftFilters.dateFrom || undefined}
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            placeholder="dd/mm/aaaa"
+            maxLength={10}
             value={draftFilters.dateTo}
+            aria-invalid={Boolean(dateError)}
+            aria-describedby={dateError ? "results-date-error" : undefined}
             onChange={(event) => setDraftFilters((current) => ({
               ...current,
-              dateTo: event.target.value,
+              dateTo: maskBrazilianDateInput(event.target.value),
             }))}
           />
         </label>
         <div className="filter-actions">
-          {hasFilters && (
+          {hasDraftFilters && (
             <button
               type="button"
               className="filter-clear"
@@ -274,6 +310,12 @@ export function PatientResults({
             Buscar
           </button>
         </div>
+        {dateError && (
+          <p className="filter-error" id="results-date-error" role="alert">
+            <AlertCircle size={15} aria-hidden="true" />
+            {dateError}
+          </p>
+        )}
       </form>
 
       <section className="patient-results" aria-labelledby="history-table-title">
@@ -315,6 +357,9 @@ export function PatientResults({
             <ListChecks size={30} />
             <h2>{hasFilters ? "Nenhum resultado encontrado" : "Nenhuma avaliação realizada"}</h2>
             <p>{hasFilters ? "Revise os filtros ou limpe a busca." : "Os resultados aparecerão aqui após o primeiro cálculo."}</p>
+            <button type="button" className="primary-button" onClick={onNewAssessment}>
+              Realizar nova avaliação
+            </button>
           </div>
         ) : (
           <>
@@ -352,7 +397,7 @@ export function PatientResults({
                     <Fragment key={result.id}>
                       <tr>
                         <td><strong>{result.patientIdentifier}</strong></td>
-                        <td>{formatDate(result.createdAt)}</td>
+                        <td>{formatBrazilianDateTime(result.createdAt)}</td>
                         <td className="secondary-column">{result.experiment}</td>
                         <td className="secondary-column">{result.model}</td>
                         <td>

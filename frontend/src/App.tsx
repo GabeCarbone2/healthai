@@ -22,6 +22,7 @@ import {
 } from "./api";
 import { HealthAiLogo } from "./components/HealthAiLogo";
 import { PageFooter } from "./components/PageFooter";
+import { ConfirmDialog } from "./components/ConfirmDialog";
 import { Assessment } from "./pages/Assessment";
 import { AccountPage } from "./pages/AccountPage";
 import { AdminCrmPage } from "./pages/AdminCrmPage";
@@ -212,17 +213,6 @@ export default function App() {
       });
     };
   }, [user]);
-
-  useEffect(() => {
-    if (!confirmingLogout) return;
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape" && !loggingOut) {
-        setConfirmingLogout(false);
-      }
-    }
-    document.addEventListener("keydown", closeOnEscape);
-    return () => document.removeEventListener("keydown", closeOnEscape);
-  }, [confirmingLogout, loggingOut]);
 
   async function retryPrivacyInfo() {
     setPrivacyInfo(undefined);
@@ -470,8 +460,8 @@ export default function App() {
     ...(adminAccess ? [adminNavigation] : []),
   ];
   const effectivePage: Page =
-    page === "admin" && adminAccess
-      ? "admin"
+    page === "admin" && !adminAccess
+      ? "account"
       : (page === "assessment" || page === "results") && !clinicalAccess
         ? "account"
         : page;
@@ -510,7 +500,6 @@ export default function App() {
             <span>{user.name.slice(0, 1).toUpperCase()}</span>
             <div>
               <strong>{user.name}</strong>
-              <small>{user.email}</small>
               {user.crm_status === "approved" && <em>Cadastro aprovado</em>}
             </div>
             <button
@@ -518,7 +507,7 @@ export default function App() {
               onClick={() => setConfirmingLogout(true)}
               disabled={loggingOut}
               title={loggingOut ? "Encerrando sessão..." : "Encerrar sessão"}
-              aria-label={loggingOut ? "Encerrando sessão..." : "Encerrar sessão"}
+              aria-label="Encerrar sessão"
             >
               {loggingOut ? <Activity size={17} /> : <LogOut size={17} />}
             </button>
@@ -532,52 +521,20 @@ export default function App() {
             {logoutError} Tente novamente.
           </div>
         )}
-        {confirmingLogout && (
-          <div
-            className="confirm-overlay"
-            role="presentation"
-            onMouseDown={(event) => {
-              if (event.target === event.currentTarget && !loggingOut) {
-                setConfirmingLogout(false);
-              }
-            }}
-          >
-            <section
-              className="confirm-dialog logout-confirm-dialog"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="logout-confirm-title"
-              aria-describedby="logout-confirm-description"
-            >
-              <LogOut size={34} />
-              <h2 id="logout-confirm-title">Sair do HealthAI?</h2>
-              <p id="logout-confirm-description">
-                Você será desconectado desta sessão. Para voltar, basta entrar
-                novamente com seu e-mail e senha.
-              </p>
-              <div>
-                <button
-                  type="button"
-                  className="dialog-confirm"
-                  onClick={endSession}
-                  disabled={loggingOut}
-                >
-                  {loggingOut ? <Activity size={16} /> : <LogOut size={16} />}
-                  {loggingOut ? "Saindo..." : "Sair"}
-                </button>
-                <button
-                  type="button"
-                  className="dialog-cancel"
-                  autoFocus
-                  onClick={() => setConfirmingLogout(false)}
-                  disabled={loggingOut}
-                >
-                  Cancelar
-                </button>
-              </div>
-            </section>
-          </div>
-        )}
+        <ConfirmDialog
+          open={confirmingLogout}
+          title="Sair do HealthAI?"
+          description="Você será desconectado desta sessão. Para voltar, basta entrar novamente com seu e-mail e senha."
+          confirmLabel="Sair"
+          busyLabel="Saindo..."
+          busy={loggingOut}
+          icon={<LogOut size={28} aria-hidden="true" />}
+          tone="neutral"
+          onCancel={() => setConfirmingLogout(false)}
+          onConfirm={async () => {
+            await endSession();
+          }}
+        />
         {effectivePage === "admin" ? (
           <AdminCrmPage />
         ) : effectivePage === "account" ? (
@@ -634,6 +591,7 @@ export default function App() {
             }}
             onDelete={removeResult}
             onClear={removeResults}
+            onNewAssessment={() => setPage("assessment")}
           />
         ) : null}
       </main>

@@ -1,5 +1,6 @@
 import {
   Activity,
+  AlertCircle,
   BrainCircuit,
   Eye,
   EyeOff,
@@ -53,6 +54,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
   const [confirmationTouched, setConfirmationTouched] = useState(false);
   const [capsLock, setCapsLock] = useState(false);
   const errorRef = useRef<HTMLDivElement>(null);
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     if (error) errorRef.current?.focus();
@@ -72,10 +74,13 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (submittingRef.current || loading) return;
     if (mode === "register" && password !== passwordConfirmation) {
+      setConfirmationTouched(true);
       setError("As senhas não coincidem.");
       return;
     }
+    submittingRef.current = true;
     setLoading(true);
     setError("");
     try {
@@ -101,6 +106,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
           : "Não foi possível autenticar.",
       );
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
   }
@@ -153,35 +159,42 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
       </header>
 
       <div className="auth-layout">
-        <aside className="auth-intro">
-          <div className="auth-eyebrow">
-            <Sparkles size={15} />
-            Inteligência aplicada à saúde
-          </div>
-          <h1>
-            Inteligência clínica <em>para apoiar decisões.</em>
-          </h1>
-          <p>
-            Explore modelos preditivos acadêmicos com rastreabilidade,
-            privacidade e limites apresentados com clareza.
-          </p>
-          <div className="auth-highlights">
-            <span>
-              <BrainCircuit size={17} />
-              Modelos rastreáveis
-            </span>
-            <span>
-              <ShieldCheck size={17} />
-              Dados pseudonimizados
-            </span>
-            <span>
-              <LockKeyhole size={17} />
-              Acesso individual
-            </span>
-          </div>
-        </aside>
+        <div className="auth-presentation">
+          <aside className="auth-intro">
+            <div className="auth-eyebrow">
+              <Sparkles size={15} />
+              Inteligência aplicada à saúde
+            </div>
+            <h1>
+              Inteligência clínica <em>para apoiar decisões.</em>
+            </h1>
+            <p className="auth-description">
+              Explore modelos preditivos acadêmicos com rastreabilidade,
+              privacidade e limites apresentados com clareza.
+            </p>
+            <div className="auth-highlights">
+              <span>
+                <BrainCircuit size={17} />
+                Modelos rastreáveis
+              </span>
+              <span>
+                <ShieldCheck size={17} />
+                Dados pseudonimizados
+              </span>
+              <span>
+                <LockKeyhole size={17} />
+                Acesso individual
+              </span>
+            </div>
+          </aside>
 
-        <section className={`auth-panel ${mode}`}>
+          <div className="auth-monogram" aria-hidden="true">
+            <HealthAiLogo className="auth-monogram-logo" />
+          </div>
+        </div>
+
+        <div className="auth-access">
+          <section className={`auth-panel ${mode}`}>
           <div className="auth-panel-shine" aria-hidden="true" />
           {verificationEmail ? (
             <div className="verification-sent">
@@ -260,7 +273,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
           </div>
 
           <form onSubmit={submit} className="auth-form">
-            {error && (
+            {error && mode === "register" && (
               <ErrorSummary
                 ref={errorRef}
                 title="Não foi possível continuar"
@@ -290,14 +303,14 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
                 </div>
                 <label htmlFor="register-email">
                   <span>E-mail</span>
-                  <input id="register-email" type="email" autoComplete="email" placeholder="voce@exemplo.com" required value={email} onChange={(event) => setEmail(event.target.value)} />
+                  <input id="register-email" type="email" autoComplete="email" placeholder="voce@exemplo.com" required value={email} onChange={(event) => { setEmail(event.target.value); setError(""); }} />
                 </label>
                 <small className="fieldset-note">O CRM passa por análise manual antes da liberação das avaliações.</small>
               </fieldset>
             ) : (
               <label htmlFor="login-email">
                 <span>E-mail</span>
-                <input id="login-email" type="email" autoComplete="email" placeholder="voce@exemplo.com" required value={email} onChange={(event) => setEmail(event.target.value)} />
+                <input id="login-email" type="email" autoComplete="email" placeholder="voce@exemplo.com" required value={email} aria-invalid={Boolean(error)} aria-describedby={error ? "login-field-error" : undefined} onChange={(event) => { setEmail(event.target.value); setError(""); }} />
               </label>
             )}
 
@@ -315,10 +328,11 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
                     placeholder="Digite sua senha"
                     required
                     value={password}
-                    aria-describedby={mode === "register" ? "password-rules" : undefined}
+                    aria-invalid={mode === "login" && Boolean(error)}
+                    aria-describedby={mode === "register" ? "password-rules" : error ? "login-field-error" : undefined}
                     onBlur={() => setPasswordTouched(true)}
                     onKeyUp={(event) => setCapsLock(event.getModifierState("CapsLock"))}
-                    onChange={(event) => setPassword(event.target.value)}
+                    onChange={(event) => { setPassword(event.target.value); setError(""); }}
                   />
                   <button type="button" onClick={() => setShowPassword((current) => !current)} title={showPassword ? "Ocultar senha" : "Mostrar senha"} aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}>
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -335,11 +349,24 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
                   </ul>
                   <label htmlFor="password-confirmation">
                     <span>Confirmar senha</span>
-                    <input id="password-confirmation" type="password" autoComplete="new-password" minLength={8} maxLength={128} placeholder="Repita sua senha" required value={passwordConfirmation} onBlur={() => setConfirmationTouched(true)} onKeyUp={(event) => setCapsLock(event.getModifierState("CapsLock"))} onChange={(event) => setPasswordConfirmation(event.target.value)} />
+                    <input id="password-confirmation" type="password" autoComplete="new-password" minLength={8} maxLength={128} placeholder="Repita sua senha" required value={passwordConfirmation} aria-invalid={confirmationTouched && password !== passwordConfirmation} onBlur={() => setConfirmationTouched(true)} onKeyUp={(event) => setCapsLock(event.getModifierState("CapsLock"))} onChange={(event) => { setPasswordConfirmation(event.target.value); setError(""); }} />
                   </label>
                 </>
               )}
             </fieldset>
+
+            {mode === "login" && error && (
+              <div
+                className="auth-field-error"
+                id="login-field-error"
+                ref={errorRef}
+                role="alert"
+                tabIndex={-1}
+              >
+                <AlertCircle size={16} aria-hidden="true" />
+                <span>{error}</span>
+              </div>
+            )}
 
             {mode === "register" && (
               <fieldset className="auth-fieldset privacy-fieldset">
@@ -365,7 +392,13 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
               </a>
             )}
 
-            <button className="auth-submit" disabled={loading}>
+            <p className="auth-medical-note">
+              <ShieldCheck size={16} aria-hidden="true" />
+              O HealthAI é uma ferramenta acadêmica de apoio à triagem e não
+              substitui diagnóstico ou avaliação médica.
+            </p>
+
+            <button type="submit" className="auth-submit" disabled={loading}>
               {loading ? (
                 <Activity size={18} />
               ) : mode === "login" ? (
@@ -387,10 +420,8 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
           </footer>
             </>
           )}
-        </section>
+          </section>
 
-        <div className="auth-monogram" aria-hidden="true">
-          <HealthAiLogo className="auth-monogram-logo" />
         </div>
       </div>
       <PageFooter contact={privacy.contact} variant="public" />

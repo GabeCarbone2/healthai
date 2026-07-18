@@ -10,6 +10,8 @@ type Props = {
   busy?: boolean;
   confirmDisabled?: boolean;
   children?: ReactNode;
+  icon?: ReactNode;
+  tone?: "danger" | "neutral";
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
 };
@@ -23,13 +25,18 @@ export function ConfirmDialog({
   busy = false,
   confirmDisabled = false,
   children,
+  icon,
+  tone = "danger",
   onCancel,
   onConfirm,
 }: Props) {
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
   const onCancelRef = useRef(onCancel);
+  const busyRef = useRef(busy);
   onCancelRef.current = onCancel;
+  busyRef.current = busy;
   const titleId = `confirm-title-${title.replace(/\W+/g, "-").toLowerCase()}`;
   const descriptionId = `${titleId}-description`;
 
@@ -38,17 +45,39 @@ export function ConfirmDialog({
     previousFocus.current = document.activeElement as HTMLElement | null;
     const focusTimer = window.setTimeout(() => cancelRef.current?.focus(), 0);
 
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape" && !busy) onCancelRef.current();
+    function handleDialogKeyboard(event: KeyboardEvent) {
+      if (event.key === "Escape" && !busyRef.current) {
+        onCancelRef.current();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      );
+      if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
 
-    document.addEventListener("keydown", closeOnEscape);
+    document.addEventListener("keydown", handleDialogKeyboard);
     return () => {
-      document.removeEventListener("keydown", closeOnEscape);
+      document.removeEventListener("keydown", handleDialogKeyboard);
       window.clearTimeout(focusTimer);
       previousFocus.current?.focus();
     };
-  }, [busy, open]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -61,13 +90,14 @@ export function ConfirmDialog({
       }}
     >
       <section
-        className="confirm-dialog"
-        role="alertdialog"
+        ref={dialogRef}
+        className={`confirm-dialog ${tone === "neutral" ? "neutral-dialog" : ""}`}
+        role={tone === "danger" ? "alertdialog" : "dialog"}
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
       >
-        <AlertCircle size={28} aria-hidden="true" />
+        {icon ?? <AlertCircle size={28} aria-hidden="true" />}
         <h2 id={titleId}>{title}</h2>
         <p id={descriptionId}>{description}</p>
         {children}

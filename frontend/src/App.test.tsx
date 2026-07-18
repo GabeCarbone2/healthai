@@ -148,7 +148,7 @@ describe("App", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: "Verificação profissional pendente",
+        name: "Cadastro profissional",
       }),
     ).toBeInTheDocument();
     expect(

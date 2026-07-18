@@ -13,11 +13,13 @@ export function PageFooter({ contact, variant = "internal" }: Props) {
       <footer className="page-footer public-footer">
         <span>HealthAI v{packageInfo.version}</span>
         <span aria-hidden="true">•</span>
-        <span>Uso acadêmico</span>
+        <span>Ferramenta acadêmica</span>
+        <span aria-hidden="true">•</span>
+        <span>Não substitui diagnóstico médico</span>
         <span aria-hidden="true">•</span>
         <a href="/terms">Termos de Uso</a>
         <span aria-hidden="true">•</span>
-        <a href={contactHref}>Contato e privacidade</a>
+        <a href={contactHref} title={`Canal de privacidade: ${contact}`}>Privacidade</a>
       </footer>
     );
   }
@@ -26,11 +28,13 @@ export function PageFooter({ contact, variant = "internal" }: Props) {
     <footer className="page-footer internal-footer">
       <span>HealthAI v{packageInfo.version}</span>
       <span aria-hidden="true">•</span>
-      <span>Uso acadêmico</span>
+      <span>Ferramenta acadêmica</span>
+      <span aria-hidden="true">•</span>
+      <span>Não substitui diagnóstico médico</span>
       <span aria-hidden="true">•</span>
       <a href="/terms">Termos de Uso</a>
       <span aria-hidden="true">•</span>
-      <a href={contactHref}>Privacidade: {contact}</a>
+      <a href={contactHref} title={`Canal de privacidade: ${contact}`}>Privacidade</a>
     </footer>
   );
 }

@@ -56,12 +56,12 @@ describe("ResultPanel", () => {
         name: "Probabilidade estimada da classe do estudo",
       }),
     ).toHaveAttribute("value", "42");
-    expect(screen.getByText(/1 medida\(s\) ausente/)).toBeInTheDocument();
+    expect(screen.getByText(/Há 1 campo ausente/)).toBeInTheDocument();
     expect(screen.getByText(/não substitui diagnóstico/)).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Variáveis mais influentes no modelo" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Não explica esta avaliação individual/)).toBeInTheDocument();
+    expect(screen.getByText(/não explicam individualmente esta avaliação/)).toBeInTheDocument();
     expect(screen.getByText("Influência nesta avaliação")).toBeInTheDocument();
     expect(screen.getByText(/elevou 8.0 p.p./)).toBeInTheDocument();
   });

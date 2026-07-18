@@ -17,6 +17,7 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorSummary } from "../components/ErrorSummary";
 import { PrivacyNotice } from "../components/PrivacyNotice";
 import type { PrivacyInfo, User } from "../types";
+import { formatBrazilianDate } from "../utils/date";
 
 type Props = {
   user: User;
@@ -38,11 +39,6 @@ function maskEmail(email: string) {
 
 function maskCrm(crm: string) {
   return `${"•".repeat(Math.max(2, crm.length - 2))}${crm.slice(-2)}`;
-}
-
-function formatDate(value: string | null) {
-  if (!value) return "Data não registrada";
-  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" }).format(new Date(value));
 }
 
 export function AccountPage({
@@ -125,8 +121,16 @@ export function AccountPage({
               <h2>Dados da conta</h2>
               <p>Dados usados para autenticação e análise do cadastro.</p>
             </div>
-            <button type="button" className="show-data-button" onClick={() => setShowData((current) => !current)}>
-              {showData ? <EyeOff size={16} /> : <Eye size={16} />}
+            <button
+              type="button"
+              className="show-data-button"
+              aria-pressed={showData}
+              title={showData ? "Ocultar dados pessoais" : "Mostrar dados pessoais"}
+              onClick={() => setShowData((current) => !current)}
+            >
+              {showData
+                ? <EyeOff size={16} aria-hidden="true" />
+                : <Eye size={16} aria-hidden="true" />}
               {showData ? "Ocultar dados" : "Mostrar dados"}
             </button>
           </header>
@@ -134,8 +138,9 @@ export function AccountPage({
             <div><dt>Nome</dt><dd>{showData ? user.name : `${user.name.slice(0, 1)}••••••`}</dd></div>
             <div><dt>E-mail</dt><dd>{showData ? user.email : maskEmail(user.email)}</dd></div>
             <div><dt>CRM</dt><dd>{user.crm && user.crm_uf ? `${showData ? user.crm : maskCrm(user.crm)}/${user.crm_uf}` : "Não informado"}</dd></div>
-            <div><dt>Aviso aceito</dt><dd>{user.privacy_notice_version ?? "Pendente"}</dd></div>
-            <div><dt>Termos aceitos</dt><dd>{user.terms_version ?? "Pendente"}</dd></div>
+            <div><dt>Conta criada em</dt><dd>{formatBrazilianDate(user.created_at, "long")}</dd></div>
+            <div><dt>Aviso de privacidade aceito</dt><dd>{user.privacy_accepted_at ? `${formatBrazilianDate(user.privacy_accepted_at, "long")} · versão ${user.privacy_notice_version}` : "Pendente"}</dd></div>
+            <div><dt>Termos aceitos</dt><dd>{user.terms_accepted_at ? `${formatBrazilianDate(user.terms_accepted_at, "long")} · versão ${user.terms_version}` : "Pendente"}</dd></div>
           </dl>
         </section>
 
@@ -144,7 +149,7 @@ export function AccountPage({
             <Database size={22} aria-hidden="true" />
             <div>
               <h2>Dados das avaliações</h2>
-              <p>O que fica armazenado por até {privacy.result_retention_days} dias.</p>
+              <p>Prazo de retenção: até {privacy.result_retention_days} dias.</p>
             </div>
           </header>
           <div className="storage-columns">
@@ -177,19 +182,20 @@ export function AccountPage({
           <Clock3 size={25} />
         )}
         <div>
-          <span className="status-kicker">Análise manual do cadastro</span>
-          <h2>
-            {user.crm_status === "approved"
-              ? "Cadastro profissional aprovado"
-              : user.crm_status === "rejected"
-                ? "Cadastro profissional rejeitado"
-                : user.crm
-                  ? "Verificação profissional pendente"
-                  : "Complete seu cadastro profissional"}
-          </h2>
+          <span className="status-kicker">Verificação administrativa</span>
+          <h2>Cadastro profissional</h2>
+          <span className={`status-badge ${user.crm_status ?? "missing"}`}>
+            {user.crm_status === "approved" ? (
+              <><CheckCircle2 size={15} aria-hidden="true" /> Aprovado</>
+            ) : user.crm_status === "rejected" ? (
+              <><XCircle size={15} aria-hidden="true" /> Rejeitado</>
+            ) : (
+              <><Clock3 size={15} aria-hidden="true" /> Pendente</>
+            )}
+          </span>
           <p>
             {user.crm_status === "approved"
-              ? `Aprovação administrativa registrada em ${formatDate(user.crm_verified_at)}.`
+              ? `Verificado em ${formatBrazilianDate(user.crm_verified_at)} por análise administrativa manual.`
               : user.crm_status === "rejected"
                 ? user.crm_rejection_reason ?? "Revise os dados informados e envie novamente."
                 : user.crm
@@ -244,7 +250,7 @@ export function AccountPage({
       <section className="danger-zone">
         <div>
           <h2>Excluir conta e dados</h2>
-          <p>Exclui permanentemente conta, sessões e resultados associados.</p>
+          <p>Esta ação removerá permanentemente sua conta, sessões e resultados associados. Não poderá ser desfeita.</p>
         </div>
         <button type="button" onClick={() => setConfirming(true)}>
           <Trash2 size={16} />
@@ -255,7 +261,7 @@ export function AccountPage({
       <ConfirmDialog
         open={confirming}
         title="Excluir conta permanentemente?"
-        description="Esta ação apaga sua conta, sessões e resultados e não pode ser desfeita."
+        description="Esta ação removerá permanentemente sua conta, sessões e resultados associados. Não poderá ser desfeita."
         confirmLabel="Excluir permanentemente"
         busyLabel="Excluindo..."
         busy={loading}
