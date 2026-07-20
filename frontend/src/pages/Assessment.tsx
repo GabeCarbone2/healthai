@@ -35,23 +35,44 @@ const PRESENTATION = {
 } as const;
 
 const FIELD_HELP: Record<string, string> = {
-  pregnancies: "Número de gestações.",
+  pregnancies: "Número de gestações informadas.",
   diabetes_pedigree_function:
     "Diabetes Pedigree Function, variável utilizada pela base Pima.",
   skin_thickness_mm:
     "Refere-se à espessura da prega cutânea do tríceps, em milímetros.",
-  insulin_miu_l:
-    "Informe a concentração de insulina sérica na unidade indicada.",
   serum_insulin_muu_ml:
-    "Informe a concentração de insulina sérica na unidade indicada.",
+    "Concentração de insulina sérica na unidade indicada.",
 };
 
 const FIELD_LABELS: Record<string, string> = {
   diabetes_pedigree_function: "Índice de histórico familiar",
 };
 
-const OPTIONAL_FIELD_HELP =
-  "Se não informado, o modelo utilizará uma estimativa estatística. Isso pode reduzir a confiabilidade da avaliação.";
+const OPTIONAL_FIELDS_NOTE =
+  "Campos opcionais podem ser estimados estatisticamente quando não informados. Isso pode reduzir a confiabilidade da avaliação.";
+
+type FieldTooltipProps = {
+  id: string;
+  label: string;
+  text: string;
+};
+
+function FieldTooltip({ id, label, text }: FieldTooltipProps) {
+  return (
+    <span className="field-tooltip">
+      <button
+        type="button"
+        aria-label={`Ajuda sobre ${label}`}
+        aria-describedby={id}
+      >
+        <Info size={14} aria-hidden="true" />
+      </button>
+      <span className="field-tooltip-content" id={id} role="tooltip">
+        {text}
+      </span>
+    </span>
+  );
+}
 
 function createPatientIdentifier() {
   const randomPart = crypto.randomUUID().replaceAll("-", "").slice(0, 12);
@@ -106,6 +127,7 @@ export function Assessment({ experiments, onResult }: Props) {
   const [copied, setCopied] = useState(false);
   const [confirmingClear, setConfirmingClear] = useState(false);
   const [patientIdentifierError, setPatientIdentifierError] = useState("");
+  const [profileDetailsOpen, setProfileDetailsOpen] = useState(false);
   const errorRef = useRef<HTMLDivElement>(null);
   const submittingRef = useRef(false);
   const experiment = useMemo(
@@ -124,6 +146,7 @@ export function Assessment({ experiments, onResult }: Props) {
     setCopied(false);
     setConfirmingClear(false);
     setPatientIdentifierError("");
+    setProfileDetailsOpen(false);
   }, [experimentId, experiments]);
 
   useEffect(() => {
@@ -307,11 +330,18 @@ export function Assessment({ experiments, onResult }: Props) {
               );
             })}
           </div>
+          <p className="model-current">
+            Modelo atual: <strong>{experiment.selected_model_label}</strong> · {presentation.short.toLowerCase()}
+          </p>
         </div>
       </header>
 
-      <details className="model-context">
-        <summary>
+      <details
+        className="model-context"
+        open={profileDetailsOpen}
+        onToggle={(event) => setProfileDetailsOpen(event.currentTarget.open)}
+      >
+        <summary aria-expanded={profileDetailsOpen}>
           <Info size={16} aria-hidden="true" />
           Sobre este perfil e suas limitações
         </summary>
@@ -327,6 +357,10 @@ export function Assessment({ experiments, onResult }: Props) {
             O uso é acadêmico e os resultados não equivalem a diagnóstico, risco futuro
             validado ou recomendação clínica.
           </p>
+          <p>
+            Campos opcionais ausentes podem ser estimados estatisticamente pelo modelo,
+            com possível redução da confiabilidade da avaliação.
+          </p>
         </div>
       </details>
 
@@ -338,6 +372,11 @@ export function Assessment({ experiments, onResult }: Props) {
               <p>{presentation.short} · {experiment.selected_model_label}</p>
             </div>
           </div>
+
+          <p className="optional-fields-note" role="note">
+            <Info size={16} aria-hidden="true" />
+            <span>{OPTIONAL_FIELDS_NOTE}</span>
+          </p>
 
           <form onSubmit={submit} noValidate>
             <div className="field-grid">
@@ -377,7 +416,7 @@ export function Assessment({ experiments, onResult }: Props) {
                   </button>
                 </div>
                 <small id="patient-identifier-help">
-                  Não informe nome, CPF ou prontuário. Guarde a associação fora do HealthAI.
+                  Não use nome, CPF ou prontuário; mantenha a associação fora do HealthAI.
                 </small>
                 {copied && <small className="field-success" role="status">Identificador copiado.</small>}
                 {patientIdentifierError && (
@@ -389,30 +428,40 @@ export function Assessment({ experiments, onResult }: Props) {
 
               {experiment.input_fields.map((field) => {
                 const inputId = `assessment-${field.key}`;
-                const helpId = `${inputId}-help`;
-                const optionalHelpId = `${inputId}-optional-help`;
+                const tooltipId = `${inputId}-tooltip`;
                 const rangeId = `${inputId}-range`;
                 const errorId = `${inputId}-error`;
                 const fieldError = fieldErrors[field.key];
                 const help = FIELD_HELP[field.key] ?? "";
+                const displayLabel = FIELD_LABELS[field.key] ?? field.label;
                 const range = field.type === "number"
                   && field.min !== undefined
                   && field.max !== undefined
-                  ? `Faixa aceita: ${formatClinicalNumber(field.min)} a ${formatClinicalNumber(field.max)}${field.unit ? ` ${field.unit}` : ""}.`
+                  ? `Faixa: ${formatClinicalNumber(field.min)}–${formatClinicalNumber(field.max)}${field.unit ? ` ${field.unit}` : ""}`
                   : "";
                 const describedBy = [
-                  help && helpId,
-                  !field.required && optionalHelpId,
                   range && rangeId,
                   fieldError && errorId,
                 ].filter(Boolean).join(" ") || undefined;
 
                 return (
                   <div className="field" key={field.key}>
-                    <label htmlFor={inputId}>
-                      {FIELD_LABELS[field.key] ?? field.label}
-                      {field.required && <b aria-label="obrigatório">*</b>}
-                    </label>
+                    <div className="field-label-row">
+                      <label htmlFor={inputId}>
+                        {displayLabel}
+                        {field.required && <b aria-label="obrigatório">*</b>}
+                      </label>
+                      {help && (
+                        <FieldTooltip
+                          id={tooltipId}
+                          label={displayLabel}
+                          text={help}
+                        />
+                      )}
+                      {!field.required && (
+                        <span className="optional-marker">Opcional</span>
+                      )}
+                    </div>
                     <div className="input-wrap">
                       {field.type === "select" ? (
                         <select
@@ -453,13 +502,6 @@ export function Assessment({ experiments, onResult }: Props) {
                       )}
                       {field.unit && <em>{field.unit}</em>}
                     </div>
-                    {help && <small id={helpId}>{help}</small>}
-                    {!field.required && (
-                      <small className="optional-field-help" id={optionalHelpId}>
-                        <Info size={14} aria-hidden="true" />
-                        {OPTIONAL_FIELD_HELP}
-                      </small>
-                    )}
                     {range && <small className="field-range" id={rangeId}>{range}</small>}
                     {fieldError && <small className="field-error" id={errorId}>{fieldError}</small>}
                   </div>

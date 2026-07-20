@@ -4,6 +4,7 @@ import {
   ClipboardCheck,
   RotateCcw,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import type { Experiment, Prediction } from "../types";
 
@@ -14,6 +15,8 @@ type Props = {
 };
 
 export function ResultPanel({ experiment, prediction, onReset }: Props) {
+  const [localExplanationOpen, setLocalExplanationOpen] = useState(false);
+  const [globalExplanationOpen, setGlobalExplanationOpen] = useState(false);
   const probability = prediction ? Math.round(prediction.probability * 100) : 0;
   const threshold = prediction
     ? Math.round(prediction.decision_threshold * 100)
@@ -43,6 +46,14 @@ export function ResultPanel({ experiment, prediction, onReset }: Props) {
     ...localFeatures.map((feature) => Math.abs(feature.probability_effect)),
     0.001,
   );
+
+  useEffect(() => {
+    setGlobalExplanationOpen(false);
+  }, [experiment.id]);
+
+  useEffect(() => {
+    setLocalExplanationOpen(false);
+  }, [prediction]);
 
   return (
     <aside className="result-panel" aria-live="polite" aria-labelledby="result-title">
@@ -149,8 +160,14 @@ export function ResultPanel({ experiment, prediction, onReset }: Props) {
           </p>
 
           {localFeatures.length > 0 && (
-            <details className="model-explanation local-explanation">
-              <summary>Como este resultado foi calculado?</summary>
+            <details
+              className="model-explanation local-explanation"
+              open={localExplanationOpen}
+              onToggle={(event) => setLocalExplanationOpen(event.currentTarget.open)}
+            >
+              <summary aria-expanded={localExplanationOpen}>
+                Como este resultado foi calculado?
+              </summary>
               <div>
                 <h3>Influência nesta avaliação</h3>
                 <ol>
@@ -187,21 +204,20 @@ export function ResultPanel({ experiment, prediction, onReset }: Props) {
           <ClipboardCheck size={34} aria-hidden="true" />
           <strong>Pronto para calcular</strong>
           <span>
-            Preencha os campos obrigatórios. O resultado exibirá:
+            Preencha os campos obrigatórios para gerar a avaliação.
           </span>
-          <ul>
-            <li>probabilidade estimada;</li>
-            <li>limiar utilizado;</li>
-            <li>classificação da triagem;</li>
-            <li>completude dos dados;</li>
-            <li>orientação de interpretação.</li>
-          </ul>
         </div>
       )}
 
       {importantFeatures.length > 0 && (
-        <details className="model-explanation global-explanation">
-          <summary>Como o modelo se comporta globalmente?</summary>
+        <details
+          className="model-explanation global-explanation"
+          open={globalExplanationOpen}
+          onToggle={(event) => setGlobalExplanationOpen(event.currentTarget.open)}
+        >
+          <summary aria-expanded={globalExplanationOpen}>
+            Como o modelo se comporta globalmente?
+          </summary>
           <div>
             <h3>Variáveis mais influentes no modelo</h3>
             <ol>

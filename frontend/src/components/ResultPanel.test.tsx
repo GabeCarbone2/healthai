@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import type { Experiment } from "../types";
@@ -23,7 +24,8 @@ const experiment = {
 } as unknown as Experiment;
 
 describe("ResultPanel", () => {
-  it("separa explicação global e informa limites e imputação", () => {
+  it("separa explicação global e informa limites e imputação", async () => {
+    const browser = userEvent.setup();
     render(
       <ResultPanel
         experiment={experiment}
@@ -58,11 +60,30 @@ describe("ResultPanel", () => {
     ).toHaveAttribute("value", "42");
     expect(screen.getByText(/Há 1 campo ausente/)).toBeInTheDocument();
     expect(screen.getByText(/não substitui diagnóstico/)).toBeInTheDocument();
+    const globalSummary = screen.getByText(
+      "Como o modelo se comporta globalmente?",
+    );
+    expect(globalSummary).toHaveAttribute("aria-expanded", "false");
+    await browser.click(globalSummary);
+    expect(globalSummary).toHaveAttribute("aria-expanded", "true");
     expect(
       screen.getByRole("heading", { name: "Variáveis mais influentes no modelo" }),
     ).toBeInTheDocument();
     expect(screen.getByText(/não explicam individualmente esta avaliação/)).toBeInTheDocument();
+    const localSummary = screen.getByText("Como este resultado foi calculado?");
+    expect(localSummary).toHaveAttribute("aria-expanded", "false");
+    await browser.click(localSummary);
     expect(screen.getByText("Influência nesta avaliação")).toBeInTheDocument();
     expect(screen.getByText(/elevou 8.0 p.p./)).toBeInTheDocument();
+  });
+
+  it("mantém o estado vazio curto e sem lista antecipada", () => {
+    render(<ResultPanel experiment={experiment} prediction={null} />);
+
+    expect(screen.getByText("Pronto para calcular")).toBeInTheDocument();
+    expect(
+      screen.getByText("Preencha os campos obrigatórios para gerar a avaliação."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("probabilidade estimada;")).not.toBeInTheDocument();
   });
 });
