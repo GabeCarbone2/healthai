@@ -478,7 +478,10 @@ export default function App() {
             <span className="brand-mark">
               <HealthAiLogo className="healthai-logo" title="HealthAI" />
             </span>
-            <strong>HealthAI</strong>
+            <span className="brand-copy">
+              <strong>HealthAI</strong>
+              <small>Clinical intelligence</small>
+            </span>
           </div>
 
           <nav className="primary-nav" aria-label="Navegação principal">

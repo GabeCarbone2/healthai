@@ -34,6 +34,34 @@ const registeredUser = {
 };
 
 describe("AuthPage", () => {
+  it("apresenta a estrutura pública sem esconder o acesso profissional", () => {
+    render(
+      <AuthPage
+        onAuthenticated={vi.fn()}
+        privacy={privacy}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", {
+        name: "Inteligência clínica para apoiar decisões.",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("navigation", { name: "Navegação pública" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Entrar no HealthAI" }),
+    ).toHaveAttribute("href", "#acesso");
+    expect(
+      screen.getByRole("heading", {
+        name: "Triagem acadêmica com contexto e rastreabilidade",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("E-mail")).toBeInTheDocument();
+    expect(screen.getByLabelText("Senha")).toBeInTheDocument();
+  });
+
   it("envia o consentimento explícito ao criar a conta", async () => {
     vi.mocked(api.register).mockResolvedValue({
       email: registeredUser.email,

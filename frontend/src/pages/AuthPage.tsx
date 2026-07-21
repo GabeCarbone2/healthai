@@ -1,6 +1,7 @@
 import {
   Activity,
   AlertCircle,
+  ArrowRight,
   BrainCircuit,
   Eye,
   EyeOff,
@@ -131,7 +132,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
   }
 
   return (
-    <main className="auth-page">
+    <div className="auth-page">
       <div className="auth-atmosphere" aria-hidden="true">
         <span className="auth-orb orb-one" />
         <span className="auth-orb orb-two" />
@@ -142,58 +143,127 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
         <span className="auth-ribbon ribbon-two" />
       </div>
 
+      <a className="skip-link" href="#acesso">
+        Ir para o acesso
+      </a>
+
       <header className="auth-topbar">
-        <div className="auth-brand">
-          <span>
-            <HealthAiLogo className="healthai-logo" title="HealthAI" />
-          </span>
-          <div>
-            <strong>HealthAI</strong>
-            <small>Clinical intelligence</small>
+        <div className="auth-topbar-inner">
+          <a className="auth-brand" href="#inicio" aria-label="HealthAI — início">
+            <span>
+              <HealthAiLogo className="healthai-logo" title="HealthAI" />
+            </span>
+            <div>
+              <strong>HealthAI</strong>
+              <small>Clinical intelligence</small>
+            </div>
+          </a>
+          <nav className="auth-navigation" aria-label="Navegação pública">
+            <a href="#inicio">Início</a>
+            <a href="#recursos">Recursos</a>
+            <a href="#acesso">Acesso</a>
+          </nav>
+          <div className="auth-security-note">
+            <ShieldCheck size={15} aria-hidden="true" />
+            Acesso restrito a médicos
           </div>
-        </div>
-        <div className="auth-security-note">
-          <ShieldCheck size={15} />
-          Acesso restrito a médicos
         </div>
       </header>
 
-      <div className="auth-layout">
-        <div className="auth-presentation">
+      <main className="auth-main">
+        <section className="auth-hero" id="inicio" aria-labelledby="auth-hero-title">
+          <div className="auth-hero-inner">
           <aside className="auth-intro">
             <div className="auth-eyebrow">
-              <Sparkles size={15} />
+              <Sparkles size={15} aria-hidden="true" />
               Inteligência aplicada à saúde
             </div>
-            <h1>
+            <h1 id="auth-hero-title">
               Inteligência clínica <em>para apoiar decisões.</em>
             </h1>
             <p className="auth-description">
               Explore modelos preditivos acadêmicos com rastreabilidade,
               privacidade e limites apresentados com clareza.
             </p>
-            <div className="auth-highlights">
-              <span>
-                <BrainCircuit size={17} />
-                Modelos rastreáveis
-              </span>
-              <span>
-                <ShieldCheck size={17} />
-                Dados pseudonimizados
-              </span>
-              <span>
-                <LockKeyhole size={17} />
-                Acesso individual
-              </span>
+            <div className="auth-hero-actions">
+              <a
+                className="auth-hero-primary"
+                href="#acesso"
+                onClick={() => changeMode("login")}
+              >
+                Entrar no HealthAI
+                <ArrowRight size={18} aria-hidden="true" />
+              </a>
+              <a
+                className="auth-hero-secondary"
+                href="#acesso"
+                onClick={() => changeMode("register")}
+              >
+                Criar conta profissional
+              </a>
             </div>
+            <p className="auth-trust-line">
+              <ShieldCheck size={16} aria-hidden="true" />
+              Uso acadêmico, acesso profissional e dados pseudonimizados
+            </p>
           </aside>
 
           <div className="auth-monogram" aria-hidden="true">
             <HealthAiLogo className="auth-monogram-logo" />
           </div>
-        </div>
+          </div>
+        </section>
 
-        <div className="auth-access">
+        <section className="auth-feature-section" id="recursos" aria-labelledby="auth-features-title">
+          <header className="auth-section-heading">
+            <span>Clareza em cada etapa</span>
+            <h2 id="auth-features-title">Triagem acadêmica com contexto e rastreabilidade</h2>
+            <p>
+              A estrutura prioriza o essencial e mantém detalhes técnicos
+              disponíveis quando forem necessários.
+            </p>
+          </header>
+          <div className="auth-feature-grid">
+            <article>
+              <span><BrainCircuit size={24} aria-hidden="true" /></span>
+              <small>Modelos</small>
+              <h3>Perfis clínicos claros</h3>
+              <p>Pima e NHANES permanecem separados, com população e limitações identificadas.</p>
+            </article>
+            <article>
+              <span><ShieldCheck size={24} aria-hidden="true" /></span>
+              <small>Privacidade</small>
+              <h3>Dados pseudonimizados</h3>
+              <p>O identificador clínico não expõe nome, CPF ou prontuário do paciente.</p>
+            </article>
+            <article>
+              <span><LockKeyhole size={24} aria-hidden="true" /></span>
+              <small>Rastreabilidade</small>
+              <h3>Resultados contextualizados</h3>
+              <p>Probabilidade, limiar, completude e versão do modelo acompanham cada avaliação.</p>
+            </article>
+          </div>
+        </section>
+
+        <section className="auth-access-section" id="acesso" aria-labelledby="auth-access-title">
+          <div className="auth-access-copy">
+            <span className="auth-eyebrow">
+              <LockKeyhole size={15} aria-hidden="true" />
+              Área profissional
+            </span>
+            <h2 id="auth-access-title">Acesse a plataforma com segurança</h2>
+            <p>
+              Entre com sua conta ou solicite um novo acesso profissional. A
+              liberação das avaliações depende da verificação do CRM.
+            </p>
+            <ul>
+              <li><ShieldCheck size={17} aria-hidden="true" /> Conta individual e sessão protegida</li>
+              <li><ShieldCheck size={17} aria-hidden="true" /> Verificação profissional antes do uso clínico</li>
+              <li><ShieldCheck size={17} aria-hidden="true" /> Consentimento e limites apresentados com clareza</li>
+            </ul>
+          </div>
+
+          <div className="auth-access">
           <section className={`auth-panel ${mode}`}>
           <div className="auth-panel-shine" aria-hidden="true" />
           {verificationEmail ? (
@@ -422,9 +492,10 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
           )}
           </section>
 
-        </div>
-      </div>
+          </div>
+        </section>
+      </main>
       <PageFooter contact={privacy.contact} variant="public" />
-    </main>
+    </div>
   );
 }
