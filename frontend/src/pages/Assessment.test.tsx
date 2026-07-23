@@ -62,7 +62,7 @@ describe("Assessment", () => {
     expect(
       screen.getByRole("button", { name: "Calcular avaliação" }),
     ).toBeDisabled();
-    const limitations = screen.getByText("Sobre este perfil e suas limitações");
+    const limitations = screen.getByText("Detalhes técnicos e limitações do perfil");
     expect(limitations).toHaveAttribute("aria-expanded", "false");
     await browser.click(limitations);
     expect(limitations).toHaveAttribute("aria-expanded", "true");
@@ -78,10 +78,10 @@ describe("Assessment", () => {
     );
 
     const pimaButton = screen.getByRole("button", {
-      name: /Pima — mulheres adultas/,
+      name: /Mulher adulta/,
     });
     const nhanesButton = screen.getByRole("button", {
-      name: /NHANES — adultos/,
+      name: /Adulto/,
     });
     expect(pimaButton).toHaveAttribute("aria-pressed", "true");
     expect(nhanesButton).toHaveAttribute("aria-pressed", "false");
@@ -90,8 +90,8 @@ describe("Assessment", () => {
 
     expect(nhanesButton).toHaveAttribute("aria-pressed", "true");
     expect(pimaButton).toHaveAttribute("aria-pressed", "false");
-    expect(screen.getByText(/Modelo atual:/)).toHaveTextContent(
-      "Modelo atual: Regressão logística · adultos",
+    expect(screen.getByText(/Perfil selecionado:/)).toHaveTextContent(
+      "Perfil selecionado: Adulto",
     );
     expect(screen.getByLabelText(/IMC/)).toHaveValue("");
   });
@@ -135,7 +135,7 @@ describe("Assessment", () => {
     render(<Assessment experiments={[zeroExperiment]} onResult={vi.fn()} />);
 
     expect(
-      screen.getAllByText(/Campos opcionais podem ser estimados estatisticamente/),
+      screen.getAllByText(/Campo opcional. Se não informado/),
     ).toHaveLength(1);
     expect(screen.getByText("Opcional")).toBeInTheDocument();
     const tooltipTrigger = screen.getByRole("button", {

@@ -14,14 +14,22 @@ type Props = {
   onReset?: () => void;
 };
 
+function formatMetric(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value)
+    ? `${Math.round(value * 100)}%`
+    : "Não disponível";
+}
+
 export function ResultPanel({ experiment, prediction, onReset }: Props) {
   const [localExplanationOpen, setLocalExplanationOpen] = useState(false);
-  const [globalExplanationOpen, setGlobalExplanationOpen] = useState(false);
+  const [technicalDetailsOpen, setTechnicalDetailsOpen] = useState(false);
   const probability = prediction ? Math.round(prediction.probability * 100) : 0;
   const threshold = prediction
     ? Math.round(prediction.decision_threshold * 100)
     : 50;
   const positive = prediction?.predicted_class === 1;
+  const profileLabel = experiment.id === "pima" ? "Mulher adulta" : "Adulto";
+  const technicalBase = experiment.id === "pima" ? "Pima" : "NHANES";
   const totalFields = experiment.input_fields.length;
   const completedFields = prediction
     ? Math.max(0, totalFields - prediction.missing_feature_count)
@@ -48,7 +56,7 @@ export function ResultPanel({ experiment, prediction, onReset }: Props) {
   );
 
   useEffect(() => {
-    setGlobalExplanationOpen(false);
+    setTechnicalDetailsOpen(false);
   }, [experiment.id]);
 
   useEffect(() => {
@@ -59,8 +67,8 @@ export function ResultPanel({ experiment, prediction, onReset }: Props) {
     <aside className="result-panel" aria-live="polite" aria-labelledby="result-title">
       <div className="result-panel-heading">
         <div>
-          <span className="page-eyebrow">Saída do modelo</span>
-          <h2 id="result-title">Resultado</h2>
+          <span className="page-eyebrow">Apoio à interpretação</span>
+          <h2 id="result-title">Resultado da triagem</h2>
         </div>
         {prediction && onReset && (
           <button type="button" className="result-reset" onClick={onReset}>
@@ -80,8 +88,8 @@ export function ResultPanel({ experiment, prediction, onReset }: Props) {
               <small>Classificação da triagem</small>
               <strong>
                 {positive
-                  ? "Acima do limiar"
-                  : "Abaixo do limiar"}
+                  ? "Acima do nível de atenção"
+                  : "Abaixo do nível de atenção"}
               </strong>
             </div>
           </div>
@@ -95,19 +103,22 @@ export function ResultPanel({ experiment, prediction, onReset }: Props) {
               className="probability-track"
               value={probability}
               max={100}
-              aria-label="Probabilidade estimada da classe do estudo"
+              aria-label="Probabilidade estimada de risco"
             >
               {probability}%
             </progress>
           </section>
 
-          <dl className="result-summary">
-            <div>
-              <dt>Limiar utilizado</dt>
-              <dd>{threshold}%</dd>
-              <small>Define a mudança de faixa e não representa diagnóstico.</small>
+          <dl className="result-summary clinical-result-summary">
+            <div className={`result-guidance ${positive ? "attention" : "information"}`}>
+              <dt>Interpretação</dt>
+              <dd>
+                {positive
+                  ? "Os dados informados sugerem necessidade de avaliação clínica complementar. Considere histórico, exames e demais condições do paciente antes de qualquer decisão."
+                  : "A estimativa ficou abaixo do nível de atenção. Considere histórico, exames, demais condições do paciente e julgamento clínico na avaliação."}
+              </dd>
             </div>
-            <div>
+            <div className="result-completeness">
               <dt>Completude dos dados</dt>
               <dd>{completedFields} de {totalFields} campos informados</dd>
               <small>
@@ -116,46 +127,23 @@ export function ResultPanel({ experiment, prediction, onReset }: Props) {
                   : `${prediction.missing_feature_count} ${prediction.missing_feature_count === 1 ? "campo estimado" : "campos estimados"} estatisticamente.`}
               </small>
             </div>
-            <div className={`result-guidance ${positive ? "attention" : "information"}`}>
-              <dt>Orientação de interpretação</dt>
-              <dd>
-                {positive
-                  ? "O resultado sugere necessidade de avaliação clínica complementar."
-                  : "O resultado ficou abaixo do limiar, mas deve ser interpretado junto à avaliação clínica."}
-              </dd>
-            </div>
           </dl>
 
-          <dl className="result-details" aria-label="Rastreabilidade técnica">
-            <div>
-              <dt>Perfil</dt>
-              <dd>{experiment.label}</dd>
-            </div>
-            <div>
-              <dt>Modelo</dt>
-              <dd>{experiment.selected_model_label}</dd>
-            </div>
-            <div>
-              <dt>Versão</dt>
-              <dd><code>{prediction.model_version}</code></dd>
-            </div>
-          </dl>
           {prediction.missing_feature_count > 0 && (
             <p className="result-warning">
               <AlertTriangle size={17} aria-hidden="true" />
               <span>
-                Há {prediction.missing_feature_count} {prediction.missing_feature_count === 1 ? "campo ausente" : "campos ausentes"}.
-                O modelo utilizou estimativas estatísticas, o que pode reduzir a
-                confiabilidade desta avaliação.
+                {prediction.missing_feature_count} {prediction.missing_feature_count === 1 ? "campo foi estimado" : "campos foram estimados"} estatisticamente.
+                Isso pode reduzir a confiabilidade desta avaliação.
               </span>
             </p>
           )}
           <p className="result-disclaimer">
-            <strong>Predição gerada por modelo de aprendizado de máquina.</strong>
+            <strong>Limitação de uso</strong>
             <span>
-              O HealthAI é uma ferramenta acadêmica de apoio à triagem. O
-              resultado não substitui diagnóstico, avaliação clínica ou decisão
-              médica.
+              O resultado é uma estimativa de apoio à triagem e não representa
+              diagnóstico médico. Não substitui exames, avaliação médica ou
+              julgamento clínico.
             </span>
           </p>
 
@@ -166,10 +154,10 @@ export function ResultPanel({ experiment, prediction, onReset }: Props) {
               onToggle={(event) => setLocalExplanationOpen(event.currentTarget.open)}
             >
               <summary aria-expanded={localExplanationOpen}>
-                Como este resultado foi calculado?
+                Informações consideradas nesta avaliação
               </summary>
               <div>
-                <h3>Influência nesta avaliação</h3>
+                <h3>Variações estimadas nesta avaliação</h3>
                 <ol>
                   {localFeatures.map((feature) => {
                     const effectPoints = Math.abs(feature.probability_effect * 100);
@@ -194,10 +182,88 @@ export function ResultPanel({ experiment, prediction, onReset }: Props) {
                   })}
                 </ol>
                 <p>{prediction.local_explanation?.interpretation}</p>
-                <p>Calculada somente para esta resposta; os valores clínicos não são persistidos.</p>
+                <p>
+                  Estas variações são não causais e não aditivas. Elas não
+                  demonstram que um fator específico causou o resultado.
+                </p>
+                <p>Calculadas somente para esta resposta; os valores clínicos não são persistidos.</p>
               </div>
             </details>
           )}
+
+          <details
+            className="model-explanation technical-evaluation-details"
+            open={technicalDetailsOpen}
+            onToggle={(event) => setTechnicalDetailsOpen(event.currentTarget.open)}
+          >
+            <summary aria-expanded={technicalDetailsOpen}>
+              Detalhes técnicos da avaliação
+            </summary>
+            <div>
+              <p className="technical-context-note">
+                Estas informações descrevem o funcionamento técnico geral e não
+                substituem a interpretação clínica individual.
+              </p>
+              <dl className="result-details" aria-label="Rastreabilidade técnica">
+                <div><dt>Perfil da avaliação</dt><dd>{profileLabel}</dd></div>
+                <div>
+                  <dt>Base utilizada</dt>
+                  <dd>{technicalBase}{experiment.source_dataset ? ` · ${experiment.source_dataset}` : ""}</dd>
+                </div>
+                <div><dt>Algoritmo utilizado</dt><dd>{experiment.selected_model_label}</dd></div>
+                <div><dt>Versão da análise</dt><dd><code>{prediction.model_version}</code></dd></div>
+                <div><dt>Limiar</dt><dd>{threshold}%</dd></div>
+                {Number.isFinite(experiment.n_train) && Number.isFinite(experiment.n_test) && (
+                  <div><dt>Registros de desenvolvimento</dt><dd>{experiment.n_train} treino · {experiment.n_test} teste</dd></div>
+                )}
+              </dl>
+              {selectedMetrics && (
+                <dl className="technical-metrics" aria-label="Métricas globais da análise">
+                  <div><dt>Recall</dt><dd>{formatMetric(selectedMetrics.recall)}</dd></div>
+                  <div><dt>F1-score</dt><dd>{formatMetric(selectedMetrics.f1)}</dd></div>
+                  <div><dt>AUC-ROC</dt><dd>{formatMetric(selectedMetrics.roc_auc)}</dd></div>
+                </dl>
+              )}
+              <p>
+                Limitação metodológica: avaliação interna na base de origem, sem
+                validação externa. O limiar organiza a faixa de atenção e não
+                representa diagnóstico.
+              </p>
+
+              {importantFeatures.length > 0 && (
+                <section className="technical-feature-list" aria-labelledby="global-factors-title">
+                  <h3 id="global-factors-title">Fatores mais considerados pelo sistema</h3>
+                  <ol>
+                    {importantFeatures.map((feature) => (
+                      <li key={feature.feature}>
+                        <div>
+                          <span>{featureLabels[feature.feature] ?? feature.feature}</span>
+                          <strong>
+                            {feature.importance_mean > 0
+                              ? feature.importance_mean.toFixed(3)
+                              : "≈0"}
+                          </strong>
+                        </div>
+                        <span className="importance-track" aria-hidden="true">
+                          <span
+                            style={{
+                              width: `${Math.max(3, (Math.max(feature.importance_mean, 0) / maxImportance) * 100)}%`,
+                            }}
+                          />
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                  <p>
+                    Esses fatores descrevem o comportamento geral da análise e
+                    não explicam individualmente este resultado. Não indicam
+                    causalidade e não devem ser usados isoladamente para decidir
+                    condutas.
+                  </p>
+                </section>
+              )}
+            </div>
+          </details>
         </div>
       ) : (
         <div className="result-empty">
@@ -209,46 +275,6 @@ export function ResultPanel({ experiment, prediction, onReset }: Props) {
         </div>
       )}
 
-      {importantFeatures.length > 0 && (
-        <details
-          className="model-explanation global-explanation"
-          open={globalExplanationOpen}
-          onToggle={(event) => setGlobalExplanationOpen(event.currentTarget.open)}
-        >
-          <summary aria-expanded={globalExplanationOpen}>
-            Como o modelo se comporta globalmente?
-          </summary>
-          <div>
-            <h3>Variáveis mais influentes no modelo</h3>
-            <ol>
-              {importantFeatures.map((feature) => (
-                <li key={feature.feature}>
-                  <div>
-                    <span>{featureLabels[feature.feature] ?? feature.feature}</span>
-                    <strong>
-                      {feature.importance_mean > 0
-                        ? feature.importance_mean.toFixed(3)
-                        : "≈0"}
-                    </strong>
-                  </div>
-                  <span className="importance-track" aria-hidden="true">
-                    <span
-                      style={{
-                        width: `${Math.max(3, (Math.max(feature.importance_mean, 0) / maxImportance) * 100)}%`,
-                      }}
-                    />
-                  </span>
-                </li>
-              ))}
-            </ol>
-            <p>
-              Esses valores descrevem o comportamento geral do modelo e não explicam
-              individualmente esta avaliação. A importância por permutação não indica
-              causalidade e não deve ser usada isoladamente para decidir condutas.
-            </p>
-          </div>
-        </details>
-      )}
     </aside>
   );
 }

@@ -27,8 +27,9 @@ export function PageFooter({ contact, variant = "internal" }: Props) {
           <nav aria-label="Navegação do rodapé">
             <strong>Plataforma</strong>
             <a href="#como-funciona">Como funciona</a>
-            <a href="#modelos">Modelos</a>
-            <a href="#privacidade">Privacidade</a>
+            <a href="#seguranca">Segurança e privacidade</a>
+            <a href="#limitacoes">Limitações</a>
+            <a href="#transparencia">Transparência técnica</a>
             <a href="/terms">Termos de uso</a>
             <a href={contactHref}>Contato</a>
             <a href="#acesso">Acesso</a>
@@ -43,7 +44,7 @@ export function PageFooter({ contact, variant = "internal" }: Props) {
         </div>
         <div className="public-footer-bottom">
           <span>HealthAI v{packageInfo.version}</span>
-          <span>O HealthAI não substitui diagnóstico, avaliação médica ou decisão clínica.</span>
+          <span>O HealthAI não substitui diagnóstico, exames, avaliação médica ou julgamento clínico.</span>
         </div>
       </footer>
     );

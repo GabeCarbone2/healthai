@@ -44,7 +44,7 @@ describe("AuthPage", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Probabilidade sem contexto é só ruído.",
+        name: "Apoio à triagem de risco de diabetes",
       }),
     ).toBeInTheDocument();
     expect(
@@ -55,25 +55,25 @@ describe("AuthPage", () => {
     });
     expect(within(publicNavigation).getByRole("link", { name: "Como funciona" }))
       .toHaveAttribute("href", "#como-funciona");
-    expect(within(publicNavigation).getByRole("link", { name: "Modelos" }))
-      .toHaveAttribute("href", "#modelos");
-    expect(within(publicNavigation).getByRole("link", { name: "Privacidade" }))
-      .toHaveAttribute("href", "#privacidade");
+    expect(within(publicNavigation).getByRole("link", { name: "Segurança e privacidade" }))
+      .toHaveAttribute("href", "#seguranca");
+    expect(within(publicNavigation).getByRole("link", { name: "Limitações" }))
+      .toHaveAttribute("href", "#limitacoes");
     expect(screen.getByRole("link", { name: "Entrar" }))
       .toHaveAttribute("href", "#acesso");
     expect(
-      screen.getByRole("link", { name: "Entrar no HealthAI" }),
+      screen.getByRole("link", { name: "Iniciar avaliação" }),
     ).toHaveAttribute("href", "#acesso");
     expect(
       screen.getByRole("heading", {
-        name: "A estimativa vem acompanhada de evidências.",
+        name: "Da informação disponível à leitura contextualizada.",
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Pima — mulheres adultas" }),
+      screen.getByRole("heading", { name: "Perfil para mulher adulta" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "NHANES — adultos" }),
+      screen.getByRole("heading", { name: "Perfil para adulto" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Acesso profissional controlado" }),
@@ -82,8 +82,8 @@ describe("AuthPage", () => {
       screen.getByText(/análise administrativa do CRM informado/i),
     ).toBeInTheDocument();
     expect(
-      screen.getAllByText(/não substitui diagnóstico, avaliação médica ou decisão clínica/i),
-    ).toHaveLength(2);
+      screen.getAllByText(/não substitui diagnóstico, exames, avaliação médica ou julgamento clínico/i),
+    ).toHaveLength(3);
     expect(screen.getByLabelText("E-mail")).toBeInTheDocument();
     expect(screen.getByLabelText("Senha")).toBeInTheDocument();
   });

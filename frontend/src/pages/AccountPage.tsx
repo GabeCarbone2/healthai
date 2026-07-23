@@ -186,21 +186,21 @@ export function AccountPage({
           <h2>Cadastro profissional</h2>
           <span className={`status-badge ${user.crm_status ?? "missing"}`}>
             {user.crm_status === "approved" ? (
-              <><CheckCircle2 size={15} aria-hidden="true" /> Aprovado</>
+              <><CheckCircle2 size={15} aria-hidden="true" /> Cadastro aprovado</>
             ) : user.crm_status === "rejected" ? (
-              <><XCircle size={15} aria-hidden="true" /> Rejeitado</>
+              <><XCircle size={15} aria-hidden="true" /> Cadastro não aprovado</>
             ) : (
-              <><Clock3 size={15} aria-hidden="true" /> Pendente</>
+              <><Clock3 size={15} aria-hidden="true" /> Aguardando análise</>
             )}
           </span>
           <p>
             {user.crm_status === "approved"
-              ? `Verificado em ${formatBrazilianDate(user.crm_verified_at)} por análise administrativa manual.`
+              ? `Cadastro aprovado em ${formatBrazilianDate(user.crm_verified_at)} após análise administrativa.`
               : user.crm_status === "rejected"
                 ? user.crm_rejection_reason ?? "Revise os dados informados e envie novamente."
                 : user.crm
-                  ? "Um administrador precisa analisar manualmente os dados antes de liberar as avaliações."
-                  : "Informe CRM e UF para iniciar a análise manual."}
+                  ? "O acesso às avaliações aguarda a análise administrativa do cadastro profissional."
+                  : "Informe CRM e UF para iniciar a análise administrativa."}
           </p>
           {user.crm && user.crm_uf && <strong>CRM {showData ? user.crm : maskCrm(user.crm)}/{user.crm_uf}</strong>}
           {canSubmitCrm && (

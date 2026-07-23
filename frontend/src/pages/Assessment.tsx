@@ -21,15 +21,19 @@ type Props = {
 
 const PRESENTATION = {
   pima: {
-    title: "Pima — mulheres adultas",
-    short: "Mulheres adultas",
-    description: "Base Pima",
+    title: "Mulher adulta",
+    short: "Mulher adulta",
+    description:
+      "Perfil destinado a avaliações de mulheres adultas com informações clínicas e histórico familiar.",
+    technicalName: "Pima",
     population: "mulheres adultas representadas na base Pima",
   },
   nhanes: {
-    title: "NHANES — adultos",
-    short: "Adultos",
-    description: "Base NHANES",
+    title: "Adulto",
+    short: "Adulto",
+    description:
+      "Perfil destinado a avaliações de adultos com informações clínicas e laboratoriais.",
+    technicalName: "NHANES",
     population: "adultos representados na base NHANES",
   },
 } as const;
@@ -49,7 +53,30 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 const OPTIONAL_FIELDS_NOTE =
-  "Campos opcionais podem ser estimados estatisticamente quando não informados. Isso pode reduzir a confiabilidade da avaliação.";
+  "Campo opcional. Se não informado, poderá ser utilizada uma estimativa estatística, reduzindo a confiabilidade da avaliação.";
+
+const CLINICAL_GROUPS = [
+  {
+    title: "Dados demográficos",
+    keys: ["sex", "age_years"],
+  },
+  {
+    title: "Medidas corporais",
+    keys: ["bmi_kg_m2", "skin_thickness_mm"],
+  },
+  {
+    title: "Pressão arterial",
+    keys: ["systolic_bp_mmhg", "diastolic_bp_mmhg"],
+  },
+  {
+    title: "Exames laboratoriais",
+    keys: ["glucose_mg_dl", "hba1c_percent", "serum_insulin_muu_ml"],
+  },
+  {
+    title: "Histórico clínico e familiar",
+    keys: ["pregnancies", "diabetes_pedigree_function"],
+  },
+] as const;
 
 type FieldTooltipProps = {
   id: string;
@@ -163,6 +190,26 @@ export function Assessment({ experiments, onResult }: Props) {
   const allRequiredFieldsCompleted =
     completedRequiredFields === requiredFields.length;
   const hasEnteredValues = Object.values(values).some((value) => value.trim());
+  const groupedFields: Array<{ title: string; fields: InputField[] }> = CLINICAL_GROUPS
+    .map((group) => ({
+      title: group.title,
+      fields: experiment.input_fields.filter((field) =>
+        (group.keys as readonly string[]).includes(field.key),
+      ),
+    }))
+    .filter((group) => group.fields.length > 0);
+  const groupedKeys = new Set<string>(
+    CLINICAL_GROUPS.flatMap((group) => [...group.keys]),
+  );
+  const uncategorizedFields = experiment.input_fields.filter(
+    (field) => !groupedKeys.has(field.key),
+  );
+  if (uncategorizedFields.length > 0) {
+    groupedFields.push({
+      title: "Outras informações clínicas",
+      fields: uncategorizedFields,
+    });
+  }
 
   function validatePatientIdentifier(value: string) {
     return /^PAC-[A-Z0-9]{8,20}$/.test(value)
@@ -219,7 +266,7 @@ export function Assessment({ experiments, onResult }: Props) {
         (key) => Boolean(values[key]?.trim()),
       ).length;
       if (completedMeasurements < 3) {
-        setError("Informe ao menos três das cinco medidas clínicas do perfil NHANES.");
+        setError("Informe ao menos três das cinco medidas clínicas do perfil para adulto.");
         return;
       }
       const systolic = values.systolic_bp_mmhg?.trim();
@@ -270,7 +317,7 @@ export function Assessment({ experiments, onResult }: Props) {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Não foi possível calcular a previsão.",
+          : "Não foi possível calcular a estimativa de risco.",
       );
     } finally {
       submittingRef.current = false;
@@ -301,13 +348,16 @@ export function Assessment({ experiments, onResult }: Props) {
     <div className="page assessment-page">
       <header className="page-header assessment-header">
         <div>
-          <span className="page-eyebrow">Apoio acadêmico à decisão</span>
-          <h1>Nova avaliação</h1>
-          <p>Preencha as medidas disponíveis e revise antes de calcular.</p>
+          <span className="page-eyebrow">Apoio à triagem de diabetes</span>
+          <h1>Nova avaliação de risco</h1>
+          <p>Preencha os dados clínicos disponíveis para gerar uma estimativa de apoio à triagem.</p>
         </div>
         <div className="model-selector">
-          <span>Selecione o perfil do modelo</span>
-          <div className="model-switch" aria-label="Perfil do modelo">
+          <span>Selecione o perfil da avaliação</span>
+          <p className="profile-selector-help">
+            Selecione o perfil compatível com o paciente e com os dados disponíveis.
+          </p>
+          <div className="model-switch" aria-label="Perfil da avaliação">
             {experiments.map((item) => {
               const selected = item.id === experiment.id;
               return (
@@ -331,7 +381,7 @@ export function Assessment({ experiments, onResult }: Props) {
             })}
           </div>
           <p className="model-current">
-            Modelo atual: <strong>{experiment.selected_model_label}</strong> · {presentation.short.toLowerCase()}
+            Perfil selecionado: <strong>{presentation.short}</strong>
           </p>
         </div>
       </header>
@@ -343,19 +393,20 @@ export function Assessment({ experiments, onResult }: Props) {
       >
         <summary aria-expanded={profileDetailsOpen}>
           <Info size={16} aria-hidden="true" />
-          Sobre este perfil e suas limitações
+          Detalhes técnicos e limitações do perfil
         </summary>
         <div>
           <p>
-            <strong>{presentation.title}</strong> foi treinado para a população de {presentation.population},
+            <strong>Base técnica utilizada: {presentation.technicalName}.</strong>{" "}
+            Este perfil foi desenvolvido a partir de {presentation.population},
             com {experiment.n_train} registros de treino e {experiment.n_test} de teste
             da base {experiment.source_dataset}.
           </p>
           <p>
-            Modelo utilizado: {experiment.selected_model_label}. A população e os
+            Algoritmo utilizado: {experiment.selected_model_label}. A população e os
             intervalos observados nessa base limitam a generalização para outros grupos.
-            O uso é acadêmico e os resultados não equivalem a diagnóstico, risco futuro
-            validado ou recomendação clínica.
+            Os resultados não equivalem a diagnóstico, risco futuro validado ou
+            recomendação clínica.
           </p>
           <p>
             Campos opcionais ausentes podem ser estimados estatisticamente pelo modelo,
@@ -368,8 +419,8 @@ export function Assessment({ experiments, onResult }: Props) {
         <section className="form-section" aria-labelledby="patient-data-title">
           <div className="section-heading">
             <div>
-              <h2 id="patient-data-title">Informações do paciente</h2>
-              <p>{presentation.short} · {experiment.selected_model_label}</p>
+              <h2 id="patient-data-title">Dados da avaliação</h2>
+              <p>Perfil: {presentation.short}</p>
             </div>
           </div>
 
@@ -379,8 +430,11 @@ export function Assessment({ experiments, onResult }: Props) {
           </p>
 
           <form onSubmit={submit} noValidate>
-            <div className="field-grid">
-              <div className="field patient-field">
+            <div className="clinical-field-groups">
+              <fieldset className="clinical-field-group">
+                <legend>Identificação da avaliação</legend>
+                <div className="field-grid">
+                  <div className="field patient-field">
                 <label htmlFor="patient-identifier">
                   Identificador pseudonimizado <b aria-label="obrigatório">*</b>
                 </label>
@@ -424,9 +478,15 @@ export function Assessment({ experiments, onResult }: Props) {
                     {patientIdentifierError}
                   </small>
                 )}
-              </div>
+                  </div>
+                </div>
+              </fieldset>
 
-              {experiment.input_fields.map((field) => {
+              {groupedFields.map((group) => (
+                <fieldset className="clinical-field-group" key={group.title}>
+                  <legend>{group.title}</legend>
+                  <div className="field-grid">
+              {group.fields.map((field) => {
                 const inputId = `assessment-${field.key}`;
                 const tooltipId = `${inputId}-tooltip`;
                 const rangeId = `${inputId}-range`;
@@ -507,6 +567,9 @@ export function Assessment({ experiments, onResult }: Props) {
                   </div>
                 );
               })}
+                  </div>
+                </fieldset>
+              ))}
             </div>
 
             {error && <ErrorSummary ref={errorRef} message={error} />}

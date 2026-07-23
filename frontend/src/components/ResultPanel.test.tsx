@@ -55,25 +55,23 @@ describe("ResultPanel", () => {
 
     expect(
       screen.getByRole("progressbar", {
-        name: "Probabilidade estimada da classe do estudo",
+        name: "Probabilidade estimada de risco",
       }),
     ).toHaveAttribute("value", "42");
-    expect(screen.getByText(/Há 1 campo ausente/)).toBeInTheDocument();
-    expect(screen.getByText(/não substitui diagnóstico/)).toBeInTheDocument();
-    const globalSummary = screen.getByText(
-      "Como o modelo se comporta globalmente?",
-    );
-    expect(globalSummary).toHaveAttribute("aria-expanded", "false");
-    await browser.click(globalSummary);
-    expect(globalSummary).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText(/1 campo foi estimado/)).toBeInTheDocument();
+    expect(screen.getByText(/não representa diagnóstico médico/)).toBeInTheDocument();
+    const technicalSummary = screen.getByText("Detalhes técnicos da avaliação");
+    expect(technicalSummary).toHaveAttribute("aria-expanded", "false");
+    await browser.click(technicalSummary);
+    expect(technicalSummary).toHaveAttribute("aria-expanded", "true");
     expect(
-      screen.getByRole("heading", { name: "Variáveis mais influentes no modelo" }),
+      screen.getByRole("heading", { name: "Fatores mais considerados pelo sistema" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/não explicam individualmente esta avaliação/)).toBeInTheDocument();
-    const localSummary = screen.getByText("Como este resultado foi calculado?");
+    expect(screen.getByText(/não explicam individualmente este resultado/)).toBeInTheDocument();
+    const localSummary = screen.getByText("Informações consideradas nesta avaliação");
     expect(localSummary).toHaveAttribute("aria-expanded", "false");
     await browser.click(localSummary);
-    expect(screen.getByText("Influência nesta avaliação")).toBeInTheDocument();
+    expect(screen.getByText("Variações estimadas nesta avaliação")).toBeInTheDocument();
     expect(screen.getByText(/elevou 8.0 p.p./)).toBeInTheDocument();
   });
 

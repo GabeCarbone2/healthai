@@ -59,6 +59,18 @@ function displayVersion(value: string) {
     : "Não registrada";
 }
 
+function profileLabel(value: string) {
+  if (/pima|feminin|mulher/i.test(value)) return "Mulher adulta";
+  if (/nhanes|geral|adult/i.test(value)) return "Adulto";
+  return value;
+}
+
+function triageLabel(predictedClass: number) {
+  return predictedClass === 1
+    ? "Acima do nível de atenção"
+    : "Abaixo do nível de atenção";
+}
+
 function csvCell(value: string | number) {
   const safe = String(value).replaceAll('"', '""');
   return `"${safe}"`;
@@ -154,20 +166,21 @@ export function PatientResults({
 
   function exportCurrentPage() {
     const headers = [
-      "Identificador", "Data", "Perfil", "Modelo", "Versão", "Resultado",
-      "Probabilidade", "Limiar", "Completude", "Medidas estimadas",
+      "Identificador", "Data", "Perfil da avaliação", "Resultado da triagem",
+      "Probabilidade", "Completude", "Informações estimadas", "Algoritmo",
+      "Versão da análise", "Limiar",
     ];
     const rows = sortedResults.map((result) => [
       result.patientIdentifier,
       result.createdAt,
-      result.experiment,
-      result.model,
-      displayVersion(result.modelVersion),
-      result.predictedClass === 1 ? "Acima do limiar" : "Abaixo do limiar",
+      profileLabel(result.experiment),
+      triageLabel(result.predictedClass),
       result.probability,
-      result.decisionThreshold,
       result.inputCompleteness,
       result.missingFeatureCount,
+      result.model,
+      displayVersion(result.modelVersion),
+      result.decisionThreshold,
     ]);
     const csv = [headers, ...rows]
       .map((row) => row.map(csvCell).join(";"))
@@ -198,8 +211,8 @@ export function PatientResults({
       <header className="page-header">
         <div>
           <span className="page-eyebrow">Rastreabilidade</span>
-          <h1>Resultados</h1>
-          <p>Histórico de avaliações e metadados armazenados.</p>
+          <h1>Histórico de avaliações</h1>
+          <p>Consulte resultados de triagem e informações de completude armazenadas.</p>
         </div>
         {historyTotal > 0 && (
           <div className="results-actions">
@@ -380,16 +393,15 @@ export function PatientResults({
                         Data <ChevronsUpDown size={14} />
                       </button>
                     </th>
-                    <th scope="col" className="secondary-column">Perfil</th>
-                    <th scope="col" className="secondary-column">Modelo</th>
-                    <th scope="col">Resultado</th>
+                    <th scope="col">Perfil da avaliação</th>
+                    <th scope="col">Resultado da triagem</th>
                     <th scope="col">
                       <button type="button" className="sort-button" onClick={() => sortBy("probability")}>
                         Probabilidade <ChevronsUpDown size={14} />
                       </button>
                     </th>
-                    <th scope="col" className="secondary-column">Limiar</th>
-                    <th scope="col"><span className="sr-only">Ações</span></th>
+                    <th scope="col">Completude</th>
+                    <th scope="col">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -398,16 +410,15 @@ export function PatientResults({
                       <tr>
                         <td><strong>{result.patientIdentifier}</strong></td>
                         <td>{formatBrazilianDateTime(result.createdAt)}</td>
-                        <td className="secondary-column">{result.experiment}</td>
-                        <td className="secondary-column">{result.model}</td>
+                        <td>{profileLabel(result.experiment)}</td>
                         <td>
                           <span className={`result-class ${result.predictedClass === 1 ? "positive" : "negative"}`}>
                             {result.predictedClass === 1 ? <AlertTriangle size={14} /> : <CheckCircle2 size={14} />}
-                            {result.predictedClass === 1 ? "Acima do limiar" : "Abaixo do limiar"}
+                            {triageLabel(result.predictedClass)}
                           </span>
                         </td>
                         <td>{percent(result.probability)}</td>
-                        <td className="secondary-column">{percent(result.decisionThreshold)}</td>
+                        <td>{percent(result.inputCompleteness)}</td>
                         <td>
                           <div className="row-actions">
                             <button
@@ -434,16 +445,32 @@ export function PatientResults({
                       </tr>
                       {expandedId === result.id && (
                         <tr className="result-detail-row" key={`${result.id}-details`}>
-                          <td colSpan={8}>
-                            <dl>
-                              <div><dt>Modelo</dt><dd>{result.model}</dd></div>
-                              <div><dt>Versão</dt><dd>{displayVersion(result.modelVersion)}</dd></div>
-                              <div><dt>Completude</dt><dd>{percent(result.inputCompleteness)}</dd></div>
-                              <div><dt>Medidas estimadas</dt><dd>{result.missingFeatureCount}</dd></div>
+                          <td colSpan={7}>
+                            <dl className="history-clinical-details">
+                              <div><dt>Identificador</dt><dd>{result.patientIdentifier}</dd></div>
+                              <div><dt>Data</dt><dd>{formatBrazilianDateTime(result.createdAt)}</dd></div>
+                              <div><dt>Perfil da avaliação</dt><dd>{profileLabel(result.experiment)}</dd></div>
+                              <div><dt>Resultado da triagem</dt><dd>{triageLabel(result.predictedClass)}</dd></div>
+                              <div><dt>Probabilidade estimada</dt><dd>{percent(result.probability)}</dd></div>
+                              <div><dt>Completude dos dados</dt><dd>{percent(result.inputCompleteness)}</dd></div>
+                              <div><dt>Campos estimados</dt><dd>{result.missingFeatureCount}</dd></div>
                             </dl>
                             <p>
-                              O histórico guarda metadados do resultado, não os valores clínicos enviados ao modelo.
+                              O histórico guarda metadados do resultado, não os valores clínicos utilizados no cálculo.
                             </p>
+                            <details className="history-technical-details">
+                              <summary>Detalhes técnicos da avaliação</summary>
+                              <dl>
+                                <div><dt>Base técnica</dt><dd>{result.experiment}</dd></div>
+                                <div><dt>Algoritmo utilizado</dt><dd>{result.model}</dd></div>
+                                <div><dt>Versão da análise</dt><dd>{displayVersion(result.modelVersion)}</dd></div>
+                                <div><dt>Limiar</dt><dd>{percent(result.decisionThreshold)}</dd></div>
+                              </dl>
+                              <p>
+                                Estas informações descrevem o funcionamento técnico
+                                geral e não substituem a interpretação clínica individual.
+                              </p>
+                            </details>
                           </td>
                         </tr>
                       )}

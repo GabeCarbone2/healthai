@@ -13,9 +13,15 @@ import type { AdminCrmReview, CrmStatus } from "../types";
 import { formatBrazilianDate } from "../utils/date";
 
 const STATUS_LABELS: Record<CrmStatus, string> = {
-  pending: "Pendente",
-  approved: "Aprovado",
-  rejected: "Rejeitado",
+  pending: "Aguardando análise",
+  approved: "Cadastro aprovado",
+  rejected: "Cadastro não aprovado",
+};
+
+const EMPTY_STATUS_LABELS: Record<CrmStatus, string> = {
+  pending: "Nenhum cadastro aguardando análise",
+  approved: "Nenhum cadastro aprovado",
+  rejected: "Nenhum cadastro não aprovado",
 };
 
 export function AdminCrmPage() {
@@ -77,8 +83,9 @@ export function AdminCrmPage() {
     <div className="page admin-crm-page">
       <header className="page-header">
         <div>
-          <h1>Verificação de CRM</h1>
-          <p>Análise manual dos cadastros profissionais.</p>
+          <span className="page-eyebrow">Acesso profissional</span>
+          <h1>Análise administrativa de cadastros</h1>
+          <p>Conferência manual das informações profissionais e do CRM informado.</p>
         </div>
         <a
           className="cfm-link"
@@ -117,7 +124,7 @@ export function AdminCrmPage() {
       ) : reviews.length === 0 ? (
         <div className="review-empty">
           <ShieldCheck size={28} />
-          <h2>Nenhum cadastro {STATUS_LABELS[filter].toLowerCase()}</h2>
+          <h2>{EMPTY_STATUS_LABELS[filter]}</h2>
           <button type="button" onClick={() => void load()}>
             <RefreshCw size={15} />
             Atualizar

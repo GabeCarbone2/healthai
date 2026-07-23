@@ -41,8 +41,8 @@ const BRAZILIAN_STATES = [
 const PUBLIC_SECTIONS = [
   { id: "inicio", label: "Início" },
   { id: "como-funciona", label: "Como funciona" },
-  { id: "modelos", label: "Modelos" },
-  { id: "privacidade", label: "Privacidade" },
+  { id: "seguranca", label: "Segurança e privacidade" },
+  { id: "limitacoes", label: "Limitações" },
   { id: "acesso", label: "Acesso" },
 ] as const;
 
@@ -260,15 +260,15 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
           <aside className="auth-intro">
             <div className="auth-eyebrow">
               <Activity size={15} aria-hidden="true" />
-              Apoio à triagem de risco de diabetes
+              APOIO À TRIAGEM DE RISCO DE DIABETES
             </div>
-            <h1 id="auth-hero-title">
-              Probabilidade sem contexto <em>é só ruído.</em>
-            </h1>
+            <h1 id="auth-hero-title">Apoio à triagem de risco de diabetes</h1>
             <p className="auth-description">
-              O HealthAI organiza dados clínicos, aplica modelos de aprendizado
-              de máquina e apresenta probabilidade, limiar, completude e
-              limitações para apoiar a triagem de risco de diabetes.
+              Organize dados clínicos, consulte a estimativa de risco e interprete
+              o resultado com informações sobre completude e limitações.
+            </p>
+            <p className="auth-concept-line">
+              Probabilidade sem contexto <em>é só ruído.</em>
             </p>
             <div className="auth-hero-actions">
               <a
@@ -276,39 +276,40 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
                 href="#acesso"
                 onClick={() => followSection("acesso", "login")}
               >
-                Entrar no HealthAI
+                Iniciar avaliação
                 <ArrowRight size={18} aria-hidden="true" />
               </a>
               <a
                 className="auth-hero-secondary"
-                href="#como-funciona"
-                onClick={() => followSection("como-funciona")}
+                href="#acesso"
+                onClick={() => followSection("acesso", "login")}
               >
-                Conhecer como funciona
+                Entrar na plataforma
               </a>
             </div>
             <p className="auth-trust-line">
               <ShieldCheck size={16} aria-hidden="true" />
-              Apoio responsável, acesso profissional e dados pseudonimizados
+              O HealthAI não substitui diagnóstico, exames, avaliação médica ou
+              julgamento clínico.
             </p>
           </aside>
 
           <div className="auth-signal-stage" aria-hidden="true">
             <div className="auth-signal-index">
-              <span>Representação conceitual</span>
+              <span>Estrutura do resultado</span>
               <b>Não é resultado de paciente</b>
             </div>
             <div className="auth-result-structure">
               <div className="auth-result-row probability">
-                <span>Probabilidade estimada</span>
+                <span>Risco estimado</span>
                 <i><b /></i>
               </div>
               <div className="auth-result-row threshold">
-                <span>Limiar aplicado</span>
+                <span>Nível de atenção</span>
                 <i><b /></i>
               </div>
               <div className="auth-result-row completeness">
-                <span>Completude dos dados</span>
+                <span>Dados informados</span>
                 <i>
                   <b />
                   <b />
@@ -319,8 +320,8 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
               </div>
             </div>
             <div className="auth-signal-legend">
-              <span>Exemplo visual da estrutura do resultado</span>
-              <span>Sem monitoramento em tempo real</span>
+              <span>Representação conceitual da estrutura do resultado</span>
+              <span>Não representa monitoramento em tempo real</span>
             </div>
           </div>
           </div>
@@ -329,141 +330,80 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
         <section className="auth-feature-section" id="como-funciona" aria-labelledby="auth-features-title">
           <header className="auth-section-heading">
             <span>Como funciona</span>
-            <h2 id="auth-features-title">A estimativa vem acompanhada de evidências.</h2>
+            <h2 id="auth-features-title">Da informação disponível à leitura contextualizada.</h2>
             <p>
-              Cada resultado apresenta a origem do modelo, o limiar usado, a
-              completude dos dados e as limitações relevantes para sua leitura.
+              Um fluxo objetivo organiza a avaliação sem substituir o raciocínio
+              ou a decisão médica.
             </p>
           </header>
-          <div className="auth-feature-grid">
+          <ol className="auth-workflow-grid">
+            <li>
+              <small>01</small>
+              <h3>Informe os dados clínicos disponíveis</h3>
+              <p>Registre as informações compatíveis com o perfil da avaliação.</p>
+            </li>
+            <li>
+              <small>02</small>
+              <h3>Revise a completude das informações</h3>
+              <p>Confira campos informados, ausentes e passíveis de estimativa.</p>
+            </li>
+            <li>
+              <small>03</small>
+              <h3>Calcule a estimativa de risco</h3>
+              <p>Consulte a classificação da triagem e a probabilidade estimada.</p>
+            </li>
+            <li>
+              <small>04</small>
+              <h3>Interprete no contexto médico</h3>
+              <p>Considere histórico, exames, condições e julgamento clínico.</p>
+            </li>
+          </ol>
+        </section>
+
+        <section className="auth-benefits-section" aria-labelledby="auth-benefits-title">
+          <header className="auth-section-heading">
+            <span>Apoio ao fluxo médico</span>
+            <h2 id="auth-benefits-title">Informação organizada para uma triagem mais objetiva.</h2>
+            <p>
+              A avaliação reúne o essencial para registrar, interpretar e
+              acompanhar uma estimativa de risco.
+            </p>
+          </header>
+          <div className="auth-feature-grid auth-benefit-grid">
             <article>
-              <span><BrainCircuit size={24} aria-hidden="true" /></span>
-              <small>01 / Contexto do modelo</small>
-              <h3>Perfis não se misturam</h3>
-              <p>Cada modelo utiliza sua própria população, conjunto de variáveis e limitações.</p>
+              <span><ListChecks size={24} aria-hidden="true" /></span>
+              <small>01 / Avaliação estruturada</small>
+              <h3>Dados clínicos estruturados</h3>
+              <p>Organize os principais fatores clínicos em um único fluxo de avaliação.</p>
             </article>
             <article>
-              <span><ShieldCheck size={24} aria-hidden="true" /></span>
-              <small>02 / Dados mínimos</small>
-              <h3>O formulário termina na inferência</h3>
-              <p>Os valores clínicos utilizados no cálculo não são armazenados no histórico.</p>
+              <span><Gauge size={24} aria-hidden="true" /></span>
+              <small>02 / Interpretação objetiva</small>
+              <h3>Estimativa com contexto</h3>
+              <p>Consulte a estimativa de risco, a completude dos dados e as limitações do resultado.</p>
             </article>
             <article>
               <span><LockKeyhole size={24} aria-hidden="true" /></span>
-              <small>03 / Leitura do resultado</small>
-              <h3>Limiar à vista, incerteza também</h3>
-              <p>O resultado apresenta probabilidade, limiar aplicado, completude dos dados e limitações.</p>
+              <small>03 / Privacidade</small>
+              <h3>O formulário termina no cálculo</h3>
+              <p>Os valores clínicos utilizados no cálculo não são armazenados no histórico.</p>
+            </article>
+            <article>
+              <span><Fingerprint size={24} aria-hidden="true" /></span>
+              <small>04 / Rastreabilidade</small>
+              <h3>Avaliações identificáveis</h3>
+              <p>Cada avaliação registra data, perfil utilizado, resultado e versão da análise.</p>
             </article>
           </div>
         </section>
 
-        <section className="auth-models-section" id="modelos" aria-labelledby="auth-models-title">
+        <section className="auth-privacy-section" id="seguranca" aria-labelledby="auth-privacy-title">
           <header className="auth-section-heading">
-            <span>Modelos e populações</span>
-            <h2 id="auth-models-title">Duas bases, dois contextos de leitura.</h2>
-            <p>
-              Pima e NHANES são experimentos independentes. As métricas abaixo
-              vêm do teste interno de cada fonte e não representam validação clínica.
-            </p>
-          </header>
-
-          <div className="auth-model-grid">
-            <article>
-              <div className="auth-model-card-header">
-                <span><Database size={22} aria-hidden="true" /></span>
-                <div>
-                  <small>Base Pima / OpenML 37</small>
-                  <h3>Pima — mulheres adultas</h3>
-                </div>
-              </div>
-              <dl>
-                <div>
-                  <dt>População</dt>
-                  <dd>Mulheres adultas de herança indígena Pima.</dd>
-                </div>
-                <div>
-                  <dt>Variáveis</dt>
-                  <dd>Gestações, glicose, pressão diastólica, prega cutânea, insulina, IMC, função de pedigree e idade.</dd>
-                </div>
-                <div>
-                  <dt>Modelo selecionado</dt>
-                  <dd>Random Forest.</dd>
-                </div>
-                <div>
-                  <dt>Principal limitação</dt>
-                  <dd>Avaliação em teste interno da mesma fonte, sem validação externa.</dd>
-                </div>
-              </dl>
-              <div className="auth-model-metrics" aria-label="Métricas no teste interno do modelo Pima">
-                <span><small>Recall</small><b>88,9%</b></span>
-                <span><small>F1-score</small><b>64,4%</b></span>
-                <span><small>AUC-ROC</small><b>82,5%</b></span>
-              </div>
-            </article>
-
-            <article>
-              <div className="auth-model-card-header">
-                <span><Gauge size={22} aria-hidden="true" /></span>
-                <div>
-                  <small>NHANES / 2017–2018</small>
-                  <h3>NHANES — adultos</h3>
-                </div>
-              </div>
-              <dl>
-                <div>
-                  <dt>População</dt>
-                  <dd>População adulta participante da onda NHANES 2017–2018.</dd>
-                </div>
-                <div>
-                  <dt>Variáveis</dt>
-                  <dd>Sexo, idade, IMC, pressões sistólica e diastólica, hemoglobina glicada e glicose em jejum.</dd>
-                </div>
-                <div>
-                  <dt>Modelo selecionado</dt>
-                  <dd>SVM calibrado.</dd>
-                </div>
-                <div>
-                  <dt>Principal limitação</dt>
-                  <dd>Avaliação em teste interno da própria onda, sem validação externa.</dd>
-                </div>
-              </dl>
-              <div className="auth-model-metrics" aria-label="Métricas no teste interno do modelo NHANES">
-                <span><small>Recall</small><b>80,1%</b></span>
-                <span><small>F1-score</small><b>60,4%</b></span>
-                <span><small>AUC-ROC</small><b>90,1%</b></span>
-              </div>
-            </article>
-          </div>
-
-          <details
-            className="auth-methodology"
-            open={methodologyOpen}
-            onToggle={(event) => setMethodologyOpen(event.currentTarget.open)}
-          >
-            <summary aria-expanded={methodologyOpen}>Ver metodologia</summary>
-            <div>
-              <p>
-                Os candidatos foram comparados por F1 em validação cruzada no
-                conjunto de treino. O limiar foi definido por F2, com maior peso
-                para recall, e o desempenho final foi estimado em uma partição
-                de teste isolada da mesma fonte.
-              </p>
-              <p>
-                Ainda não foi realizada validação externa. Por isso, os números
-                descrevem estes experimentos e não comprovam desempenho clínico
-                em outras populações.
-              </p>
-            </div>
-          </details>
-        </section>
-
-        <section className="auth-privacy-section" id="privacidade" aria-labelledby="auth-privacy-title">
-          <header className="auth-section-heading">
-            <span>Transparência e privacidade</span>
+            <span>Segurança e privacidade</span>
             <h2 id="auth-privacy-title">O mínimo necessário, com rastreabilidade.</h2>
             <p>
               O histórico mantém o resultado e seus metadados de leitura, sem
-              conservar os valores clínicos enviados ao modelo.
+              conservar os valores clínicos utilizados no cálculo.
             </p>
           </header>
           <ol className="auth-privacy-list">
@@ -472,7 +412,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
               <div>
                 <small>01</small>
                 <h3>Dados clínicos somente no cálculo</h3>
-                <p>Os valores informados são utilizados na inferência e não são persistidos no histórico.</p>
+                <p>Os valores informados são utilizados somente no cálculo e não são persistidos no histórico.</p>
               </div>
             </li>
             <li>
@@ -488,10 +428,38 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
               <div>
                 <small>03</small>
                 <h3>Resultado rastreável</h3>
-                <p>Probabilidade, limiar, modelo, versão e completude acompanham cada registro.</p>
+                <p>Resultado, data, perfil e versão da análise acompanham cada registro.</p>
               </div>
             </li>
           </ol>
+        </section>
+
+        <section className="auth-limitations-section" id="limitacoes" aria-labelledby="auth-limitations-title">
+          <header className="auth-section-heading">
+            <span>Limitações</span>
+            <h2 id="auth-limitations-title">Uma estimativa precisa ser lida dentro do seu contexto.</h2>
+            <p>
+              O resultado depende das informações disponíveis, do perfil
+              selecionado e das limitações metodológicas da análise.
+            </p>
+          </header>
+          <div className="auth-limitations-grid">
+            <article>
+              <AlertCircle size={22} aria-hidden="true" />
+              <h3>Não é diagnóstico</h3>
+              <p>O resultado não confirma nem exclui diabetes e não define condutas médicas.</p>
+            </article>
+            <article>
+              <ListChecks size={22} aria-hidden="true" />
+              <h3>Completude importa</h3>
+              <p>Informações ausentes podem reduzir a confiabilidade da avaliação.</p>
+            </article>
+            <article>
+              <BrainCircuit size={22} aria-hidden="true" />
+              <h3>Generalização limitada</h3>
+              <p>Os métodos foram avaliados internamente em bases públicas, sem validação externa.</p>
+            </article>
+          </div>
         </section>
 
         <section className="auth-access-section" id="acesso" aria-labelledby="auth-access-title">
@@ -714,8 +682,8 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
 
             <p className="auth-medical-note">
               <ShieldCheck size={16} aria-hidden="true" />
-              O HealthAI é uma ferramenta de apoio à triagem e não substitui
-              diagnóstico, avaliação médica ou decisão clínica.
+              O HealthAI não substitui diagnóstico, exames, avaliação médica ou
+              julgamento clínico.
             </p>
 
             <button type="submit" className="auth-submit" disabled={loading}>
@@ -739,6 +707,88 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
           </section>
 
           </div>
+        </section>
+
+        <section className="auth-models-section auth-technical-section" id="transparencia" aria-labelledby="auth-models-title">
+          <header className="auth-section-heading">
+            <span>Transparência técnica</span>
+            <h2 id="auth-models-title">Metodologia disponível para consulta.</h2>
+            <p>
+              O HealthAI utiliza métodos de aprendizado de máquina desenvolvidos
+              com bases públicas de saúde. Informações sobre metodologia,
+              desempenho e limitações estão disponíveis para consulta.
+            </p>
+          </header>
+
+          <details
+            className="auth-methodology auth-technical-details"
+            open={methodologyOpen}
+            onToggle={(event) => setMethodologyOpen(event.currentTarget.open)}
+          >
+            <summary aria-expanded={methodologyOpen}>Consultar detalhes técnicos</summary>
+            <div>
+              <p className="technical-context-note">
+                Estas informações descrevem o funcionamento técnico geral e não
+                substituem a interpretação clínica individual.
+              </p>
+              <div className="auth-model-grid">
+                <article>
+                  <div className="auth-model-card-header">
+                    <span><Database size={22} aria-hidden="true" /></span>
+                    <div>
+                      <small>Base Pima / OpenML 37</small>
+                      <h3>Perfil para mulher adulta</h3>
+                    </div>
+                  </div>
+                  <dl>
+                    <div><dt>População</dt><dd>Mulheres adultas de herança indígena Pima.</dd></div>
+                    <div><dt>Dados considerados</dt><dd>Gestações, glicose, pressão diastólica, prega cutânea, insulina, IMC, função de pedigree e idade.</dd></div>
+                    <div><dt>Algoritmo utilizado</dt><dd>Random Forest.</dd></div>
+                    <div><dt>Limitação</dt><dd>Teste interno da mesma fonte, sem validação externa.</dd></div>
+                  </dl>
+                  <div className="auth-model-metrics" aria-label="Métricas no teste interno da análise Pima">
+                    <span><small>Recall</small><b>88,9%</b></span>
+                    <span><small>F1-score</small><b>64,4%</b></span>
+                    <span><small>AUC-ROC</small><b>82,5%</b></span>
+                  </div>
+                </article>
+
+                <article>
+                  <div className="auth-model-card-header">
+                    <span><Gauge size={22} aria-hidden="true" /></span>
+                    <div>
+                      <small>NHANES / 2017–2018</small>
+                      <h3>Perfil para adulto</h3>
+                    </div>
+                  </div>
+                  <dl>
+                    <div><dt>População</dt><dd>População adulta participante da onda NHANES 2017–2018.</dd></div>
+                    <div><dt>Dados considerados</dt><dd>Sexo, idade, IMC, pressões sistólica e diastólica, hemoglobina glicada e glicose em jejum.</dd></div>
+                    <div><dt>Algoritmo utilizado</dt><dd>SVM calibrado.</dd></div>
+                    <div><dt>Limitação</dt><dd>Teste interno da própria onda, sem validação externa.</dd></div>
+                  </dl>
+                  <div className="auth-model-metrics" aria-label="Métricas no teste interno da análise NHANES">
+                    <span><small>Recall</small><b>80,1%</b></span>
+                    <span><small>F1-score</small><b>60,4%</b></span>
+                    <span><small>AUC-ROC</small><b>90,1%</b></span>
+                  </div>
+                </article>
+              </div>
+              <div className="auth-methodology-copy">
+                <p>
+                  Os algoritmos candidatos foram comparados por F1 em validação
+                  cruzada no conjunto de treino. O limiar foi definido por F2,
+                  com maior peso para recall, e o desempenho final foi estimado
+                  em uma partição de teste isolada da mesma fonte.
+                </p>
+                <p>
+                  Ainda não foi realizada validação externa. As métricas descrevem
+                  esses experimentos e não comprovam desempenho clínico em outras
+                  populações.
+                </p>
+              </div>
+            </div>
+          </details>
         </section>
       </main>
       <PageFooter contact={privacy.contact} variant="public" />

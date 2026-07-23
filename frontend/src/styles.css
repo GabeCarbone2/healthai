@@ -9860,3 +9860,421 @@ html[data-scrolled] .app-shell .topbar {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Reposicionamento clínico e operacional — 2026-07 */
+.auth-page .auth-intro h1 {
+  max-width: 760px;
+  font-size: clamp(3rem, 5.4vw, 5.35rem);
+  line-height: 0.98;
+}
+
+.auth-concept-line {
+  margin: 20px 0 0;
+  color: var(--text-secondary);
+  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  font-weight: 650;
+}
+
+.auth-concept-line em {
+  color: var(--accent);
+  font-style: normal;
+}
+
+.auth-workflow-grid {
+  width: min(1180px, 100%);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0 auto;
+  padding: 1px;
+  background: rgb(245 230 168 / 22%);
+  list-style: none;
+}
+
+.auth-workflow-grid li {
+  min-width: 0;
+  padding: 30px 26px;
+  background: #1b170c;
+}
+
+.auth-workflow-grid small {
+  color: var(--accent);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+}
+
+.auth-workflow-grid h3 {
+  margin: 54px 0 12px;
+  color: var(--text-primary);
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.auth-workflow-grid p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.auth-benefits-section,
+.auth-limitations-section {
+  position: relative;
+  padding: clamp(84px, 10vw, 132px) 28px;
+  border-bottom: 1px solid var(--border-subtle);
+  scroll-margin-top: 78px;
+}
+
+.auth-benefits-section {
+  background: #100e08;
+}
+
+.auth-benefits-section .auth-section-heading,
+.auth-limitations-section .auth-section-heading {
+  margin-inline: auto;
+}
+
+.auth-benefit-grid {
+  width: min(1180px, 100%);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto;
+  margin: 0 auto;
+}
+
+.auth-benefit-grid article,
+.auth-benefit-grid article:first-child,
+.auth-benefit-grid article:nth-child(2),
+.auth-benefit-grid article:nth-child(3),
+.auth-benefit-grid article:nth-child(4) {
+  grid-row: auto;
+  min-height: 260px;
+  padding: 32px;
+  background: #1b170c;
+}
+
+.auth-benefit-grid article > small,
+.auth-benefit-grid article:first-child > small {
+  margin-top: 42px;
+}
+
+.auth-benefit-grid article:first-child h3 {
+  font-size: clamp(21px, 2.4vw, 30px);
+}
+
+.auth-limitations-section {
+  background:
+    linear-gradient(180deg, rgb(39 33 17 / 82%), rgb(24 21 11 / 96%)),
+    var(--surface);
+}
+
+.auth-limitations-grid {
+  width: min(1180px, 100%);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0 auto;
+  padding: 1px;
+  background: rgb(245 230 168 / 22%);
+}
+
+.auth-limitations-grid article {
+  min-width: 0;
+  padding: 30px;
+  background: #1b170c;
+}
+
+.auth-limitations-grid svg {
+  color: var(--accent);
+}
+
+.auth-limitations-grid h3 {
+  margin: 30px 0 10px;
+  color: var(--text-primary);
+  font-size: 20px;
+}
+
+.auth-limitations-grid p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.auth-technical-section {
+  padding-block: clamp(64px, 7vw, 88px);
+  background: #0d0c08;
+}
+
+.auth-technical-section .auth-section-heading {
+  margin-right: auto;
+  margin-left: auto;
+  margin-bottom: 32px;
+}
+
+.auth-technical-details {
+  background: #141209;
+}
+
+.auth-technical-details > div {
+  padding: 0 18px 22px;
+}
+
+.auth-technical-details .auth-model-grid {
+  margin-top: 20px;
+}
+
+.technical-context-note {
+  padding: 12px 14px;
+  color: #dcedff !important;
+  background: #10283b;
+  border: 1px solid #315f7f;
+}
+
+.auth-methodology-copy {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.auth-methodology-copy p {
+  max-width: none;
+}
+
+.profile-selector-help {
+  max-width: 520px;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.app-shell .assessment-page .model-switch button {
+  min-height: 112px;
+  padding: 12px 12px 34px;
+}
+
+.app-shell .assessment-page .model-switch button small {
+  max-width: none;
+  display: block;
+  margin-top: 4px;
+  line-height: 1.35;
+}
+
+.assessment-page .model-selected {
+  top: auto;
+  right: 12px;
+  bottom: 9px;
+  transform: none;
+}
+
+.clinical-field-groups {
+  display: grid;
+  gap: 24px;
+}
+
+.clinical-field-group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.clinical-field-group > legend {
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 0 0 9px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgb(128 111 53 / 28%);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clinical-result-summary .result-guidance {
+  order: 1;
+}
+
+.clinical-result-summary .result-completeness {
+  order: 2;
+}
+
+.technical-evaluation-details {
+  margin-top: 14px;
+  border: 1px solid var(--border-subtle) !important;
+}
+
+.technical-evaluation-details > div {
+  display: grid;
+  gap: 14px;
+}
+
+.technical-evaluation-details .result-details {
+  margin: 0;
+}
+
+.technical-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  padding: 1px;
+  background: var(--border-subtle);
+}
+
+.technical-metrics > div {
+  padding: 11px;
+  background: var(--background-deep);
+}
+
+.technical-metrics dt {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.technical-metrics dd {
+  margin: 3px 0 0;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.technical-feature-list {
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.technical-feature-list h3 {
+  margin-top: 0;
+}
+
+.history-clinical-details {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.history-technical-details {
+  margin: 0 18px 18px;
+  border: 1px solid var(--border-subtle);
+}
+
+.history-technical-details summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.history-technical-details > dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.history-technical-details > p {
+  padding: 0 14px 14px;
+}
+
+@media (max-width: 900px) {
+  .auth-feature-section,
+  .auth-benefits-section,
+  .auth-limitations-section,
+  .auth-technical-section {
+    scroll-margin-top: 70px;
+  }
+
+  .auth-workflow-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .auth-limitations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .history-clinical-details,
+  .history-technical-details > dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-shell .topbar {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .app-shell .primary-nav {
+    right: auto;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%);
+  }
+
+  .auth-page .auth-intro h1 {
+    font-size: clamp(2.55rem, 12vw, 3.75rem);
+  }
+
+  .auth-feature-section,
+  .auth-benefits-section,
+  .auth-limitations-section,
+  .auth-technical-section {
+    padding: 68px 20px;
+  }
+
+  .auth-workflow-grid,
+  .auth-benefit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-workflow-grid h3 {
+    margin-top: 34px;
+  }
+
+  .auth-benefit-grid article,
+  .auth-benefit-grid article:first-child {
+    min-height: 0;
+    padding: 26px 22px;
+  }
+
+  .auth-methodology-copy,
+  .technical-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-technical-details .auth-model-grid {
+    display: grid;
+  }
+
+  .app-shell .assessment-page .model-switch button {
+    min-height: 112px;
+  }
+
+  .history-clinical-details,
+  .history-technical-details > dl {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .app-shell .assessment-page .model-switch button {
+    min-height: 124px;
+    padding-right: 12px;
+  }
+
+  .clinical-field-groups {
+    gap: 20px;
+  }
+
+  .history-clinical-details,
+  .history-technical-details > dl {
+    grid-template-columns: 1fr !important;
+  }
+}

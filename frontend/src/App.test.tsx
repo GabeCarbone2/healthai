@@ -74,7 +74,7 @@ describe("App", () => {
     render(<App />);
 
     const resultsButton = await screen.findByRole("button", {
-      name: "Resultados",
+      name: "Histórico",
     });
     await browser.click(resultsButton);
 
@@ -83,11 +83,11 @@ describe("App", () => {
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("heading", {
-        name: "Não foi possível carregar os modelos",
+        name: "Não foi possível carregar os perfis de avaliação",
       }),
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Avaliação" }),
+      screen.getByRole("button", { name: "Nova avaliação" }),
     ).toBeInTheDocument();
   });
 
@@ -100,7 +100,7 @@ describe("App", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: "Não foi possível carregar os modelos",
+        name: "Não foi possível carregar os perfis de avaliação",
       }),
     ).toBeInTheDocument();
     expect(screen.getByText("Falha ao carregar catálogo.")).toBeInTheDocument();
@@ -132,7 +132,7 @@ describe("App", () => {
 
     expect(api.acceptPrivacyConsent).toHaveBeenCalledOnce();
     expect(
-      await screen.findByRole("button", { name: "Avaliação" }),
+      await screen.findByRole("button", { name: "Nova avaliação" }),
     ).toBeInTheDocument();
   });
 
@@ -152,7 +152,7 @@ describe("App", () => {
       }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Avaliação" }),
+      screen.queryByRole("button", { name: "Nova avaliação" }),
     ).not.toBeInTheDocument();
     expect(api.fetchCatalog).not.toHaveBeenCalled();
   });
@@ -173,7 +173,7 @@ describe("App", () => {
     await browser.click(screen.getByRole("button", { name: "Aceitar e continuar" }));
 
     expect(api.acceptTermsConsent).toHaveBeenCalledOnce();
-    expect(await screen.findByRole("button", { name: "Avaliação" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Nova avaliação" })).toBeInTheDocument();
   });
 
   it("pede confirmação antes de encerrar a sessão manualmente", async () => {
@@ -182,7 +182,7 @@ describe("App", () => {
     render(<App />);
 
     expect(
-      await screen.findByRole("button", { name: "Avaliação" }),
+      await screen.findByRole("button", { name: "Nova avaliação" }),
     ).toBeInTheDocument();
 
     await browser.click(screen.getByRole("button", { name: "Encerrar sessão" }));
@@ -205,7 +205,7 @@ describe("App", () => {
     render(<App />);
 
     expect(
-      await screen.findByRole("button", { name: "Avaliação" }),
+      await screen.findByRole("button", { name: "Nova avaliação" }),
     ).toBeInTheDocument();
 
     vi.useFakeTimers();

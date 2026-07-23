@@ -48,8 +48,8 @@ import type {
 type Page = "assessment" | "results" | "account" | "admin";
 
 const clinicalNavigation = [
-  { id: "assessment" as const, label: "Avaliação", icon: ClipboardPlus },
-  { id: "results" as const, label: "Resultados", icon: ListChecks },
+  { id: "assessment" as const, label: "Nova avaliação", icon: ClipboardPlus },
+  { id: "results" as const, label: "Histórico", icon: ListChecks },
 ];
 const accountNavigation = {
   id: "account" as const,
@@ -58,7 +58,7 @@ const accountNavigation = {
 };
 const adminNavigation = {
   id: "admin" as const,
-  label: "Verificações",
+  label: "Análises de acesso",
   icon: ShieldEllipsis,
 };
 const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000;
@@ -156,7 +156,7 @@ export default function App() {
           setCatalogError(
             errorMessage(
               requestError,
-              "Não foi possível carregar o catálogo de modelos.",
+              "Não foi possível carregar os perfis de avaliação.",
             ),
           );
         }
@@ -241,7 +241,7 @@ export default function App() {
       setCatalogError(
         errorMessage(
           requestError,
-          "Não foi possível carregar o catálogo de modelos.",
+          "Não foi possível carregar os perfis de avaliação.",
         ),
       );
     }
@@ -482,7 +482,7 @@ export default function App() {
             </span>
             <span className="brand-copy">
               <strong>HealthAI</strong>
-              <small>Clinical intelligence</small>
+              <small>Apoio à triagem</small>
             </span>
           </div>
 
@@ -552,7 +552,7 @@ export default function App() {
         ) : catalogError ? (
           <div className="connection-error">
             <WifiOff size={28} />
-            <h1>Não foi possível carregar os modelos</h1>
+            <h1>Não foi possível carregar os perfis de avaliação</h1>
             <p>{catalogError}</p>
             <button type="button" className="retry-button" onClick={retryCatalog}>
               <RefreshCw size={16} />
@@ -562,7 +562,7 @@ export default function App() {
         ) : !catalog ? (
           <div className="loading-state">
             <Activity size={24} />
-            <span>Carregando modelos...</span>
+            <span>Carregando perfis de avaliação...</span>
           </div>
         ) : effectivePage === "assessment" ? (
           <Assessment
