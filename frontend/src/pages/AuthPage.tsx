@@ -243,7 +243,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
             <article data-reveal="left">
               <span><BrainCircuit size={24} aria-hidden="true" /></span>
               <small>01 / Contexto do modelo</small>
-              <h3>Pima e NHANES não se misturam</h3>
+              <h3>Perfis não se misturam</h3>
               <p>Cada perfil mantém população, variáveis e limitações próprias — sem transformar bases diferentes em uma falsa certeza.</p>
             </article>
             <article data-reveal="right">
