@@ -44,7 +44,7 @@ describe("AuthPage", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Inteligência clínica para apoiar decisões.",
+        name: "Probabilidade sem contexto é só ruído.",
       }),
     ).toBeInTheDocument();
     expect(
@@ -55,7 +55,7 @@ describe("AuthPage", () => {
     ).toHaveAttribute("href", "#acesso");
     expect(
       screen.getByRole("heading", {
-        name: "Triagem acadêmica com contexto e rastreabilidade",
+        name: "A estimativa vem acompanhada de evidências.",
       }),
     ).toBeInTheDocument();
     expect(screen.getByLabelText("E-mail")).toBeInTheDocument();

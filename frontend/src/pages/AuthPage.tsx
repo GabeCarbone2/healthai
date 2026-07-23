@@ -10,7 +10,6 @@ import {
   MailCheck,
   Send,
   ShieldCheck,
-  Sparkles,
   UserPlus,
 } from "lucide-react";
 import { FormEvent, useEffect, useRef, useState } from "react";
@@ -133,19 +132,13 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
 
   return (
     <div className="auth-page">
-      <div className="auth-atmosphere" aria-hidden="true">
-        <span className="auth-orb orb-one" />
-        <span className="auth-orb orb-two" />
-        <span className="auth-orb orb-three" />
-        <span className="auth-ring ring-one" />
-        <span className="auth-ring ring-two" />
-        <span className="auth-ribbon ribbon-one" />
-        <span className="auth-ribbon ribbon-two" />
-      </div>
-
       <a className="skip-link" href="#acesso">
         Ir para o acesso
       </a>
+      <div className="auth-scroll-meter" aria-hidden="true">
+        <span>ROLAGEM</span>
+        <i><b /></i>
+      </div>
 
       <header className="auth-topbar">
         <div className="auth-topbar-inner">
@@ -173,17 +166,18 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
       <main className="auth-main">
         <section className="auth-hero" id="inicio" aria-labelledby="auth-hero-title">
           <div className="auth-hero-inner">
-          <aside className="auth-intro">
+          <aside className="auth-intro" data-reveal="left">
             <div className="auth-eyebrow">
-              <Sparkles size={15} aria-hidden="true" />
-              Inteligência aplicada à saúde
+              <Activity size={15} aria-hidden="true" />
+              HealthAI / triagem acadêmica
             </div>
             <h1 id="auth-hero-title">
-              Inteligência clínica <em>para apoiar decisões.</em>
+              Probabilidade sem contexto <em>é só ruído.</em>
             </h1>
             <p className="auth-description">
-              Explore modelos preditivos acadêmicos com rastreabilidade,
-              privacidade e limites apresentados com clareza.
+              O HealthAI organiza sinais clínicos, explicita o limiar e mostra
+              o que o modelo não sabe — para apoiar triagens sem simular um
+              diagnóstico.
             </p>
             <div className="auth-hero-actions">
               <a
@@ -208,50 +202,72 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
             </p>
           </aside>
 
-          <div className="auth-monogram" aria-hidden="true">
-            <HealthAiLogo className="auth-monogram-logo" />
+          <div className="auth-signal-stage" aria-hidden="true" data-reveal="right">
+            <div className="auth-signal-index">
+              <span>LEITURA / APOIO</span>
+              <b>NÃO DIAGNÓSTICO</b>
+            </div>
+            <svg className="auth-signal-plot" viewBox="0 0 620 360">
+              <g className="signal-grid">
+                <path d="M20 60H600M20 120H600M20 180H600M20 240H600M20 300H600" />
+                <path d="M80 20V340M160 20V340M240 20V340M320 20V340M400 20V340M480 20V340M560 20V340" />
+              </g>
+              <path className="signal-base" d="M20 214H600" />
+              <path
+                className="signal-trace"
+                d="M20 214H116L142 197L169 214H232L258 211L278 130L307 286L338 174L363 214H426L449 202L476 214H600"
+              />
+              <circle className="signal-node node-a" cx="278" cy="130" r="7" />
+              <circle className="signal-node node-b" cx="338" cy="174" r="7" />
+            </svg>
+            <div className="auth-signal-legend">
+              <span><i /> probabilidade</span>
+              <span><i /> limiar</span>
+              <span><i /> completude</span>
+            </div>
+            <HealthAiLogo className="auth-signal-mark" />
           </div>
           </div>
         </section>
 
         <section className="auth-feature-section" id="recursos" aria-labelledby="auth-features-title">
-          <header className="auth-section-heading">
-            <span>Clareza em cada etapa</span>
-            <h2 id="auth-features-title">Triagem acadêmica com contexto e rastreabilidade</h2>
+          <header className="auth-section-heading" data-reveal="up">
+            <span>O que chega com o número</span>
+            <h2 id="auth-features-title">A estimativa vem acompanhada de evidências.</h2>
             <p>
-              A estrutura prioriza o essencial e mantém detalhes técnicos
-              disponíveis quando forem necessários.
+              Cada resultado expõe origem, limite e completude. O essencial
+              aparece primeiro; a parte técnica continua disponível.
             </p>
           </header>
           <div className="auth-feature-grid">
-            <article>
+            <article data-reveal="left">
               <span><BrainCircuit size={24} aria-hidden="true" /></span>
-              <small>Modelos</small>
-              <h3>Perfis clínicos claros</h3>
-              <p>Pima e NHANES permanecem separados, com população e limitações identificadas.</p>
+              <small>01 / Contexto do modelo</small>
+              <h3>Pima e NHANES não se misturam</h3>
+              <p>Cada perfil mantém população, variáveis e limitações próprias — sem transformar bases diferentes em uma falsa certeza.</p>
             </article>
-            <article>
+            <article data-reveal="right">
               <span><ShieldCheck size={24} aria-hidden="true" /></span>
-              <small>Privacidade</small>
-              <h3>Dados pseudonimizados</h3>
-              <p>O identificador clínico não expõe nome, CPF ou prontuário do paciente.</p>
+              <small>02 / Dados mínimos</small>
+              <h3>O formulário termina na inferência</h3>
+              <p>Os valores clínicos usados no cálculo não entram no histórico; o identificador permanece pseudonimizado.</p>
             </article>
-            <article>
+            <article data-reveal="right">
               <span><LockKeyhole size={24} aria-hidden="true" /></span>
-              <small>Rastreabilidade</small>
-              <h3>Resultados contextualizados</h3>
-              <p>Probabilidade, limiar, completude e versão do modelo acompanham cada avaliação.</p>
+              <small>03 / Leitura do resultado</small>
+              <h3>Limiar à vista, incerteza também</h3>
+              <p>Probabilidade, completude, versão e explicações acompanham a classe prevista em cada avaliação.</p>
             </article>
           </div>
         </section>
 
         <section className="auth-access-section" id="acesso" aria-labelledby="auth-access-title">
-          <div className="auth-access-copy">
+          <div className="auth-access-copy" data-reveal="left">
             <span className="auth-eyebrow">
               <LockKeyhole size={15} aria-hidden="true" />
-              Área profissional
+              Entrada controlada
             </span>
-            <h2 id="auth-access-title">Acesse a plataforma com segurança</h2>
+            <h2 id="auth-access-title">O acesso clínico começa pela verificação.</h2>
             <p>
               Entre com sua conta ou solicite um novo acesso profissional. A
               liberação das avaliações depende da verificação do CRM.
@@ -263,7 +279,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
             </ul>
           </div>
 
-          <div className="auth-access">
+          <div className="auth-access" data-reveal="right">
           <section className={`auth-panel ${mode}`}>
           <div className="auth-panel-shine" aria-hidden="true" />
           {verificationEmail ? (

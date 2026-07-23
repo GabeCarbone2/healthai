@@ -34,6 +34,7 @@ import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { TermsConsentPage } from "./pages/TermsConsentPage";
 import { TermsPage } from "./pages/TermsPage";
 import { VerifyEmailPage } from "./pages/VerifyEmailPage";
+import { useScrollMotion } from "./hooks/useScrollMotion";
 import type {
   Catalog,
   PatientResult,
@@ -80,6 +81,7 @@ function errorMessage(error: unknown, fallback: string) {
 }
 
 export default function App() {
+  useScrollMotion();
   const [page, setPage] = useState<Page>("assessment");
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [patientResults, setPatientResults] = useState<PatientResult[]>([]);
