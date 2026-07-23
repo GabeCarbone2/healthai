@@ -31,13 +31,22 @@ jobs:
           printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
+      - name: Instalar suporte a senha SSH
+        run: |
+          if ! command -v sshpass >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --yes sshpass
+          fi
+
       - name: Sincronizar release
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
           DEPLOY_PATH: ${{ secrets.VPS_DEPLOY_PATH }}
+          SSHPASS: ${{ secrets.VPS_PASSWORD }}
         run: |
           rsync --archive --delete \
+            --rsh 'sshpass -e ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no' \
             --exclude '.git/' \
             --exclude '.env' \
             --exclude '.env.production' \
@@ -53,6 +62,10 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
           DEPLOY_PATH: ${{ secrets.VPS_DEPLOY_PATH }}
+          SSHPASS: ${{ secrets.VPS_PASSWORD }}
         run: |
-          ssh "$VPS_USER@$VPS_HOST" \
+          sshpass -e ssh \
+            -o PreferredAuthentications=password \
+            -o PubkeyAuthentication=no \
+            "$VPS_USER@$VPS_HOST" \
             "cd '$DEPLOY_PATH' && ./deploy/deploy.sh"
