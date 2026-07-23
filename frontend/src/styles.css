@@ -10278,3 +10278,1074 @@ html[data-scrolled] .app-shell .topbar {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Paleta Santa Casa Mais — fundos e tipografia */
+:root {
+  color-scheme: light;
+  --scm-green: #8ac64f;
+  --scm-green-dark: #4a8a1a;
+  --scm-green-soft: #f0f8e8;
+  --scm-rose: #e6415e;
+  --scm-ink: #1a1a2e;
+  --scm-body: #4a4a6a;
+  --scm-muted: #72728b;
+  --scm-canvas: #f8fafb;
+  --scm-border: #e5e7eb;
+  --scm-footer: #111827;
+  --background: var(--scm-canvas);
+  --background-deep: #ffffff;
+  --surface: #ffffff;
+  --surface-raised: var(--scm-green-soft);
+  --surface-soft: var(--scm-canvas);
+  --border: #cbdcbf;
+  --border-subtle: var(--scm-border);
+  --text-primary: var(--scm-ink);
+  --text-secondary: var(--scm-body);
+  --text-muted: var(--scm-muted);
+  --accent: var(--scm-green-dark);
+  --accent-strong: var(--scm-green);
+  --focus: var(--scm-green-dark);
+  --success: var(--scm-green-dark);
+  --warning: #9b6508;
+  --danger: #c5324d;
+  --info: var(--scm-green-dark);
+  --brand-ink: var(--scm-ink);
+  --brand-muted: var(--scm-muted);
+  --brand-soft: var(--scm-body);
+  --brand-night: var(--scm-canvas);
+  --brand-panel: #ffffff;
+  --brand-panel-strong: #ffffff;
+  --brand-line: rgb(74 138 26 / 18%);
+  --brand-line-strong: rgb(74 138 26 / 32%);
+  --brand-teal: var(--scm-green);
+  --brand-teal-strong: var(--scm-green-dark);
+  --brand-mint: var(--scm-green);
+  --brand-amber: var(--scm-green);
+  --brand-danger: var(--scm-rose);
+  --brand-shadow: rgb(26 26 46 / 10%);
+  color: var(--text-primary);
+  background: var(--scm-canvas);
+}
+
+html,
+body {
+  color: var(--text-primary);
+  background: var(--scm-canvas);
+}
+
+body {
+  background:
+    radial-gradient(circle at 88% 2%, rgb(138 198 79 / 13%), transparent 30rem),
+    var(--scm-canvas);
+}
+
+::selection {
+  color: var(--scm-ink);
+  background: #dff0ce;
+}
+
+::placeholder {
+  color: #8a8aa0;
+}
+
+/* Área pública */
+.auth-page {
+  color: var(--text-primary);
+  background: #ffffff;
+}
+
+.auth-topbar {
+  background: rgb(255 255 255 / 94%);
+  border-top-color: var(--scm-green);
+  border-bottom-color: var(--scm-border);
+  box-shadow: 0 8px 28px rgb(26 26 46 / 5%);
+}
+
+.auth-page .auth-brand,
+.auth-page .auth-brand strong,
+.auth-navigation a,
+.auth-menu-toggle {
+  color: var(--scm-body);
+}
+
+.auth-page .auth-brand > span {
+  color: #ffffff;
+  background: var(--scm-green);
+  border-color: var(--scm-green);
+  box-shadow: none;
+}
+
+.auth-page .auth-brand small {
+  color: var(--scm-muted);
+}
+
+.auth-navigation a:hover,
+.auth-navigation a.active,
+.auth-navigation a[aria-current="location"] {
+  color: var(--scm-green-dark);
+  background: var(--scm-green-soft);
+  border-color: #d7e9c8;
+}
+
+.auth-header-cta {
+  color: #ffffff;
+  background: var(--scm-green);
+  border-color: var(--scm-green);
+}
+
+.auth-header-cta:hover {
+  color: #ffffff;
+  background: var(--scm-green-dark);
+}
+
+.auth-hero {
+  background:
+    linear-gradient(100deg, rgb(255 255 255 / 96%), rgb(240 248 232 / 82%)),
+    var(--scm-green-soft);
+  border-bottom-color: var(--scm-border);
+}
+
+.auth-hero::before {
+  opacity: 0.32;
+  background-image:
+    linear-gradient(rgb(74 138 26 / 7%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(74 138 26 / 7%) 1px, transparent 1px);
+}
+
+.auth-hero::after {
+  border-color: rgb(138 198 79 / 24%);
+  box-shadow:
+    0 0 0 90px rgb(138 198 79 / 4%),
+    0 0 0 180px rgb(138 198 79 / 2%);
+}
+
+.auth-page .auth-eyebrow {
+  color: var(--scm-green-dark);
+  background: var(--scm-green-soft);
+  border-color: #d7e9c8;
+}
+
+.auth-page .auth-intro h1,
+.auth-page .auth-intro h1 em {
+  color: var(--scm-ink);
+}
+
+.auth-page .auth-intro h1 em,
+.auth-concept-line em {
+  color: var(--scm-green);
+}
+
+.auth-page .auth-description,
+.auth-concept-line,
+.auth-trust-line {
+  color: var(--scm-body);
+}
+
+.auth-hero-primary {
+  color: #ffffff;
+  background: var(--scm-green);
+  border-color: var(--scm-green);
+  box-shadow: 0 14px 34px rgb(74 138 26 / 18%);
+}
+
+.auth-hero-primary:hover {
+  background: var(--scm-green-dark);
+  border-color: var(--scm-green-dark);
+}
+
+.auth-hero-secondary {
+  color: var(--scm-green-dark);
+  background: #ffffff;
+  border-color: var(--scm-green);
+}
+
+.auth-hero-secondary:hover {
+  color: var(--scm-green-dark);
+  background: var(--scm-green-soft);
+  border-color: var(--scm-green-dark);
+}
+
+.auth-trust-line svg,
+.auth-access-copy li svg {
+  color: var(--scm-green-dark);
+}
+
+.auth-page .auth-monogram {
+  color: var(--scm-green);
+  opacity: 0.13;
+}
+
+.auth-page .auth-monogram::before {
+  background: rgb(138 198 79 / 18%);
+}
+
+.auth-page .auth-monogram-logo {
+  filter:
+    drop-shadow(0 30px 52px rgb(26 26 46 / 12%))
+    drop-shadow(0 0 48px rgb(138 198 79 / 18%));
+}
+
+html[data-scrolled] .auth-topbar,
+html[data-scrolled] .app-shell .topbar {
+  background: rgb(255 255 255 / 97%);
+  box-shadow: 0 10px 30px rgb(26 26 46 / 8%);
+}
+
+.auth-signal-stage {
+  color: var(--scm-body);
+  background: #ffffff;
+  border-color: #d7e5cd;
+  box-shadow:
+    16px 16px 0 rgb(138 198 79 / 7%),
+    0 26px 62px rgb(26 26 46 / 12%);
+}
+
+.auth-signal-stage::after,
+.auth-signal-index,
+.auth-signal-legend {
+  border-color: var(--scm-border);
+}
+
+.auth-signal-index,
+.auth-signal-legend,
+.auth-result-row {
+  color: var(--scm-muted);
+}
+
+.signal-grid path {
+  stroke: rgb(74 138 26 / 9%);
+}
+
+.signal-base {
+  stroke: rgb(74 138 26 / 22%);
+}
+
+.signal-node {
+  fill: #ffffff;
+  stroke: var(--scm-green-dark);
+}
+
+.auth-result-row > i {
+  background: var(--scm-green-soft);
+  border-color: #d7e5cd;
+}
+
+.auth-result-row.probability > i > b,
+.auth-result-row.completeness > i > b,
+.auth-signal-legend i,
+.auth-scroll-meter b {
+  background: var(--scm-green);
+}
+
+.auth-result-row.threshold > i > b {
+  background: var(--scm-green-dark);
+}
+
+.auth-result-row.threshold > i > b::after {
+  background: #ffffff;
+  border-color: var(--scm-green-dark);
+}
+
+.auth-scroll-meter > i {
+  background: rgb(74 138 26 / 18%);
+}
+
+.auth-feature-section,
+.auth-technical-section {
+  background: #ffffff;
+  border-color: var(--scm-border);
+}
+
+.auth-models-section,
+.auth-benefits-section {
+  background: var(--scm-canvas);
+  border-color: var(--scm-border);
+}
+
+.auth-privacy-section,
+.auth-limitations-section {
+  background:
+    linear-gradient(180deg, rgb(240 248 232 / 86%), rgb(248 250 251 / 96%)),
+    var(--scm-green-soft);
+  border-color: var(--scm-border);
+}
+
+.auth-section-heading > span,
+.auth-access-copy > .auth-eyebrow,
+.auth-model-card-header small,
+.auth-privacy-list small,
+.auth-workflow-grid small,
+.auth-feature-grid article > small {
+  color: var(--scm-green-dark);
+}
+
+.auth-section-heading h2,
+.auth-access-copy h2,
+.auth-feature-grid h3,
+.auth-model-card-header h3,
+.auth-model-metrics b,
+.auth-privacy-list h3,
+.auth-workflow-grid h3,
+.auth-limitations-grid h3 {
+  color: var(--scm-ink);
+}
+
+.auth-section-heading p,
+.auth-access-copy > p,
+.auth-access-copy li,
+.auth-feature-grid p,
+.auth-model-grid dd,
+.auth-privacy-list p,
+.auth-workflow-grid p,
+.auth-limitations-grid p,
+.auth-methodology > div {
+  color: var(--scm-body);
+}
+
+.auth-feature-grid article,
+.auth-model-grid > article,
+.auth-workflow-grid li,
+.auth-benefit-grid article,
+.auth-benefit-grid article:first-child,
+.auth-benefit-grid article:nth-child(2),
+.auth-benefit-grid article:nth-child(3),
+.auth-benefit-grid article:nth-child(4),
+.auth-limitations-grid article {
+  background: #ffffff;
+  border-color: var(--scm-border);
+  box-shadow: 0 18px 42px rgb(26 26 46 / 7%);
+}
+
+.auth-feature-grid article > span {
+  color: #ffffff;
+  background: var(--scm-green);
+}
+
+.auth-workflow-grid,
+.auth-limitations-grid,
+.auth-privacy-list {
+  background: var(--scm-border);
+}
+
+.auth-model-grid > article {
+  border-top-color: var(--scm-green);
+}
+
+.auth-model-card-header,
+.auth-model-grid dl > div,
+.auth-methodology > div,
+.auth-technical-details > div {
+  border-color: var(--scm-border);
+}
+
+.auth-model-card-header > span,
+.auth-privacy-list > li > span {
+  color: var(--scm-green-dark);
+  background: var(--scm-green-soft);
+  border-color: #cfe5bd;
+}
+
+.auth-model-grid dt,
+.auth-model-metrics small {
+  color: var(--scm-muted);
+}
+
+.auth-model-metrics {
+  background: var(--scm-border);
+  border-color: var(--scm-border);
+}
+
+.auth-model-metrics > span,
+.technical-metrics > div {
+  background: var(--scm-green-soft);
+}
+
+.auth-methodology,
+.auth-technical-details {
+  background: #ffffff;
+  border-color: var(--scm-border);
+}
+
+.auth-methodology summary,
+.auth-privacy-list code {
+  color: var(--scm-green-dark);
+}
+
+.auth-privacy-list > li {
+  background: #ffffff;
+}
+
+.technical-context-note {
+  color: var(--scm-green-dark) !important;
+  background: var(--scm-green-soft);
+  border-color: #cfe5bd;
+}
+
+.auth-access-section::before {
+  background: radial-gradient(circle, rgb(138 198 79 / 15%), transparent 66%);
+}
+
+.auth-page .auth-panel {
+  color: var(--scm-ink);
+  background: #ffffff;
+  border-color: #d4e4c9;
+  box-shadow: 0 28px 70px rgb(26 26 46 / 12%);
+}
+
+.auth-page .auth-switch {
+  background: var(--scm-canvas);
+  border-color: var(--scm-border);
+}
+
+.auth-page .auth-switch button {
+  color: var(--scm-body);
+  background: transparent;
+  border-color: var(--scm-border);
+}
+
+.auth-page .auth-switch button.active {
+  color: #ffffff;
+  background: var(--scm-green);
+  border-color: var(--scm-green);
+}
+
+.auth-page .auth-form label > span,
+.auth-page .consent-check {
+  color: var(--scm-body);
+}
+
+.auth-page .auth-form input,
+.auth-page .auth-form select {
+  color: var(--scm-ink);
+  color-scheme: light;
+  background: #ffffff;
+  border-color: #cfd4da;
+  box-shadow: none;
+}
+
+.auth-page .auth-form input:focus,
+.auth-page .auth-form select:focus {
+  border-color: var(--scm-green-dark);
+  box-shadow: 0 0 0 3px rgb(138 198 79 / 18%);
+}
+
+.auth-page .auth-form input::placeholder,
+.auth-page .auth-form small,
+.auth-page .auth-panel-footer,
+.auth-page .privacy-notice,
+.auth-page .privacy-notice small {
+  color: var(--scm-muted);
+}
+
+.auth-page .password-input button {
+  color: var(--scm-muted);
+}
+
+.auth-page .password-input button:hover {
+  color: var(--scm-green-dark);
+  background: var(--scm-green-soft);
+}
+
+.auth-page .registration-privacy {
+  color: var(--scm-body);
+  background: var(--scm-canvas);
+  border-color: var(--scm-border);
+}
+
+.auth-page .registration-privacy summary,
+.auth-page .privacy-notice strong {
+  color: var(--scm-ink);
+}
+
+.auth-page .consent-check input {
+  accent-color: var(--scm-green-dark);
+}
+
+.auth-page .auth-submit {
+  color: #ffffff;
+  background: var(--scm-green);
+  border-color: var(--scm-green);
+}
+
+.auth-page .auth-submit:hover {
+  background: var(--scm-green-dark);
+}
+
+.auth-page .auth-form .form-error {
+  color: #9f2940;
+  background: #fff1f4;
+  border-color: #f2b8c3;
+  border-left-color: var(--scm-rose);
+}
+
+.auth-page .auth-medical-note {
+  color: var(--scm-body);
+  background: var(--scm-green-soft);
+  border-color: #cfe5bd;
+}
+
+.auth-page .auth-field-error {
+  color: #9f2940;
+  background: #fff1f4;
+  border-color: #f2b8c3;
+}
+
+/* Rodapé público */
+.page-footer.public-footer,
+.auth-page > .public-footer {
+  color: rgb(255 255 255 / 70%);
+  background: var(--scm-footer);
+  border-top-color: rgb(138 198 79 / 45%);
+}
+
+.public-footer strong,
+.public-footer-brand strong {
+  color: #ffffff;
+}
+
+.public-footer p,
+.public-footer a,
+.page-footer.public-footer a {
+  color: rgb(255 255 255 / 64%);
+}
+
+.public-footer a:hover {
+  color: var(--scm-green);
+}
+
+.public-footer-brand > span {
+  color: #ffffff;
+  background: var(--scm-green);
+}
+
+.public-footer-bottom {
+  color: rgb(255 255 255 / 42%);
+  border-top-color: rgb(255 255 255 / 10%);
+}
+
+/* Aplicativo autenticado */
+.app-shell {
+  --app-bg: var(--scm-canvas);
+  --app-surface: #ffffff;
+  --app-surface-strong: #ffffff;
+  --app-border: var(--scm-border);
+  --app-border-strong: #cbdcbf;
+  --app-text: var(--scm-ink);
+  --app-muted: var(--scm-muted);
+  --app-cyan: var(--scm-green-dark);
+  --app-blue: var(--scm-green);
+  color: var(--scm-ink);
+  background:
+    radial-gradient(circle at 90% 0%, rgb(138 198 79 / 13%), transparent 32rem),
+    var(--scm-canvas);
+}
+
+.app-monogram-logo {
+  color: var(--scm-green);
+  filter: none;
+}
+
+.app-shell .topbar {
+  background: rgb(255 255 255 / 94%);
+  border-top-color: var(--scm-green);
+  border-bottom-color: var(--scm-border);
+  box-shadow: 0 8px 28px rgb(26 26 46 / 5%);
+}
+
+.app-shell .brand,
+.app-shell .brand strong,
+.app-shell .brand-copy strong,
+.app-shell .account-summary,
+.app-shell .account-summary strong {
+  color: var(--scm-ink);
+}
+
+.app-shell .brand-mark {
+  color: #ffffff;
+  background: var(--scm-green);
+  border-color: var(--scm-green);
+  box-shadow: none;
+}
+
+.app-shell .brand-copy small,
+.app-shell .account-summary small {
+  color: var(--scm-muted);
+}
+
+.app-shell .primary-nav button,
+.app-shell .account-summary button {
+  color: var(--scm-body);
+}
+
+.app-shell .primary-nav button:hover,
+.app-shell .account-summary button:hover {
+  color: var(--scm-green-dark);
+  background: var(--scm-green-soft);
+  border-color: #d7e9c8;
+}
+
+.app-shell .primary-nav button.active {
+  color: #ffffff;
+  background: var(--scm-green);
+  border-color: var(--scm-green);
+}
+
+.app-shell .account-summary > span {
+  color: #ffffff;
+  background: var(--scm-green-dark);
+}
+
+.app-shell .page-header {
+  background:
+    linear-gradient(115deg, #ffffff, var(--scm-green-soft)),
+    #ffffff;
+  border-color: #dce8d3;
+  box-shadow: 0 18px 44px rgb(26 26 46 / 7%);
+}
+
+.app-shell .page-header::before {
+  border-color: rgb(138 198 79 / 28%);
+  box-shadow: 0 0 0 54px rgb(138 198 79 / 4%);
+}
+
+.app-shell .page-header::after {
+  background-image:
+    linear-gradient(rgb(74 138 26 / 8%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(74 138 26 / 8%) 1px, transparent 1px);
+}
+
+.app-shell .page-header h1,
+.app-shell .section-heading h2,
+.app-shell .result-panel h2,
+.app-shell .empty-results h2,
+.app-shell .account-card h2,
+.app-shell .danger-zone h2,
+.crm-status-card h2,
+.review-identity h2,
+.review-empty h2 {
+  color: var(--scm-ink);
+  text-shadow: none;
+}
+
+.app-shell .page-header p,
+.app-shell .section-heading p,
+.app-shell .field > small,
+.app-shell .results-filters label > span,
+.app-shell .account-card > div > p,
+.app-shell .danger-zone > p,
+.app-shell .privacy-notice,
+.crm-status-card p,
+.review-identity p,
+.review-card dt,
+.app-shell .result-empty,
+.app-shell .empty-results,
+.app-shell .form-actions > span {
+  color: var(--scm-muted);
+}
+
+.app-shell .model-switch,
+.app-shell .assessment-layout,
+.app-shell .results-filters,
+.app-shell .patient-results,
+.app-shell .account-card,
+.app-shell .crm-status-card,
+.app-shell .danger-zone,
+.review-card,
+.review-empty {
+  color: var(--scm-ink);
+  background: #ffffff;
+  border-color: var(--scm-border);
+  box-shadow: 0 18px 44px rgb(26 26 46 / 7%);
+}
+
+.app-shell .model-switch button {
+  color: var(--scm-body);
+  background: transparent;
+}
+
+.app-shell .model-switch button.active {
+  color: #ffffff;
+  background: var(--scm-green);
+}
+
+.app-shell .assessment-page .model-switch {
+  background: #ffffff;
+  border-color: var(--scm-border);
+}
+
+.app-shell .assessment-page .model-switch button.active {
+  color: #ffffff;
+  background: var(--scm-green);
+  border-color: var(--scm-green);
+}
+
+.app-shell .assessment-page .model-switch button.active strong,
+.app-shell .assessment-page .model-switch button.active small,
+.app-shell .assessment-page .model-switch button.active .model-selected {
+  color: #ffffff;
+}
+
+.assessment-page .model-context {
+  color: var(--scm-body);
+  background: var(--scm-green-soft);
+}
+
+.assessment-page .model-context summary,
+.assessment-page .model-context p {
+  color: var(--scm-body);
+}
+
+.assessment-page .model-context summary svg,
+.optional-fields-note svg,
+.result-panel-heading .page-eyebrow {
+  color: var(--scm-green-dark);
+}
+
+.optional-fields-note {
+  color: var(--scm-body);
+  background: var(--scm-green-soft);
+}
+
+.app-shell .result-panel {
+  background:
+    linear-gradient(160deg, var(--scm-green-soft), #ffffff);
+  border-left-color: #d8e6ce;
+}
+
+.app-shell .section-heading,
+.app-shell .form-actions,
+.app-shell .results-pagination,
+.model-explanation,
+.technical-feature-list,
+.history-technical-details,
+.history-technical-details > dl {
+  border-color: var(--scm-border);
+}
+
+.app-shell .field > span,
+.app-shell .danger-zone label > span,
+.crm-update-form label > span,
+.review-actions label > span,
+.model-explanation li {
+  color: var(--scm-body);
+}
+
+.app-shell .field b,
+.app-shell .empty-results svg,
+.app-shell .account-card > svg,
+.crm-status-card.approved > svg,
+.model-explanation strong {
+  color: var(--scm-green-dark);
+}
+
+.app-shell .input-wrap input,
+.app-shell .input-wrap select,
+.app-shell .results-filters input,
+.app-shell .danger-zone input,
+.crm-update-form input,
+.crm-update-form select,
+.review-actions textarea {
+  color: var(--scm-ink);
+  color-scheme: light;
+  background: #ffffff;
+  border-color: #cfd4da;
+  box-shadow: none;
+}
+
+.app-shell .input-wrap input:focus,
+.app-shell .input-wrap select:focus,
+.app-shell .results-filters input:focus,
+.app-shell .danger-zone input:focus,
+.crm-update-form input:focus,
+.crm-update-form select:focus,
+.review-actions textarea:focus {
+  border-color: var(--scm-green-dark);
+  box-shadow: 0 0 0 3px rgb(138 198 79 / 18%);
+}
+
+.app-shell .input-wrap em,
+.app-shell .results-search > div > svg,
+.model-explanation p {
+  color: var(--scm-muted);
+}
+
+.app-shell .primary-button,
+.app-shell .filter-submit,
+.app-shell .retry-button,
+.crm-update-form button,
+.cfm-link,
+.review-filters button.active,
+.review-actions button.approve,
+.review-empty button {
+  color: #ffffff;
+  background: var(--scm-green);
+  border-color: var(--scm-green);
+}
+
+.app-shell .primary-button:hover,
+.app-shell .filter-submit:hover,
+.app-shell .retry-button:hover,
+.crm-update-form button:hover,
+.cfm-link:hover {
+  color: #ffffff;
+  background: var(--scm-green-dark);
+}
+
+.app-shell .primary-button:disabled {
+  color: #7b7b8d;
+  background: #edf0eb;
+  border-color: #d8ddd5;
+}
+
+.app-shell .filter-clear,
+.app-shell .dialog-cancel,
+.app-shell .results-pagination button,
+.review-filters button {
+  color: var(--scm-body);
+  background: #ffffff;
+  border-color: #cfd4da;
+}
+
+.app-shell .filter-clear:hover,
+.app-shell .results-pagination button:hover:not(:disabled),
+.review-filters button:hover {
+  color: var(--scm-green-dark);
+  background: var(--scm-green-soft);
+  border-color: #cfe5bd;
+}
+
+.app-shell .result-status,
+.app-shell .result-status.neutral,
+.app-shell .result-class.negative {
+  color: var(--scm-green-dark);
+}
+
+.app-shell .result-status.attention,
+.app-shell .result-class.positive {
+  color: #9f2940;
+}
+
+.app-shell .probability-readout span,
+.app-shell .result-details dt {
+  color: var(--scm-muted);
+}
+
+.app-shell .probability-readout strong,
+.app-shell .result-details dd,
+.app-shell .patient-table td strong,
+.crm-status-card strong,
+.review-card dd,
+.technical-metrics dd {
+  color: var(--scm-ink);
+}
+
+.app-shell .probability-track,
+.app-shell .probability-track::-webkit-progress-bar {
+  background: #e5eedf;
+  border-color: #d3e3c7;
+}
+
+.app-shell .probability-track::-webkit-progress-value,
+.app-shell .probability-track::-moz-progress-bar {
+  background: var(--scm-green);
+  box-shadow: none;
+}
+
+.app-shell .result-details div,
+.review-card dl > div,
+.technical-metrics > div {
+  background: var(--scm-canvas);
+  border-color: var(--scm-border);
+}
+
+.app-shell .metrics-table th,
+.app-shell .metrics-table td {
+  color: var(--scm-body);
+  border-bottom-color: var(--scm-border);
+}
+
+.app-shell .metrics-table th {
+  color: var(--scm-muted);
+  background: var(--scm-canvas);
+}
+
+.app-shell .metrics-table tbody tr:hover {
+  background: var(--scm-green-soft);
+}
+
+.app-shell .result-class.negative {
+  background: var(--scm-green-soft);
+  border-color: #cfe5bd;
+}
+
+.app-shell .result-class.positive,
+.app-shell .clear-results,
+.app-shell .dialog-confirm,
+.review-actions button.reject {
+  color: #9f2940;
+  background: #fff1f4;
+  border-color: #efb5c0;
+}
+
+.app-shell .delete-result {
+  color: var(--scm-muted);
+  background: #ffffff;
+  border-color: var(--scm-border);
+}
+
+.app-shell .delete-result:hover {
+  color: #9f2940;
+  background: #fff1f4;
+  border-color: #efb5c0;
+}
+
+.review-identity > span {
+  color: #ffffff;
+  background: var(--scm-green-dark);
+}
+
+.review-reason,
+.crm-status-card.rejected > svg {
+  color: var(--scm-rose);
+}
+
+.app-shell .confirm-overlay {
+  background: rgb(26 26 46 / 48%);
+}
+
+.app-shell .confirm-dialog,
+.logout-confirm-dialog {
+  color: var(--scm-ink);
+  background: #ffffff;
+  border-color: var(--scm-border);
+  border-top-color: var(--scm-rose);
+  box-shadow: 0 28px 72px rgb(26 26 46 / 20%);
+}
+
+.app-shell .confirm-dialog p {
+  color: var(--scm-body);
+}
+
+.logout-confirm-dialog > svg {
+  color: var(--scm-green-dark);
+  filter: none;
+}
+
+.logout-confirm-dialog .dialog-confirm {
+  color: #ffffff;
+  background: var(--scm-green);
+  border-color: var(--scm-green);
+}
+
+.logout-confirm-dialog .dialog-cancel {
+  color: var(--scm-body);
+  background: #ffffff;
+  border-color: var(--scm-border);
+}
+
+.internal-footer {
+  color: var(--scm-muted);
+  background: #ffffff;
+  border-top-color: var(--scm-border);
+}
+
+/* Credenciais, consentimento e verificações */
+.credential-page,
+.legal-page,
+.terms-consent-page,
+.privacy-consent-page,
+.email-verification-page {
+  color: var(--scm-ink);
+  background:
+    radial-gradient(circle at 85% 0%, rgb(138 198 79 / 14%), transparent 30rem),
+    var(--scm-canvas);
+}
+
+.credential-card,
+.terms-document,
+.privacy-consent-page > section,
+.email-verification-card {
+  color: var(--scm-ink);
+  background: #ffffff;
+  border-color: var(--scm-border);
+  box-shadow: 0 22px 56px rgb(26 26 46 / 9%);
+}
+
+.credential-card input,
+.privacy-consent-page .privacy-delete-form input {
+  color: var(--scm-ink);
+  color-scheme: light;
+  background: #ffffff;
+  border-color: #cfd4da;
+}
+
+.credential-card .primary-button,
+.terms-consent-page form .primary-button {
+  color: #ffffff;
+  background: var(--scm-green);
+  border-color: var(--scm-green);
+}
+
+.terms-document > header,
+.terms-consent-page form,
+.registration-privacy {
+  background: var(--scm-canvas);
+  border-color: var(--scm-border);
+}
+
+.privacy-consent-page .privacy-notice,
+.privacy-consent-page .privacy-notice small,
+.privacy-consent-page .consent-check,
+.email-verification-card p {
+  color: var(--scm-body);
+}
+
+.privacy-consent-page .privacy-notice strong,
+.email-verification-card h1 {
+  color: var(--scm-ink);
+}
+
+.privacy-consent-page .privacy-secondary-actions button,
+.privacy-consent-page .privacy-delete-form button {
+  color: var(--scm-body);
+  background: #ffffff;
+  border-color: var(--scm-border);
+}
+
+.verification-sent-icon,
+.email-verification-card > span {
+  color: #ffffff;
+  background: var(--scm-green);
+  border-color: var(--scm-green);
+  box-shadow: 0 16px 34px rgb(74 138 26 / 18%);
+}
+
+.verification-sent small,
+.email-verification-card small,
+.verification-spinner {
+  color: var(--scm-green-dark);
+}
+
+.verification-sent h2,
+.verification-sent p,
+.verification-sent p strong {
+  color: var(--scm-ink);
+}
+
+.verification-notice {
+  color: var(--scm-green-dark);
+  background: var(--scm-green-soft);
+  border-color: #cfe5bd;
+}
+
+.result-warning {
+  color: #805509;
+  background: #fff8e8;
+  border-color: #ead39a;
+}
+
+.result-disclaimer {
+  color: var(--scm-body);
+  background: var(--scm-green-soft);
+  border-color: #cfe5bd;
+}
