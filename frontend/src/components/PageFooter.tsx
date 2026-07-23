@@ -20,27 +20,30 @@ export function PageFooter({ contact, variant = "internal" }: Props) {
             <div>
               <strong>HealthAI</strong>
               <p>
-                Apoio acadêmico à triagem de risco de diabetes com transparência,
-                privacidade e responsabilidade.
+                Plataforma de apoio à triagem de risco de diabetes.
               </p>
             </div>
           </div>
-          <nav aria-label="Links da plataforma">
+          <nav aria-label="Navegação do rodapé">
             <strong>Plataforma</strong>
-            <a href="/">Acesso profissional</a>
-            <a href="/terms">Termos de Uso</a>
+            <a href="#como-funciona">Como funciona</a>
+            <a href="#modelos">Modelos</a>
+            <a href="#privacidade">Privacidade</a>
+            <a href="/terms">Termos de uso</a>
+            <a href={contactHref}>Contato</a>
+            <a href="#acesso">Acesso</a>
           </nav>
           <div className="public-footer-contact">
-            <strong>Privacidade</strong>
-            <p>Dúvidas sobre dados pessoais ou exercício de direitos?</p>
+            <strong>Contato</strong>
+            <p>Dúvidas sobre a plataforma, privacidade ou exercício de direitos?</p>
             <a href={contactHref} title={`Canal de privacidade: ${contact}`}>
               {contact}
             </a>
           </div>
         </div>
         <div className="public-footer-bottom">
-          <span>HealthAI v{packageInfo.version} · Ferramenta acadêmica</span>
-          <span>Não substitui diagnóstico, avaliação ou decisão médica.</span>
+          <span>HealthAI v{packageInfo.version}</span>
+          <span>O HealthAI não substitui diagnóstico, avaliação médica ou decisão clínica.</span>
         </div>
       </footer>
     );

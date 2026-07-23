@@ -3,14 +3,20 @@ import {
   AlertCircle,
   ArrowRight,
   BrainCircuit,
+  Database,
   Eye,
   EyeOff,
+  Fingerprint,
+  Gauge,
+  ListChecks,
   LockKeyhole,
   LogIn,
   MailCheck,
+  Menu,
   Send,
   ShieldCheck,
   UserPlus,
+  X,
 } from "lucide-react";
 import { FormEvent, useEffect, useRef, useState } from "react";
 
@@ -31,6 +37,14 @@ const BRAZILIAN_STATES = [
   "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI",
   "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
 ];
+
+const PUBLIC_SECTIONS = [
+  { id: "inicio", label: "Início" },
+  { id: "como-funciona", label: "Como funciona" },
+  { id: "modelos", label: "Modelos" },
+  { id: "privacidade", label: "Privacidade" },
+  { id: "acesso", label: "Acesso" },
+] as const;
 
 export function AuthPage({ onAuthenticated, privacy }: Props) {
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -53,12 +67,50 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [confirmationTouched, setConfirmationTouched] = useState(false);
   const [capsLock, setCapsLock] = useState(false);
+  const [activeSection, setActiveSection] = useState("inicio");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [methodologyOpen, setMethodologyOpen] = useState(false);
   const errorRef = useRef<HTMLDivElement>(null);
   const submittingRef = useRef(false);
 
   useEffect(() => {
     if (error) errorRef.current?.focus();
   }, [error]);
+
+  useEffect(() => {
+    if (typeof window.IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleEntry = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0];
+        if (visibleEntry?.target.id) setActiveSection(visibleEntry.target.id);
+      },
+      {
+        rootMargin: "-28% 0px -58% 0px",
+        threshold: [0, 0.25, 0.6],
+      },
+    );
+
+    PUBLIC_SECTIONS.forEach(({ id }) => {
+      const section = document.getElementById(id);
+      if (section) observer.observe(section);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function closeMenu(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenuOpen(false);
+    }
+
+    document.addEventListener("keydown", closeMenu);
+    return () => document.removeEventListener("keydown", closeMenu);
+  }, [menuOpen]);
 
   function changeMode(nextMode: "login" | "register") {
     setMode(nextMode);
@@ -70,6 +122,12 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
     setPrivacyOpen(false);
     setPasswordTouched(false);
     setConfirmationTouched(false);
+  }
+
+  function followSection(section: string, nextMode?: "login" | "register") {
+    if (nextMode) changeMode(nextMode);
+    setActiveSection(section);
+    setMenuOpen(false);
   }
 
   async function submit(event: FormEvent) {
@@ -142,144 +200,320 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
 
       <header className="auth-topbar">
         <div className="auth-topbar-inner">
-          <a className="auth-brand" href="#inicio" aria-label="HealthAI — início">
+          <a
+            className="auth-brand"
+            href="#inicio"
+            aria-label="HealthAI — início"
+            onClick={() => followSection("inicio")}
+          >
             <span>
               <HealthAiLogo className="healthai-logo" title="HealthAI" />
             </span>
             <div>
               <strong>HealthAI</strong>
-              <small>Clinical intelligence</small>
+              <small>Apoio à triagem</small>
             </div>
           </a>
-          <nav className="auth-navigation" aria-label="Navegação pública">
-            <a href="#inicio">Início</a>
-            <a href="#recursos">Recursos</a>
-            <a href="#acesso">Acesso</a>
+
+          <button
+            type="button"
+            className="auth-menu-toggle"
+            aria-expanded={menuOpen}
+            aria-controls="auth-public-navigation"
+            aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
+            onClick={() => setMenuOpen((current) => !current)}
+          >
+            {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
+          </button>
+
+          <nav
+            className={`auth-navigation ${menuOpen ? "open" : ""}`}
+            id="auth-public-navigation"
+            aria-label="Navegação pública"
+          >
+            {PUBLIC_SECTIONS.map(({ id, label }) => (
+              <a
+                href={`#${id}`}
+                className={activeSection === id ? "active" : ""}
+                aria-current={activeSection === id ? "location" : undefined}
+                onClick={() => followSection(id)}
+                key={id}
+              >
+                {label}
+              </a>
+            ))}
           </nav>
-          <div className="auth-security-note">
-            <ShieldCheck size={15} aria-hidden="true" />
-            Acesso restrito a médicos
-          </div>
+
+          <a
+            className="auth-header-cta"
+            href="#acesso"
+            onClick={() => followSection("acesso", "login")}
+          >
+            Entrar
+          </a>
         </div>
       </header>
 
       <main className="auth-main">
         <section className="auth-hero" id="inicio" aria-labelledby="auth-hero-title">
           <div className="auth-hero-inner">
-          <aside className="auth-intro" data-reveal="left">
+          <aside className="auth-intro">
             <div className="auth-eyebrow">
               <Activity size={15} aria-hidden="true" />
-              HealthAI / triagem acadêmica
+              Apoio à triagem de risco de diabetes
             </div>
             <h1 id="auth-hero-title">
               Probabilidade sem contexto <em>é só ruído.</em>
             </h1>
             <p className="auth-description">
-              O HealthAI organiza sinais clínicos, explicita o limiar e mostra
-              o que o modelo não sabe — para apoiar triagens sem simular um
-              diagnóstico.
+              O HealthAI organiza dados clínicos, aplica modelos de aprendizado
+              de máquina e apresenta probabilidade, limiar, completude e
+              limitações para apoiar a triagem de risco de diabetes.
             </p>
             <div className="auth-hero-actions">
               <a
                 className="auth-hero-primary"
                 href="#acesso"
-                onClick={() => changeMode("login")}
+                onClick={() => followSection("acesso", "login")}
               >
                 Entrar no HealthAI
                 <ArrowRight size={18} aria-hidden="true" />
               </a>
               <a
                 className="auth-hero-secondary"
-                href="#acesso"
-                onClick={() => changeMode("register")}
+                href="#como-funciona"
+                onClick={() => followSection("como-funciona")}
               >
-                Criar conta profissional
+                Conhecer como funciona
               </a>
             </div>
             <p className="auth-trust-line">
               <ShieldCheck size={16} aria-hidden="true" />
-              Uso acadêmico, acesso profissional e dados pseudonimizados
+              Apoio responsável, acesso profissional e dados pseudonimizados
             </p>
           </aside>
 
-          <div className="auth-signal-stage" aria-hidden="true" data-reveal="right">
+          <div className="auth-signal-stage" aria-hidden="true">
             <div className="auth-signal-index">
-              <span>LEITURA / APOIO</span>
-              <b>NÃO DIAGNÓSTICO</b>
+              <span>Representação conceitual</span>
+              <b>Não é resultado de paciente</b>
             </div>
-            <svg className="auth-signal-plot" viewBox="0 0 620 360">
-              <g className="signal-grid">
-                <path d="M20 60H600M20 120H600M20 180H600M20 240H600M20 300H600" />
-                <path d="M80 20V340M160 20V340M240 20V340M320 20V340M400 20V340M480 20V340M560 20V340" />
-              </g>
-              <path className="signal-base" d="M20 214H600" />
-              <path
-                className="signal-trace"
-                d="M20 214H116L142 197L169 214H232L258 211L278 130L307 286L338 174L363 214H426L449 202L476 214H600"
-              />
-              <circle className="signal-node node-a" cx="278" cy="130" r="7" />
-              <circle className="signal-node node-b" cx="338" cy="174" r="7" />
-            </svg>
+            <div className="auth-result-structure">
+              <div className="auth-result-row probability">
+                <span>Probabilidade estimada</span>
+                <i><b /></i>
+              </div>
+              <div className="auth-result-row threshold">
+                <span>Limiar aplicado</span>
+                <i><b /></i>
+              </div>
+              <div className="auth-result-row completeness">
+                <span>Completude dos dados</span>
+                <i>
+                  <b />
+                  <b />
+                  <b />
+                  <b />
+                  <b />
+                </i>
+              </div>
+            </div>
             <div className="auth-signal-legend">
-              <span><i /> probabilidade</span>
-              <span><i /> limiar</span>
-              <span><i /> completude</span>
+              <span>Exemplo visual da estrutura do resultado</span>
+              <span>Sem monitoramento em tempo real</span>
             </div>
-            <HealthAiLogo className="auth-signal-mark" />
           </div>
           </div>
         </section>
 
-        <section className="auth-feature-section" id="recursos" aria-labelledby="auth-features-title">
-          <header className="auth-section-heading" data-reveal="up">
-            <span>O que chega com o número</span>
+        <section className="auth-feature-section" id="como-funciona" aria-labelledby="auth-features-title">
+          <header className="auth-section-heading">
+            <span>Como funciona</span>
             <h2 id="auth-features-title">A estimativa vem acompanhada de evidências.</h2>
             <p>
-              Cada resultado expõe origem, limite e completude. O essencial
-              aparece primeiro; a parte técnica continua disponível.
+              Cada resultado apresenta a origem do modelo, o limiar usado, a
+              completude dos dados e as limitações relevantes para sua leitura.
             </p>
           </header>
           <div className="auth-feature-grid">
-            <article data-reveal="left">
+            <article>
               <span><BrainCircuit size={24} aria-hidden="true" /></span>
               <small>01 / Contexto do modelo</small>
               <h3>Perfis não se misturam</h3>
-              <p>Cada perfil mantém população, variáveis e limitações próprias — sem transformar bases diferentes em uma falsa certeza.</p>
+              <p>Cada modelo utiliza sua própria população, conjunto de variáveis e limitações.</p>
             </article>
-            <article data-reveal="right">
+            <article>
               <span><ShieldCheck size={24} aria-hidden="true" /></span>
               <small>02 / Dados mínimos</small>
               <h3>O formulário termina na inferência</h3>
-              <p>Os valores clínicos usados no cálculo não entram no histórico; o identificador permanece pseudonimizado.</p>
+              <p>Os valores clínicos utilizados no cálculo não são armazenados no histórico.</p>
             </article>
-            <article data-reveal="right">
+            <article>
               <span><LockKeyhole size={24} aria-hidden="true" /></span>
               <small>03 / Leitura do resultado</small>
               <h3>Limiar à vista, incerteza também</h3>
-              <p>Probabilidade, completude, versão e explicações acompanham a classe prevista em cada avaliação.</p>
+              <p>O resultado apresenta probabilidade, limiar aplicado, completude dos dados e limitações.</p>
             </article>
           </div>
         </section>
 
+        <section className="auth-models-section" id="modelos" aria-labelledby="auth-models-title">
+          <header className="auth-section-heading">
+            <span>Modelos e populações</span>
+            <h2 id="auth-models-title">Duas bases, dois contextos de leitura.</h2>
+            <p>
+              Pima e NHANES são experimentos independentes. As métricas abaixo
+              vêm do teste interno de cada fonte e não representam validação clínica.
+            </p>
+          </header>
+
+          <div className="auth-model-grid">
+            <article>
+              <div className="auth-model-card-header">
+                <span><Database size={22} aria-hidden="true" /></span>
+                <div>
+                  <small>Base Pima / OpenML 37</small>
+                  <h3>Pima — mulheres adultas</h3>
+                </div>
+              </div>
+              <dl>
+                <div>
+                  <dt>População</dt>
+                  <dd>Mulheres adultas de herança indígena Pima.</dd>
+                </div>
+                <div>
+                  <dt>Variáveis</dt>
+                  <dd>Gestações, glicose, pressão diastólica, prega cutânea, insulina, IMC, função de pedigree e idade.</dd>
+                </div>
+                <div>
+                  <dt>Modelo selecionado</dt>
+                  <dd>Random Forest.</dd>
+                </div>
+                <div>
+                  <dt>Principal limitação</dt>
+                  <dd>Avaliação em teste interno da mesma fonte, sem validação externa.</dd>
+                </div>
+              </dl>
+              <div className="auth-model-metrics" aria-label="Métricas no teste interno do modelo Pima">
+                <span><small>Recall</small><b>88,9%</b></span>
+                <span><small>F1-score</small><b>64,4%</b></span>
+                <span><small>AUC-ROC</small><b>82,5%</b></span>
+              </div>
+            </article>
+
+            <article>
+              <div className="auth-model-card-header">
+                <span><Gauge size={22} aria-hidden="true" /></span>
+                <div>
+                  <small>NHANES / 2017–2018</small>
+                  <h3>NHANES — adultos</h3>
+                </div>
+              </div>
+              <dl>
+                <div>
+                  <dt>População</dt>
+                  <dd>População adulta participante da onda NHANES 2017–2018.</dd>
+                </div>
+                <div>
+                  <dt>Variáveis</dt>
+                  <dd>Sexo, idade, IMC, pressões sistólica e diastólica, hemoglobina glicada e glicose em jejum.</dd>
+                </div>
+                <div>
+                  <dt>Modelo selecionado</dt>
+                  <dd>SVM calibrado.</dd>
+                </div>
+                <div>
+                  <dt>Principal limitação</dt>
+                  <dd>Avaliação em teste interno da própria onda, sem validação externa.</dd>
+                </div>
+              </dl>
+              <div className="auth-model-metrics" aria-label="Métricas no teste interno do modelo NHANES">
+                <span><small>Recall</small><b>80,1%</b></span>
+                <span><small>F1-score</small><b>60,4%</b></span>
+                <span><small>AUC-ROC</small><b>90,1%</b></span>
+              </div>
+            </article>
+          </div>
+
+          <details
+            className="auth-methodology"
+            open={methodologyOpen}
+            onToggle={(event) => setMethodologyOpen(event.currentTarget.open)}
+          >
+            <summary aria-expanded={methodologyOpen}>Ver metodologia</summary>
+            <div>
+              <p>
+                Os candidatos foram comparados por F1 em validação cruzada no
+                conjunto de treino. O limiar foi definido por F2, com maior peso
+                para recall, e o desempenho final foi estimado em uma partição
+                de teste isolada da mesma fonte.
+              </p>
+              <p>
+                Ainda não foi realizada validação externa. Por isso, os números
+                descrevem estes experimentos e não comprovam desempenho clínico
+                em outras populações.
+              </p>
+            </div>
+          </details>
+        </section>
+
+        <section className="auth-privacy-section" id="privacidade" aria-labelledby="auth-privacy-title">
+          <header className="auth-section-heading">
+            <span>Transparência e privacidade</span>
+            <h2 id="auth-privacy-title">O mínimo necessário, com rastreabilidade.</h2>
+            <p>
+              O histórico mantém o resultado e seus metadados de leitura, sem
+              conservar os valores clínicos enviados ao modelo.
+            </p>
+          </header>
+          <ol className="auth-privacy-list">
+            <li>
+              <span><Database size={22} aria-hidden="true" /></span>
+              <div>
+                <small>01</small>
+                <h3>Dados clínicos somente no cálculo</h3>
+                <p>Os valores informados são utilizados na inferência e não são persistidos no histórico.</p>
+              </div>
+            </li>
+            <li>
+              <span><Fingerprint size={22} aria-hidden="true" /></span>
+              <div>
+                <small>02</small>
+                <h3>Identificador pseudonimizado</h3>
+                <p>O histórico é associado a um código <code>PAC-…</code>. Pseudonimização não é anonimização.</p>
+              </div>
+            </li>
+            <li>
+              <span><ListChecks size={22} aria-hidden="true" /></span>
+              <div>
+                <small>03</small>
+                <h3>Resultado rastreável</h3>
+                <p>Probabilidade, limiar, modelo, versão e completude acompanham cada registro.</p>
+              </div>
+            </li>
+          </ol>
+        </section>
+
         <section className="auth-access-section" id="acesso" aria-labelledby="auth-access-title">
-          <div className="auth-access-copy" data-reveal="left">
+          <div className="auth-access-copy">
             <span className="auth-eyebrow">
               <LockKeyhole size={15} aria-hidden="true" />
               Entrada controlada
             </span>
-            <h2 id="auth-access-title">O acesso clínico começa pela verificação.</h2>
+            <h2 id="auth-access-title">Acesso profissional controlado</h2>
             <p>
-              Entre com sua conta ou solicite um novo acesso profissional. A
-              liberação das avaliações depende da verificação do CRM.
+              Entre com sua conta ou solicite um novo cadastro profissional. O
+              acesso às avaliações depende da análise administrativa do CRM
+              informado.
             </p>
             <ul>
               <li><ShieldCheck size={17} aria-hidden="true" /> Conta individual e sessão protegida</li>
-              <li><ShieldCheck size={17} aria-hidden="true" /> Verificação profissional antes do uso clínico</li>
-              <li><ShieldCheck size={17} aria-hidden="true" /> Consentimento e limites apresentados com clareza</li>
+              <li><ShieldCheck size={17} aria-hidden="true" /> Conferência administrativa do cadastro profissional</li>
+              <li><ShieldCheck size={17} aria-hidden="true" /> Dados clínicos não persistidos no histórico</li>
             </ul>
           </div>
 
-          <div className="auth-access" data-reveal="right">
+          <div className="auth-access">
           <section className={`auth-panel ${mode}`}>
           <div className="auth-panel-shine" aria-hidden="true" />
           {verificationEmail ? (
@@ -391,7 +625,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
                   <span>E-mail</span>
                   <input id="register-email" type="email" autoComplete="email" placeholder="voce@exemplo.com" required value={email} onChange={(event) => { setEmail(event.target.value); setError(""); }} />
                 </label>
-                <small className="fieldset-note">O CRM passa por análise manual antes da liberação das avaliações.</small>
+                <small className="fieldset-note">O CRM informado é submetido à conferência administrativa antes da liberação das avaliações.</small>
               </fieldset>
             ) : (
               <label htmlFor="login-email">
@@ -480,8 +714,8 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
 
             <p className="auth-medical-note">
               <ShieldCheck size={16} aria-hidden="true" />
-              O HealthAI é uma ferramenta acadêmica de apoio à triagem e não
-              substitui diagnóstico ou avaliação médica.
+              O HealthAI é uma ferramenta de apoio à triagem e não substitui
+              diagnóstico, avaliação médica ou decisão clínica.
             </p>
 
             <button type="submit" className="auth-submit" disabled={loading}>
@@ -500,10 +734,6 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
             </button>
           </form>
 
-          <footer className="auth-panel-footer">
-            <LockKeyhole size={13} />
-            Sessão protegida e dados clínicos não persistidos
-          </footer>
             </>
           )}
           </section>

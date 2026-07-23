@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -50,6 +50,17 @@ describe("AuthPage", () => {
     expect(
       screen.getByRole("navigation", { name: "Navegação pública" }),
     ).toBeInTheDocument();
+    const publicNavigation = screen.getByRole("navigation", {
+      name: "Navegação pública",
+    });
+    expect(within(publicNavigation).getByRole("link", { name: "Como funciona" }))
+      .toHaveAttribute("href", "#como-funciona");
+    expect(within(publicNavigation).getByRole("link", { name: "Modelos" }))
+      .toHaveAttribute("href", "#modelos");
+    expect(within(publicNavigation).getByRole("link", { name: "Privacidade" }))
+      .toHaveAttribute("href", "#privacidade");
+    expect(screen.getByRole("link", { name: "Entrar" }))
+      .toHaveAttribute("href", "#acesso");
     expect(
       screen.getByRole("link", { name: "Entrar no HealthAI" }),
     ).toHaveAttribute("href", "#acesso");
@@ -58,8 +69,46 @@ describe("AuthPage", () => {
         name: "A estimativa vem acompanhada de evidências.",
       }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Pima — mulheres adultas" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "NHANES — adultos" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Acesso profissional controlado" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/análise administrativa do CRM informado/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText(/não substitui diagnóstico, avaliação médica ou decisão clínica/i),
+    ).toHaveLength(2);
     expect(screen.getByLabelText("E-mail")).toBeInTheDocument();
     expect(screen.getByLabelText("Senha")).toBeInTheDocument();
+  });
+
+  it("expõe e fecha o menu público com estado acessível", async () => {
+    const browser = userEvent.setup();
+    render(
+      <AuthPage
+        onAuthenticated={vi.fn()}
+        privacy={privacy}
+      />,
+    );
+
+    const menuButton = screen.getByRole("button", { name: "Abrir menu" });
+    expect(menuButton).toHaveAttribute("aria-expanded", "false");
+
+    await browser.click(menuButton);
+    expect(
+      screen.getByRole("button", { name: "Fechar menu" }),
+    ).toHaveAttribute("aria-expanded", "true");
+
+    await browser.keyboard("{Escape}");
+    expect(
+      screen.getByRole("button", { name: "Abrir menu" }),
+    ).toHaveAttribute("aria-expanded", "false");
   });
 
   it("envia o consentimento explícito ao criar a conta", async () => {
