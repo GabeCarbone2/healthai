@@ -11120,9 +11120,60 @@ html[data-scrolled] .app-shell .topbar {
   color: var(--scm-green-dark);
 }
 
+.app-shell .result-status,
+.app-shell .result-status.neutral {
+  background: var(--scm-green-soft);
+  border-color: #cfe5bd;
+}
+
 .app-shell .result-status.attention,
 .app-shell .result-class.positive {
   color: #9f2940;
+}
+
+.app-shell .result-status.attention {
+  background: #fff1f4;
+  border-color: #efb5c0;
+}
+
+.app-shell .result-status small {
+  color: var(--scm-muted);
+}
+
+.app-shell .result-status.attention small {
+  color: #835564;
+}
+
+.app-shell .result-summary > div {
+  background: #ffffff;
+  border-color: var(--scm-border);
+}
+
+.app-shell .result-summary .result-guidance.attention {
+  background: #fff1f4;
+  border-color: #efb5c0;
+}
+
+.app-shell .result-summary .result-guidance.information {
+  background: var(--scm-green-soft);
+  border-color: #cfe5bd;
+}
+
+.app-shell .result-summary dt,
+.app-shell .result-summary small {
+  color: var(--scm-muted);
+}
+
+.app-shell .result-summary dd {
+  color: var(--scm-ink);
+}
+
+.app-shell .result-guidance.attention dt {
+  color: #9f2940;
+}
+
+.app-shell .result-guidance.information dt {
+  color: var(--scm-green-dark);
 }
 
 .app-shell .probability-readout span,
