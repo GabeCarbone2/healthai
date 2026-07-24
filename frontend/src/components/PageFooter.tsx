@@ -11,7 +11,7 @@ export function PageFooter({ contact, variant = "internal" }: Props) {
 
   if (variant === "public") {
     return (
-      <footer className="page-footer public-footer">
+      <footer className="page-footer public-footer" data-reveal="up">
         <div className="public-footer-grid">
           <div className="public-footer-brand">
             <span aria-hidden="true">

@@ -78,8 +78,22 @@ export function useScrollMotion() {
       );
       const progress = Math.min(1, Math.max(0, window.scrollY / scrollRange));
       const heroShift = Math.min(84, window.scrollY * 0.1);
+      const heroProgress = Math.min(
+        1,
+        window.scrollY / Math.max(520, window.innerHeight * 0.82),
+      );
+      const heroCopyShift = heroProgress * -34;
+      const heroCopyOpacity = 1 - heroProgress * 0.32;
       root.style.setProperty("--page-scroll-progress", progress.toFixed(4));
       root.style.setProperty("--hero-scroll-shift", `${heroShift.toFixed(1)}px`);
+      root.style.setProperty(
+        "--hero-copy-shift",
+        `${heroCopyShift.toFixed(1)}px`,
+      );
+      root.style.setProperty(
+        "--hero-copy-opacity",
+        heroCopyOpacity.toFixed(3),
+      );
       root.toggleAttribute("data-scrolled", window.scrollY > 20);
     }
 
@@ -102,6 +116,8 @@ export function useScrollMotion() {
       root.removeAttribute("data-scrolled");
       root.style.removeProperty("--page-scroll-progress");
       root.style.removeProperty("--hero-scroll-shift");
+      root.style.removeProperty("--hero-copy-shift");
+      root.style.removeProperty("--hero-copy-opacity");
     };
   }, []);
 }

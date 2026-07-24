@@ -257,7 +257,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
       <main className="auth-main">
         <section className="auth-hero" id="inicio" aria-labelledby="auth-hero-title">
           <div className="auth-hero-inner">
-          <aside className="auth-intro">
+          <aside className="auth-intro" data-reveal="left">
             <div className="auth-eyebrow">
               <Activity size={15} aria-hidden="true" />
               APOIO À TRIAGEM DE RISCO DE DIABETES
@@ -294,7 +294,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
             </p>
           </aside>
 
-          <div className="auth-signal-stage" aria-hidden="true">
+          <div className="auth-signal-stage" data-reveal="right" aria-hidden="true">
             <div className="auth-signal-index">
               <span>Estrutura do resultado</span>
               <b>Não é resultado de paciente</b>
@@ -328,7 +328,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
         </section>
 
         <section className="auth-feature-section" id="como-funciona" aria-labelledby="auth-features-title">
-          <header className="auth-section-heading">
+          <header className="auth-section-heading" data-reveal="left">
             <span>Como funciona</span>
             <h2 id="auth-features-title">Da informação disponível à leitura contextualizada.</h2>
             <p>
@@ -337,22 +337,22 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
             </p>
           </header>
           <ol className="auth-workflow-grid">
-            <li>
+            <li data-reveal="up">
               <small>01</small>
               <h3>Informe os dados clínicos disponíveis</h3>
               <p>Registre as informações compatíveis com o perfil da avaliação.</p>
             </li>
-            <li>
+            <li data-reveal="up">
               <small>02</small>
               <h3>Revise a completude das informações</h3>
               <p>Confira campos informados, ausentes e passíveis de estimativa.</p>
             </li>
-            <li>
+            <li data-reveal="up">
               <small>03</small>
               <h3>Calcule a estimativa de risco</h3>
               <p>Consulte a classificação da triagem e a probabilidade estimada.</p>
             </li>
-            <li>
+            <li data-reveal="up">
               <small>04</small>
               <h3>Interprete no contexto médico</h3>
               <p>Considere histórico, exames, condições e julgamento clínico.</p>
@@ -361,7 +361,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
         </section>
 
         <section className="auth-benefits-section" aria-labelledby="auth-benefits-title">
-          <header className="auth-section-heading">
+          <header className="auth-section-heading" data-reveal="left">
             <span>Apoio ao fluxo médico</span>
             <h2 id="auth-benefits-title">Informação organizada para uma triagem mais objetiva.</h2>
             <p>
@@ -370,25 +370,25 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
             </p>
           </header>
           <div className="auth-feature-grid auth-benefit-grid">
-            <article>
+            <article data-reveal="up">
               <span><ListChecks size={24} aria-hidden="true" /></span>
               <small>01 / Avaliação estruturada</small>
               <h3>Dados clínicos estruturados</h3>
               <p>Organize os principais fatores clínicos em um único fluxo de avaliação.</p>
             </article>
-            <article>
+            <article data-reveal="up">
               <span><Gauge size={24} aria-hidden="true" /></span>
               <small>02 / Interpretação objetiva</small>
               <h3>Estimativa com contexto</h3>
               <p>Consulte a estimativa de risco, a completude dos dados e as limitações do resultado.</p>
             </article>
-            <article>
+            <article data-reveal="up">
               <span><LockKeyhole size={24} aria-hidden="true" /></span>
               <small>03 / Privacidade</small>
               <h3>O formulário termina no cálculo</h3>
               <p>Os valores clínicos utilizados no cálculo não são armazenados no histórico.</p>
             </article>
-            <article>
+            <article data-reveal="up">
               <span><Fingerprint size={24} aria-hidden="true" /></span>
               <small>04 / Rastreabilidade</small>
               <h3>Avaliações identificáveis</h3>
@@ -398,7 +398,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
         </section>
 
         <section className="auth-privacy-section" id="seguranca" aria-labelledby="auth-privacy-title">
-          <header className="auth-section-heading">
+          <header className="auth-section-heading" data-reveal="left">
             <span>Segurança e privacidade</span>
             <h2 id="auth-privacy-title">O mínimo necessário, com rastreabilidade.</h2>
             <p>
@@ -407,7 +407,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
             </p>
           </header>
           <ol className="auth-privacy-list">
-            <li>
+            <li data-reveal="up">
               <span><Database size={22} aria-hidden="true" /></span>
               <div>
                 <small>01</small>
@@ -415,7 +415,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
                 <p>Os valores informados são utilizados somente no cálculo e não são persistidos no histórico.</p>
               </div>
             </li>
-            <li>
+            <li data-reveal="up">
               <span><Fingerprint size={22} aria-hidden="true" /></span>
               <div>
                 <small>02</small>
@@ -423,7 +423,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
                 <p>O histórico é associado a um código <code>PAC-…</code>. Pseudonimização não é anonimização.</p>
               </div>
             </li>
-            <li>
+            <li data-reveal="up">
               <span><ListChecks size={22} aria-hidden="true" /></span>
               <div>
                 <small>03</small>
@@ -435,7 +435,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
         </section>
 
         <section className="auth-limitations-section" id="limitacoes" aria-labelledby="auth-limitations-title">
-          <header className="auth-section-heading">
+          <header className="auth-section-heading" data-reveal="left">
             <span>Limitações</span>
             <h2 id="auth-limitations-title">Uma estimativa precisa ser lida dentro do seu contexto.</h2>
             <p>
@@ -444,17 +444,17 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
             </p>
           </header>
           <div className="auth-limitations-grid">
-            <article>
+            <article data-reveal="up">
               <AlertCircle size={22} aria-hidden="true" />
               <h3>Não é diagnóstico</h3>
               <p>O resultado não confirma nem exclui diabetes e não define condutas médicas.</p>
             </article>
-            <article>
+            <article data-reveal="up">
               <ListChecks size={22} aria-hidden="true" />
               <h3>Completude importa</h3>
               <p>Informações ausentes podem reduzir a confiabilidade da avaliação.</p>
             </article>
-            <article>
+            <article data-reveal="up">
               <BrainCircuit size={22} aria-hidden="true" />
               <h3>Generalização limitada</h3>
               <p>Os métodos foram avaliados internamente em bases públicas, sem validação externa.</p>
@@ -463,7 +463,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
         </section>
 
         <section className="auth-access-section" id="acesso" aria-labelledby="auth-access-title">
-          <div className="auth-access-copy">
+          <div className="auth-access-copy" data-reveal="left">
             <span className="auth-eyebrow">
               <LockKeyhole size={15} aria-hidden="true" />
               Entrada controlada
@@ -481,7 +481,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
             </ul>
           </div>
 
-          <div className="auth-access">
+          <div className="auth-access" data-reveal="right">
           <section className={`auth-panel ${mode}`}>
           <div className="auth-panel-shine" aria-hidden="true" />
           {verificationEmail ? (
@@ -710,7 +710,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
         </section>
 
         <section className="auth-models-section auth-technical-section" id="transparencia" aria-labelledby="auth-models-title">
-          <header className="auth-section-heading">
+          <header className="auth-section-heading" data-reveal="left">
             <span>Transparência técnica</span>
             <h2 id="auth-models-title">Metodologia disponível para consulta.</h2>
             <p>
@@ -722,6 +722,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
 
           <details
             className="auth-methodology auth-technical-details"
+            data-reveal="scale"
             open={methodologyOpen}
             onToggle={(event) => setMethodologyOpen(event.currentTarget.open)}
           >
