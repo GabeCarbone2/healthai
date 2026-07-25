@@ -58,9 +58,29 @@ def build_model_pipeline(
     random_state: int = 42,
     numeric_features: list[str] | None = None,
     categorical_features: list[str] | None = None,
+    calibration: dict[str, Any] | None = None,
+    training_sample_size: int | None = None,
 ) -> Pipeline:
     """Cria o pipeline de pré-processamento e classificação escolhido."""
     classifier = _build_classifier(model_name, params or {}, random_state)
+    calibration = calibration or {}
+    if calibration.get("enabled", False) and model_name != "svm":
+        method = calibration.get("method", "sigmoid")
+        if (
+            method == "isotonic"
+            and training_sample_size is not None
+            and training_sample_size < calibration.get("minimum_samples_isotonic", 1000)
+        ):
+            raise ValueError(
+                "Calibração isotônica recusada: amostra de treino abaixo do "
+                "minimum_samples_isotonic configurado."
+            )
+        classifier = CalibratedClassifierCV(
+            estimator=classifier,
+            method=method,
+            cv=calibration.get("cv_folds", 5),
+            ensemble=False,
+        )
 
     # Mantém compatibilidade com matrizes puramente numéricas, inclusive nos
     # testes e em experimentos isolados com apenas uma das bases.

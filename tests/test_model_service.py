@@ -1,5 +1,9 @@
-import pytest
+from pathlib import Path
 
+import pytest
+from fastapi import HTTPException
+
+from backend import model_service
 from backend.model_service import predict_record
 
 
@@ -50,3 +54,33 @@ def test_prediction_includes_ephemeral_local_sensitivity(
         set(feature) == {"feature", "probability_effect", "direction"}
         for feature in explanation["features"]
     )
+
+
+def test_unknown_experiment_returns_service_unavailable(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(model_service, "MODELS_DIR", tmp_path)
+
+    with pytest.raises(HTTPException) as error:
+        model_service.load_artifact("unknown")
+
+    assert error.value.status_code == 503
+
+
+def test_invalid_model_input_returns_detailed_422() -> None:
+    with pytest.raises(HTTPException) as error:
+        predict_record(
+            "pima",
+            {
+                "pregnancies": 2,
+                "glucose_mg_dl": 120,
+                "bmi_kg_m2": 28.5,
+                "diabetes_pedigree_function": 0.45,
+                "age_years": 10,
+            },
+        )
+
+    assert error.value.status_code == 422
+    assert error.value.detail["code"] == "invalid_model_input"
+    assert error.value.detail["errors"]

@@ -183,7 +183,11 @@ def models(_: AuthenticatedUser) -> dict[str, Any]:
     return get_catalog()
 
 
-@app.post("/predict/pima", response_model=PatientPredictionResponse)
+@app.post(
+    "/predict/pima",
+    response_model=PatientPredictionResponse,
+    response_model_exclude_none=True,
+)
 def predict_pima(
     data: PimaPredictionInput,
     user: AuthenticatedUser,
@@ -202,7 +206,11 @@ def predict_pima(
     return new_prediction_response(result, prediction)
 
 
-@app.post("/predict/nhanes", response_model=PatientPredictionResponse)
+@app.post(
+    "/predict/nhanes",
+    response_model=PatientPredictionResponse,
+    response_model_exclude_none=True,
+)
 def predict_nhanes(
     data: NhanesPredictionInput,
     user: AuthenticatedUser,
@@ -228,7 +236,7 @@ def new_prediction_response(
     prediction: dict[str, Any],
 ) -> dict[str, Any]:
     """Combina a saída persistida com a explicação mantida apenas em memória."""
-    return {
+    response = {
         "id": result.id,
         "patient_identifier": result.patient_identifier,
         "created_at": result.created_at,
@@ -249,6 +257,16 @@ def new_prediction_response(
             },
         ),
     }
+    for key in (
+        "input_status",
+        "validation_warnings",
+        "missing_features",
+        "imputed_features",
+        "outside_applicability",
+    ):
+        if key in prediction:
+            response[key] = prediction[key]
+    return response
 
 
 def save_result(

@@ -170,3 +170,15 @@ def test_explainability_summary_returns_ranked_features() -> None:
         "strong",
         "weak",
     }
+
+
+def test_single_class_bootstrap_does_not_crash() -> None:
+    result = bootstrap_confidence_intervals(
+        [0, 0, 0],
+        [0, 0, 0],
+        [0.1, 0.2, 0.3],
+        n_bootstrap=20,
+    )
+
+    assert result["valid_resamples"] == 20
+    assert "roc_auc" not in result["metrics"]

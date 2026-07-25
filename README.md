@@ -1,8 +1,9 @@
 # HealthAI
 
 Projeto de Trabalho de Conclusão de Curso (TCC) para investigar o uso de
-machine learning na **predição de risco de diabetes** a partir de dados
-clínicos tabulares.
+machine learning na **classificação acadêmica de desfechos de diabetes** a
+partir de dados clínicos tabulares. Os experimentos atuais são transversais e
+não estimam incidência futura.
 
 > O sistema tem finalidade acadêmica e de apoio à pesquisa. Sua saída não é
 > diagnóstico médico e não substitui avaliação de um profissional de saúde.
@@ -183,34 +184,40 @@ No modo padrão `console`, adequado ao desenvolvimento, links de confirmação e
 recuperação são exibidos no log da API e nenhum e-mail externo é enviado.
 
 O treinamento separa o teste antes de comparar os três algoritmos, executa
-busca aleatória de hiperparâmetros com validação cruzada somente no treino,
-aprende um limiar F2 com previsões out-of-fold e cria os modelos finais
+busca aleatória de hiperparâmetros com validação cruzada aninhada no treino,
+compara os modelos por average precision out-of-fold, aprende um limiar
+F-beta (beta 2) nessas mesmas previsões e cria os modelos finais
 `models/pima_selected.joblib` e `models/nhanes_selected.joblib`. As métricas
-ficam em `reports/model_comparison.json`, incluindo Brier score, pontos da
-curva de calibração, intervalos bootstrap de 95%, métricas por subgrupos,
-resumo de disparidades, explicabilidade por permutação e estado da validação
-externa. As curvas renderizadas ficam em
+ficam em `reports/model_comparison.json`, incluindo AP/PR-AUC, métricas
+clínicas, Brier score, intercepto/inclinação de calibração, intervalos
+bootstrap estratificados de 95%, subgrupos, explicabilidade e estado da
+validação externa. A auditoria dos dados fica em
+`reports/data_quality.json`. As curvas renderizadas ficam em
 `reports/figures/pima_calibration.png` e
 `reports/figures/nhanes_calibration.png`; as importâncias ficam em
 `reports/figures/pima_feature_importance.png` e
 `reports/figures/nhanes_feature_importance.png`.
 
-Com cinco folds e F1 como critério de seleção, o ajuste resultou em:
+Com cinco dobras externas, quatro internas e AP como critério, o ajuste
+resultou em:
 
-- Pima: Random Forest, F1 médio de 68,34% (desvio de 2,82%);
-- NHANES: SVM, F1 médio de 71,52% (desvio de 1,43%).
+- Pima: SVM, AP OOF de 72,75%;
+- NHANES: Random Forest, AP OOF de 78,61%.
 
-Os limiares F2 definidos apenas no treino foram 21% para Pima e 13% para
-NHANES. No teste isolado, os respectivos recalls foram 88,89% e 80,11%. O
-teste não participa do ajuste, da escolha do algoritmo nem do limiar.
+Os limiares definidos apenas no treino foram 14% para Pima e 38% para
+NHANES. No teste isolado, os respectivos recalls foram 94,44% e 83,52%, com
+especificidades de 49,00% e 83,75%. O teste não participa do ajuste, da escolha
+do algoritmo nem do limiar.
 
 A discussão de explicabilidade, validação externa, viés e limitações está
-consolidada em [`docs/modelo.md`](docs/modelo.md). A validação externa
+consolidada em [`docs/modelo.md`](docs/modelo.md), e a revisão técnica completa
+em [`docs/auditoria-pipeline-ml.md`](docs/auditoria-pipeline-ml.md). A validação externa
 verdadeira ainda está marcada como não realizada, pois exige uma coorte
 independente compatível com as mesmas variáveis e definição de desfecho.
-Na API interativa, cada nova predição também recebe uma explicação efêmera por
-substituição individual pela referência imputada do pipeline. Ela mede
-sensibilidade local, não é causal ou aditiva e não é armazenada no histórico.
+Na API interativa, cada nova predição também recebe uma sensibilidade local
+efêmera por substituição individual pela referência de treino do pipeline. Ela
+informa probabilidade de referência e efeito, não é causal ou aditiva e não é
+armazenada no histórico.
 
 Para gerar previsões em lote:
 
@@ -220,13 +227,16 @@ healthai-predict --input data/processed/pima_diabetes.csv \
   --output reports/predictions.csv
 ```
 
+Acrescente `--fail-on-invalid` para retornar erro quando alguma linha for
+inválida; o CSV de diagnóstico é salvo antes da interrupção.
+
 ## Fluxo de trabalho sugerido
 
 1. Registrar origem, licença e dicionário dos dados.
 2. Fazer análise exploratória sem alterar os dados brutos.
-3. Definir uma divisão de treino e teste antes de comparar modelos.
-4. Treinar Regressão Logística, Random Forest e SVM e registrar as métricas.
-5. Comparar os modelos com validação cruzada e ajuste de hiperparâmetros.
-6. Definir o limiar com previsões out-of-fold e objetivo F2.
+3. Definir uma divisão estratificada de treino e teste antes de comparar modelos.
+4. Treinar Regressão Logística, Random Forest e SVM em CV aninhada.
+5. Comparar os modelos por AP nas previsões out-of-fold.
+6. Definir o limiar com as mesmas previsões e objetivo F-beta.
 7. Avaliar posteriormente métodos de Gradient Boosting.
 8. Analisar explicabilidade, viés, limitações e validade externa.

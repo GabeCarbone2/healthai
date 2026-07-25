@@ -30,6 +30,15 @@ Pima são preservados na cópia bruta e convertidos em ausentes apenas na versã
 processada. No NHANES, valores não medidos ou respostas não classificáveis
 permanecem ausentes.
 
+O alvo Pima preserva a classe original do OpenML 37
+(`tested_positive`/`tested_negative`). No NHANES, `diabetes_outcome` vem
+somente de `DIQ010`: autorrelato de diagnóstico prévio por médico ou
+profissional de saúde. HbA1c, glicose e medicação não constroem esse alvo.
+
+O arquivo NHANES também preserva `fasting_sample_weight`, `survey_psu` e
+`survey_stratum`. O pipeline atual não aplica o desenho amostral complexo; suas
+métricas descrevem a amostra analítica, não a população dos Estados Unidos.
+
 ## Esquema inicial do CSV
 
 O dicionário harmonizado das variáveis do Pima e do NHANES está em
