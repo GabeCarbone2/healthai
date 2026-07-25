@@ -2,9 +2,15 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
+import pytest
 import yaml
 
-from healthai.train import _optimize_threshold, train
+from healthai.train import (
+    _model_version,
+    _optimize_threshold,
+    _prepare_experiment,
+    train,
+)
 
 
 def test_optimize_threshold_uses_out_of_fold_probabilities() -> None:
@@ -90,26 +96,82 @@ def test_train_saves_selected_model_per_experiment(tmp_path: Path) -> None:
         model_name = results[experiment]["selected_model"]
         validation = results[experiment]["models"][model_name]["cross_validation"]
         assert len(validation["fold_scores"]) == 2
+        assert validation["method"] == "nested_stratified_cross_validation"
+        assert len(validation["oof_probabilities"]) == 16
+        assert validation["hyperparameter_search_scope"] == (
+            "inner_training_folds_only"
+        )
         assert "threshold" in results[experiment]["models"][model_name]
         assert "brier_score" in results[experiment]["models"][model_name]
         assert "calibration" in results[experiment]["models"][model_name]
         assert "bias_summary" in results[experiment]["models"][model_name]
         assert "external_validation" in results[experiment]
         assert (
-            results[experiment]["models"][model_name][
-                "confidence_intervals"
-            ]["n_bootstrap"]
+            results[experiment]["models"][model_name]["confidence_intervals"][
+                "n_bootstrap"
+            ]
             == 20
         )
         assert (
-            tmp_path
-            / "reports"
-            / "figures"
-            / f"{experiment}_calibration.png"
+            tmp_path / "reports" / "figures" / f"{experiment}_calibration.png"
         ).exists()
         artifact = joblib.load(tmp_path / "models" / f"{experiment}_selected.joblib")
         assert artifact["selected"] is True
         assert len(artifact["model_version"]) == 16
         assert results[experiment]["model_version"] == artifact["model_version"]
         assert artifact["cross_validation"] == validation
+        assert artifact["artifact_schema_version"] == "2.0"
+        assert (
+            artifact["training_metadata"]["split_integrity"]["shared_index_count"] == 0
+        )
+        assert artifact["threshold_metrics"]["dataset"] == "training_out_of_fold"
         assert 0.1 <= artifact["decision_threshold"] <= 0.9
+
+
+def test_non_binary_target_is_rejected() -> None:
+    dataframe = pd.DataFrame(
+        {"source": ["demo", "demo"], "feature": [1, 2], "target": [0, 2]}
+    )
+    experiment = {
+        "source_value": "demo",
+        "numeric_features": ["feature"],
+        "categorical_features": [],
+    }
+
+    with pytest.raises(ValueError, match="não binário"):
+        _prepare_experiment(
+            dataframe,
+            experiment,
+            source_column="source",
+            target="target",
+        )
+
+
+def test_model_version_changes_with_data_and_config(tmp_path: Path) -> None:
+    data_a = tmp_path / "data-a.csv"
+    data_b = tmp_path / "data-b.csv"
+    config_a = tmp_path / "config-a.yaml"
+    config_b = tmp_path / "config-b.yaml"
+    data_a.write_text("x\n1\n", encoding="utf-8")
+    data_b.write_text("x\n2\n", encoding="utf-8")
+    config_a.write_text("seed: 1\n", encoding="utf-8")
+    config_b.write_text("seed: 2\n", encoding="utf-8")
+    common = {
+        "experiment_name": "demo",
+        "model_name": "logistic_regression",
+        "threshold": {"value": 0.5},
+        "validation": {"best_params": {}},
+    }
+
+    version = _model_version(data_path=data_a, config_path=config_a, **common)
+
+    assert version != _model_version(
+        data_path=data_b,
+        config_path=config_a,
+        **common,
+    )
+    assert version != _model_version(
+        data_path=data_a,
+        config_path=config_b,
+        **common,
+    )

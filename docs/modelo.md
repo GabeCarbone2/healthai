@@ -33,8 +33,8 @@ Nos artefatos atuais, as variáveis mais sensíveis foram:
 
 | Base | Modelo | Principais variáveis por permutação |
 |---|---|---|
-| Pima | Random Forest | glicose, IMC, idade, insulina sérica, gestações |
-| NHANES | SVM calibrado | hemoglobina glicada, idade, glicose, IMC, pressão sistólica |
+| Pima | SVM calibrado internamente | glicose, gestações, IMC, função de pedigree, idade |
+| NHANES | Random Forest | hemoglobina glicada, idade, glicose, IMC, pressão diastólica |
 
 Essas importâncias indicam queda de desempenho quando uma variável é
 embaralhada no teste. Elas não provam causalidade, não substituem análise
@@ -64,14 +64,11 @@ positivo, ROC-AUC e Brier score.
 
 Nos modelos selecionados atuais:
 
-- Pima por idade: o recall foi maior em 40-59 do que em 21-39, com gap de
-  0,1667. O grupo 60+ tem amostra insuficiente e não deve ser interpretado.
-- NHANES por sexo: o recall foi maior entre homens do que entre mulheres, com
-  gap de 0,1072. A taxa de falso positivo também foi maior entre homens, com
-  gap de 0,0482.
-- NHANES por idade: o maior gap de recall foi 0,6000 entre 18-39 e 60+, mas o
-  grupo 18-39 tem poucos eventos positivos e o relatório marca a estimativa
-  como limitada.
+- Pima por idade: o recall foi 0,9167 em 21–39 e 1,0000 em 40–59. O grupo
+  60+ tem somente 6 participantes e 1 evento, logo não é estimado.
+- NHANES por sexo: o recall foi 0,8298 entre homens e 0,8415 entre mulheres.
+- NHANES por idade: o recall variou de 0,2500 em 18–39 a 0,9000 em 60+, mas
+  o grupo mais jovem tem apenas 8 eventos e é marcado como estimativa limitada.
 
 Essas diferenças são sinais descritivos no teste. Elas não demonstram
 discriminação causal, nem garantem equidade populacional. Para uso fora do TCC,
@@ -94,7 +91,24 @@ representatividade e revisão clínica dos custos de erro por grupo.
   desempenho, não efeito clínico causal.
 - Probabilidades imperfeitas: calibração e Brier score ajudam a avaliar risco,
   mas não eliminam erro de previsão individual.
+- Desenho amostral: os pesos, estratos e conglomerados do NHANES não foram
+  aplicados; os resultados não são estimativas populacionais dos Estados Unidos.
 - Entrada manual: erros de digitação, unidade ou contexto clínico ausente podem
   alterar a previsão.
 - Privacidade: identificadores diretos de pacientes não devem ser inseridos; o
   código `PAC-...` continua sendo pseudonimização, não anonimização plena.
+
+## Metodologia revisada
+
+O teste é separado antes de qualquer escolha. A comparação usa validação
+cruzada aninhada estratificada (cinco dobras externas e quatro internas) e
+average precision nas probabilidades out-of-fold. O limiar maximiza F-beta com
+beta 2 exclusivamente nessas probabilidades; o teste isolado é consultado
+apenas ao final.
+
+O relatório inclui AP/PR-AUC, ROC-AUC, acurácia balanceada, sensibilidade,
+especificidade, VPP, VPN, razões de verossimilhança, prevalência, Brier, ECE,
+intercepto e inclinação de calibração. Intervalos de 95% usam bootstrap
+estratificado pelo desfecho. Consulte
+[`auditoria-pipeline-ml.md`](auditoria-pipeline-ml.md) para decisões,
+rastreabilidade, resultados completos e limitações.

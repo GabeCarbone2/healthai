@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import logging
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -10,9 +11,13 @@ import joblib
 import pandas as pd
 from fastapi import HTTPException
 
+from healthai.artifacts import ArtifactCompatibilityError, validate_artifact
+from healthai.inference import local_reference_sensitivity, predict_dataframe
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPORT_PATH = PROJECT_ROOT / "reports" / "model_comparison.json"
 MODELS_DIR = PROJECT_ROOT / "models"
+LOGGER = logging.getLogger("healthai.ml.inference")
 
 MODEL_LABELS = {
     "logistic_regression": "Regressão Logística",
@@ -193,7 +198,32 @@ def load_artifact(experiment: str) -> dict[str, Any]:
             status_code=503,
             detail=f"Modelo {experiment} não encontrado. Execute make train.",
         )
-    artifact = _load_artifact(str(model_path), model_path.stat().st_mtime_ns).copy()
+    try:
+        raw_artifact = _load_artifact(
+            str(model_path), model_path.stat().st_mtime_ns
+        ).copy()
+        artifact = validate_artifact(raw_artifact)
+    except (
+        OSError,
+        EOFError,
+        ValueError,
+        TypeError,
+        ArtifactCompatibilityError,
+    ) as error:
+        LOGGER.exception(
+            "artifact_load_failed experiment=%s path=%s",
+            experiment,
+            model_path.name,
+        )
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "model_artifact_incompatible_or_corrupted",
+                "message": (
+                    f"O artefato do modelo {experiment} não pôde ser validado."
+                ),
+            },
+        ) from error
     artifact.setdefault(
         "model_version",
         _artifact_version(str(model_path), model_path.stat().st_mtime_ns),
@@ -236,12 +266,12 @@ def _prepare_model_input(
     artifact: dict[str, Any],
     values: dict[str, Any],
 ) -> pd.DataFrame:
-    model_input = pd.DataFrame([values], columns=artifact["features"])
-    for column, mapping in artifact.get("category_mappings", {}).items():
-        model_input[column] = model_input[column].map(mapping)
-    for column, minimum in artifact.get("filters", {}).get("invalid_below", {}).items():
-        model_input.loc[model_input[column].lt(minimum), column] = pd.NA
-    return model_input
+    batch = predict_dataframe(
+        artifact,
+        pd.DataFrame([values]),
+        enforce_required=True,
+    )
+    return batch.validation.dataframe
 
 
 def _local_reference_explanation(
@@ -249,63 +279,55 @@ def _local_reference_explanation(
     model_input: pd.DataFrame,
     probability: float,
 ) -> dict[str, Any]:
-    """Mede sensibilidade local substituindo uma variável pela referência imputada.
-
-    A explicação é calculada em memória e não é aditiva: cada efeito compara a
-    predição original com uma nova execução em que somente aquela variável é
-    omitida e substituída pelo valor de referência aprendido pelo pipeline.
-    """
-    pipeline = artifact["pipeline"]
-    effects = []
-    for feature in artifact["features"]:
-        if pd.isna(model_input.at[0, feature]):
-            continue
-        reference_input = model_input.copy()
-        reference_input.at[0, feature] = pd.NA
-        reference_probability = float(pipeline.predict_proba(reference_input)[0, 1])
-        effect = probability - reference_probability
-        direction = (
-            "increases"
-            if effect > 1e-6
-            else "decreases"
-            if effect < -1e-6
-            else "neutral"
-        )
-        effects.append(
-            {
-                "feature": feature,
-                "probability_effect": effect,
-                "direction": direction,
-            }
-        )
-    effects.sort(key=lambda item: abs(item["probability_effect"]), reverse=True)
-    return {
-        "method": "single_feature_reference_replacement",
-        "interpretation": (
-            "Sensibilidade desta predição: cada efeito compara o resultado atual "
-            "com uma nova execução em que apenas aquela variável é substituída "
-            "pela referência estatística aprendida no treino. Os efeitos não são "
-            "causais nem aditivos."
-        ),
-        "features": effects[:5],
-    }
+    return local_reference_sensitivity(artifact, model_input, probability)
 
 
 def predict_record(experiment: str, values: dict[str, Any]) -> dict[str, Any]:
     """Executa uma previsão sem persistir o registro recebido."""
     artifact = load_artifact(experiment)
-    missing_feature_count = sum(
-        values.get(feature) is None for feature in artifact["features"]
-    )
-    input_completeness = (len(artifact["features"]) - missing_feature_count) / len(
-        artifact["features"]
-    )
-    model_input = _prepare_model_input(artifact, values)
+    try:
+        batch = predict_dataframe(
+            artifact,
+            pd.DataFrame([values]),
+            enforce_required=True,
+        )
+    except (ValueError, TypeError) as error:
+        LOGGER.exception("input_preparation_failed experiment=%s", experiment)
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "input_preparation_failed",
+                "message": str(error),
+            },
+        ) from error
+    row_index = batch.dataframe.index[0]
+    diagnostics = batch.validation.row_diagnostics(row_index)
+    if not diagnostics["eligible"]:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "invalid_model_input",
+                "message": "A entrada não atende ao contrato do modelo.",
+                "errors": diagnostics["errors"],
+                "warnings": diagnostics["warnings"],
+                "input_completeness": diagnostics["input_completeness"],
+                "missing_features": diagnostics["missing_features"],
+                "outside_applicability": diagnostics["outside_applicability"],
+            },
+        )
 
-    pipeline = artifact["pipeline"]
-    probability = float(pipeline.predict_proba(model_input)[0, 1])
-    decision_threshold = float(artifact.get("decision_threshold", 0.5))
-    predicted_class = int(probability >= decision_threshold)
+    probability = float(batch.dataframe.loc[row_index, "predicted_probability"])
+    decision_threshold = float(batch.dataframe.loc[row_index, "decision_threshold"])
+    predicted_class = int(batch.dataframe.loc[row_index, "predicted_class"])
+    model_input = batch.validation.dataframe.loc[[row_index]]
+    LOGGER.info(
+        "prediction_completed experiment=%s model_version=%s status=predicted "
+        "warning_count=%d missing_count=%d",
+        experiment,
+        artifact["model_version"],
+        len(diagnostics["warnings"]),
+        diagnostics["missing_feature_count"],
+    )
     return {
         "experiment": experiment,
         "model": artifact["model_name"],
@@ -313,11 +335,17 @@ def predict_record(experiment: str, values: dict[str, Any]) -> dict[str, Any]:
         "predicted_class": predicted_class,
         "probability": probability,
         "decision_threshold": decision_threshold,
-        "input_completeness": input_completeness,
-        "missing_feature_count": missing_feature_count,
-        "local_explanation": _local_reference_explanation(
+        "input_completeness": diagnostics["input_completeness"],
+        "missing_feature_count": diagnostics["missing_feature_count"],
+        "input_status": "predicted",
+        "validation_warnings": diagnostics["warnings"],
+        "missing_features": diagnostics["missing_features"],
+        "imputed_features": diagnostics["imputed_features"],
+        "outside_applicability": diagnostics["outside_applicability"],
+        "local_explanation": local_reference_sensitivity(
             artifact,
             model_input,
             probability,
+            missing_features=diagnostics["missing_features"],
         ),
     }

@@ -1,0 +1,123 @@
+{
+  "run": {
+    "trained_at": "2026-07-25T18:05:58.160410+00:00",
+    "data_sha256": "7c5efd9fcb3612376b808291c192874471cf9b34e49ac7fc97f2b236a951b8c2",
+    "config_sha256": "c1215b7f7a026ddc4e02ed9dc99d5ad3759507c7ac4436b1878a0b4ff222e656",
+    "code_sha256": "df5e5e8071bacc53b7f38922f76178aec554d5bb6b1ef9ef000a95f3cccd662b",
+    "git_commit": "7d02a89ac917083db0e05a67e04f421c32c6d5c7",
+    "package_versions": {
+      "python": "3.12.3",
+      "healthai": "0.1.0",
+      "numpy": "2.4.6",
+      "pandas": "2.3.3",
+      "scikit-learn": "1.9.0",
+      "joblib": "1.5.3",
+      "pydantic": "2.13.4"
+    }
+  },
+  "experiments": {
+    "pima": {
+      "n_source_records": 768,
+      "n_eligible_records": 768,
+      "duplicate_feature_target_rows": 0,
+      "target_distribution": {
+        "0": 500,
+        "1": 268
+      },
+      "target_prevalence": 0.3489583333333333,
+      "missing_by_feature": {
+        "pregnancies": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "glucose_mg_dl": {
+          "count": 5,
+          "rate": 0.006510416666666667
+        },
+        "diastolic_bp_mmhg": {
+          "count": 35,
+          "rate": 0.045572916666666664
+        },
+        "skin_thickness_mm": {
+          "count": 227,
+          "rate": 0.2955729166666667
+        },
+        "serum_insulin_muu_ml": {
+          "count": 374,
+          "rate": 0.4869791666666667
+        },
+        "bmi_kg_m2": {
+          "count": 11,
+          "rate": 0.014322916666666666
+        },
+        "diabetes_pedigree_function": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "age_years": {
+          "count": 0,
+          "rate": 0.0
+        }
+      },
+      "exclusions_and_transformations": {
+        "missing_or_invalid_target": 0,
+        "warning_missing_value_will_be_imputed": 652
+      },
+      "checks": {
+        "target_binary": true,
+        "both_target_classes_present": true,
+        "all_required_columns_present": true
+      }
+    },
+    "nhanes": {
+      "n_source_records": 9254,
+      "n_eligible_records": 5678,
+      "duplicate_feature_target_rows": 184,
+      "target_distribution": {
+        "0": 4800,
+        "1": 878
+      },
+      "target_prevalence": 0.15463191264529763,
+      "missing_by_feature": {
+        "age_years": {
+          "count": 0,
+          "rate": 0.0
+        },
+        "bmi_kg_m2": {
+          "count": 411,
+          "rate": 0.0723846424797464
+        },
+        "systolic_bp_mmhg": {
+          "count": 589,
+          "rate": 0.10373370905248328
+        },
+        "diastolic_bp_mmhg": {
+          "count": 589,
+          "rate": 0.10373370905248328
+        },
+        "hba1c_percent": {
+          "count": 582,
+          "rate": 0.10250088059175766
+        },
+        "glucose_mg_dl": {
+          "count": 3223,
+          "rate": 0.5676294469883761
+        },
+        "sex": {
+          "count": 0,
+          "rate": 0.0
+        }
+      },
+      "exclusions_and_transformations": {
+        "missing_or_invalid_target": 545,
+        "outside_target_population": 3031,
+        "warning_missing_value_will_be_imputed": 13946
+      },
+      "checks": {
+        "target_binary": true,
+        "both_target_classes_present": true,
+        "all_required_columns_present": true
+      }
+    }
+  }
+}

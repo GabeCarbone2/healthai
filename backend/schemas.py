@@ -192,26 +192,26 @@ class PatientPredictionInput(BaseModel):
 class PimaPredictionInput(PatientPredictionInput):
     """Variáveis usadas pelo modelo Pima."""
 
-    pregnancies: int = Field(ge=0, le=17)
-    glucose_mg_dl: float = Field(ge=44, le=199)
-    diastolic_bp_mmhg: float | None = Field(default=None, ge=30, le=122)
-    skin_thickness_mm: float | None = Field(default=None, ge=7, le=99)
-    serum_insulin_muu_ml: float | None = Field(default=None, ge=14, le=846)
-    bmi_kg_m2: float = Field(ge=18.2, le=67.1)
-    diabetes_pedigree_function: float = Field(ge=0.078, le=2.42)
-    age_years: int = Field(ge=21, le=81)
+    pregnancies: int = Field(ge=0, le=30)
+    glucose_mg_dl: float = Field(ge=0, le=1000)
+    diastolic_bp_mmhg: float | None = Field(default=None, ge=0, le=300)
+    skin_thickness_mm: float | None = Field(default=None, ge=0, le=200)
+    serum_insulin_muu_ml: float | None = Field(default=None, ge=0, le=5000)
+    bmi_kg_m2: float = Field(ge=0, le=150)
+    diabetes_pedigree_function: float = Field(ge=0, le=10)
+    age_years: int = Field(ge=0, le=130)
 
 
 class NhanesPredictionInput(PatientPredictionInput):
     """Variáveis usadas pelo modelo NHANES."""
 
     sex: Literal["female", "male"]
-    age_years: int = Field(ge=18, le=80)
-    bmi_kg_m2: float = Field(ge=14.2, le=86.2)
-    systolic_bp_mmhg: float | None = Field(default=None, ge=73, le=238)
-    diastolic_bp_mmhg: float | None = Field(default=None, ge=31, le=136)
-    hba1c_percent: float = Field(ge=3.8, le=16.2)
-    glucose_mg_dl: float | None = Field(default=None, ge=47, le=421)
+    age_years: int = Field(ge=0, le=130)
+    bmi_kg_m2: float = Field(ge=0, le=150)
+    systolic_bp_mmhg: float | None = Field(default=None, ge=0, le=350)
+    diastolic_bp_mmhg: float | None = Field(default=None, ge=0, le=300)
+    hba1c_percent: float = Field(ge=0, le=30)
+    glucose_mg_dl: float | None = Field(default=None, ge=0, le=1000)
 
     @model_validator(mode="after")
     def validate_clinical_completeness(self) -> "NhanesPredictionInput":
@@ -277,14 +277,21 @@ class LocalFeatureEffect(BaseModel):
 
 class LocalExplanation(BaseModel):
     method: Literal["single_feature_reference_replacement"]
+    concept: Literal["local_sensitivity_to_training_reference"] | None = None
     interpretation: str
     features: list[LocalFeatureEffect]
+    reference_effects: list[dict[str, object]] | None = None
 
 
 class PatientPredictionResponse(PatientResultResponse):
     """Resultado recém-calculado com explicação efêmera, não persistida."""
 
     local_explanation: LocalExplanation
+    input_status: Literal["predicted"] | None = None
+    validation_warnings: list[dict[str, object]] | None = None
+    missing_features: list[str] | None = None
+    imputed_features: list[str] | None = None
+    outside_applicability: list[str] | None = None
 
 
 class PatientResultPageResponse(BaseModel):

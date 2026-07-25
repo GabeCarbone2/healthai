@@ -1,59 +1,63 @@
-"""Predições em lote com um pipeline previamente treinado."""
+"""Predições em lote com o mesmo contrato de inferência usado pela API."""
+
+from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 from pathlib import Path
+from typing import Any
 
-import joblib
-import numpy as np
 import pandas as pd
 
-from healthai.data import load_dataset
+from healthai.artifacts import atomic_write_csv, load_artifact_file
+from healthai.inference import predict_dataframe
+
+
+def _json_cell(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":"), default=str)
 
 
 def predict(
     input_path: str | Path,
     model_path: str | Path,
     output_path: str | Path,
-) -> None:
-    """Acrescenta classe e probabilidade preditas a um CSV."""
-    artifact = joblib.load(model_path)
-    model_version = artifact.get(
+    *,
+    fail_on_invalid: bool = False,
+) -> dict[str, int]:
+    """Valida, prediz e grava status detalhado para cada linha do CSV."""
+    model_path = Path(model_path)
+    artifact = load_artifact_file(model_path)
+    artifact["model_version"] = artifact.get(
         "model_version",
-        hashlib.sha256(Path(model_path).read_bytes()).hexdigest()[:16],
+        hashlib.sha256(model_path.read_bytes()).hexdigest()[:16],
     )
-    features = artifact["features"]
-    pipeline = artifact["pipeline"]
-    dataframe = load_dataset(input_path, features)
-    model_input = dataframe[features].copy()
-    for column, mapping in artifact.get("category_mappings", {}).items():
-        model_input[column] = model_input[column].map(mapping)
+    dataframe = pd.read_csv(input_path)
+    batch = predict_dataframe(artifact, dataframe, enforce_required=True)
+    result = batch.dataframe.copy()
+    structured_columns = (
+        "validation_errors",
+        "validation_warnings",
+        "missing_features",
+        "imputed_features",
+        "outside_applicability",
+        "exclusion_reasons",
+    )
+    for column in structured_columns:
+        result[column] = result[column].map(_json_cell)
 
-    eligible = pd.Series(True, index=dataframe.index)
-    filters = artifact.get("filters", {})
-    for column, minimum in filters.get("minimum_values", {}).items():
-        eligible &= model_input[column].ge(minimum)
-    for column, minimum in filters.get("invalid_below", {}).items():
-        model_input.loc[model_input[column].lt(minimum), column] = pd.NA
-
-    result = dataframe.copy()
-    result["predicted_class"] = pd.Series(pd.NA, index=result.index, dtype="Int64")
-    result["predicted_probability"] = np.nan
-    result["decision_threshold"] = np.nan
-    result["model_version"] = model_version
-    if eligible.any():
-        eligible_input = model_input.loc[eligible]
-        probabilities = pipeline.predict_proba(eligible_input)[:, 1]
-        decision_threshold = artifact.get("decision_threshold", 0.5)
-        result.loc[eligible, "predicted_class"] = (
-            probabilities >= decision_threshold
-        ).astype(int)
-        result.loc[eligible, "predicted_probability"] = probabilities
-        result.loc[eligible, "decision_threshold"] = decision_threshold
-
-    destination = Path(output_path)
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    result.to_csv(destination, index=False)
+    atomic_write_csv(result, output_path)
+    invalid_count = int((result["prediction_status"] == "invalid").sum())
+    summary = {
+        "total": int(len(result)),
+        "predicted": int((result["prediction_status"] == "predicted").sum()),
+        "invalid": invalid_count,
+    }
+    if fail_on_invalid and invalid_count:
+        raise ValueError(
+            f"{invalid_count} registro(s) inválido(s); consulte {output_path}."
+        )
+    return summary
 
 
 def main() -> None:
@@ -63,8 +67,19 @@ def main() -> None:
         "--model", required=True, help="Modelo selecionado para a base dos dados."
     )
     parser.add_argument("--output", required=True, help="Destino do CSV de resultados.")
+    parser.add_argument(
+        "--fail-on-invalid",
+        action="store_true",
+        help="Retorna erro após gravar o relatório se houver linha inválida.",
+    )
     args = parser.parse_args()
-    predict(args.input, args.model, args.output)
+    summary = predict(
+        args.input,
+        args.model,
+        args.output,
+        fail_on_invalid=args.fail_on_invalid,
+    )
+    print(json.dumps(summary, ensure_ascii=False))
 
 
 if __name__ == "__main__":

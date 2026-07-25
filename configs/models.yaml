@@ -8,13 +8,18 @@ split:
   random_state: 42
 
 selection:
-  scoring: f1
+  scoring: average_precision
+  model_metric: average_precision
   cv_folds: 5
   shuffle: true
   search_iterations: 8
   n_jobs: -1
+  nested_cv:
+    enabled: true
+    outer_folds: 5
+    inner_folds: 4
   threshold:
-    metric: f2
+    metric: fbeta
     beta: 2.0
     minimum: 0.10
     maximum: 0.90
@@ -24,26 +29,48 @@ evaluation:
   calibration:
     n_bins: 10
     strategy: quantile
+  model_calibration:
+    enabled: false
+    method: sigmoid
+    cv_folds: 5
+    minimum_samples_isotonic: 1000
+    reason: >
+      A calibração adicional fica desabilitada por padrão; será habilitada
+      somente se a validação aninhada demonstrar benefício sem usar o teste.
   confidence_intervals:
     enabled: true
     confidence_level: 0.95
     n_bootstrap: 2000
     random_state: 42
+    stratified: true
   subgroup_minimum_size: 20
   subgroup_minimum_events: 10
   subgroup_bootstrap: 1000
   explainability:
     enabled: true
     method: permutation_importance
+    dataset: held_out_test
+    final_model_only: true
     scoring: roc_auc
     n_repeats: 20
     random_state: 42
     n_jobs: -1
     top_n: 12
+  decision_curve_analysis:
+    enabled: false
+    reason: >
+      Não há ainda probabilidades-limiar clinicamente justificadas para
+      transformar net benefit em uma alegação confiável.
 
 experiments:
   pima:
     source_value: pima_openml_37
+    target_definition: >
+      Resultado binário original do conjunto Pima/OpenML 37
+      (tested_positive=1, tested_negative=0).
+    intended_use: >
+      Classificação acadêmica transversal de diabetes na população feminina
+      representada pelo Pima; não estima incidência futura nem substitui diagnóstico.
     external_validation:
       status: not_performed
       target_dataset: null
@@ -62,6 +89,38 @@ experiments:
       - diabetes_pedigree_function
       - age_years
     categorical_features: []
+    input_validation:
+      required_features:
+        - pregnancies
+        - glucose_mg_dl
+        - bmi_kg_m2
+        - diabetes_pedigree_function
+        - age_years
+      allowed_categories: {}
+      minimum_completeness: null
+    filters:
+      minimum_values:
+        age_years: 21
+      invalid_values:
+        glucose_mg_dl: [0]
+        diastolic_bp_mmhg: [0]
+        skin_thickness_mm: [0]
+        serum_insulin_muu_ml: [0]
+        bmi_kg_m2: [0]
+      hard_limits:
+        pregnancies: {minimum: 0, maximum: 30}
+        glucose_mg_dl: {minimum: 0, maximum: 1000}
+        diastolic_bp_mmhg: {minimum: 0, maximum: 300}
+        skin_thickness_mm: {minimum: 0, maximum: 200}
+        serum_insulin_muu_ml: {minimum: 0, maximum: 5000}
+        bmi_kg_m2: {minimum: 0, maximum: 150}
+        diabetes_pedigree_function: {minimum: 0, maximum: 10}
+        age_years: {minimum: 0, maximum: 130}
+      applicability_ranges: {}
+    survey_weighting:
+      applied: false
+      reason: O conjunto Pima não possui desenho amostral complexo equivalente.
+      interpretation: As estimativas descrevem apenas a amostra utilizada.
     subgroups:
       - name: age_group
         column: age_years
@@ -103,6 +162,14 @@ experiments:
 
   nhanes:
     source_value: nhanes_2017_2018
+    target_definition: >
+      Resposta DIQ010 do NHANES 2017-2018: participante informou que médico ou
+      profissional de saúde já diagnosticou diabetes (sim=1, não=0);
+      respostas limítrofes, recusadas ou desconhecidas são excluídas.
+    intended_use: >
+      Classificação acadêmica transversal de diabetes previamente diagnosticado
+      no contexto da onda NHANES; HbA1c e glicose são medidas concorrentes e o
+      resultado não deve ser interpretado como previsão futura de incidência.
     external_validation:
       status: not_performed
       target_dataset: null
@@ -112,25 +179,30 @@ experiments:
         com as mesmas variáveis, mesma definição de desfecho e sem reajuste do
         limiar.
     numeric_features:
-      - sex
       - age_years
       - bmi_kg_m2
       - systolic_bp_mmhg
       - diastolic_bp_mmhg
       - hba1c_percent
       - glucose_mg_dl
-    categorical_features: []
-    category_mappings:
-      sex:
-        male: 0
-        female: 1
+    categorical_features:
+      - sex
+    input_validation:
+      required_features:
+        - sex
+        - age_years
+        - bmi_kg_m2
+        - hba1c_percent
+      allowed_categories:
+        sex: [female, male]
+      minimum_completeness: null
     subgroups:
       - name: sex
         column: sex
         label: Sexo
         value_labels:
-          "0": Masculino
-          "1": Feminino
+          male: Masculino
+          female: Feminino
       - name: age_group
         column: age_years
         label: Faixa etária
@@ -139,8 +211,32 @@ experiments:
     filters:
       minimum_values:
         age_years: 18
-      invalid_below:
-        diastolic_bp_mmhg: 30
+      invalid_values:
+        bmi_kg_m2: [0]
+        systolic_bp_mmhg: [0]
+        diastolic_bp_mmhg: [0]
+        hba1c_percent: [0]
+        glucose_mg_dl: [0]
+      invalid_below: {}
+      hard_limits:
+        age_years: {minimum: 0, maximum: 130}
+        bmi_kg_m2: {minimum: 0, maximum: 150}
+        systolic_bp_mmhg: {minimum: 0, maximum: 350}
+        diastolic_bp_mmhg: {minimum: 0, maximum: 300}
+        hba1c_percent: {minimum: 0, maximum: 30}
+        glucose_mg_dl: {minimum: 0, maximum: 1000}
+      applicability_ranges: {}
+    survey_weighting:
+      applied: false
+      weight_column: fasting_sample_weight
+      strata_column: survey_stratum
+      cluster_column: survey_psu
+      reason: >
+        O pipeline atual usa estimadores do scikit-learn sem inferência para
+        desenho amostral complexo e não aplica pesos no ajuste ou nas métricas.
+      interpretation: >
+        Os resultados são desempenho na amostra analítica e não estimativas
+        representativas da população dos Estados Unidos.
     models:
       logistic_regression:
         enabled: true
@@ -178,3 +274,4 @@ outputs:
   models_dir: models
   metrics_path: reports/model_comparison.json
   figures_dir: reports/figures
+  data_quality_path: reports/data_quality.json

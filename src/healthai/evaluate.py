@@ -6,12 +6,14 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from sklearn.inspection import permutation_importance
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
+    average_precision_score,
+    balanced_accuracy_score,
     brier_score_loss,
     confusion_matrix,
     f1_score,
-    precision_score,
     recall_score,
     roc_auc_score,
 )
@@ -26,28 +28,65 @@ def _metric_values(
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
     negative_count = tn + fp
     positive_count = tp + fn
+    predicted_positive_count = tp + fp
+    predicted_negative_count = tn + fn
+    sensitivity = float(tp / positive_count) if positive_count else None
+    specificity = float(tn / negative_count) if negative_count else None
+    false_positive_rate = float(fp / negative_count) if negative_count else None
+    false_negative_rate = float(fn / positive_count) if positive_count else None
+    precision = (
+        float(tp / predicted_positive_count) if predicted_positive_count else 0.0
+    )
+    negative_predictive_value = (
+        float(tn / predicted_negative_count) if predicted_negative_count else 0.0
+    )
+    likelihood_ratio_positive = (
+        float(sensitivity / false_positive_rate)
+        if sensitivity is not None and false_positive_rate not in {None, 0.0}
+        else None
+    )
+    likelihood_ratio_negative = (
+        float(false_negative_rate / specificity)
+        if false_negative_rate is not None and specificity not in {None, 0.0}
+        else None
+    )
     return {
         "accuracy": float(accuracy_score(y_true, y_pred)),
-        "precision": float(
-            precision_score(y_true, y_pred, zero_division=0)
+        "balanced_accuracy": (
+            float(balanced_accuracy_score(y_true, y_pred))
+            if has_both_classes
+            else float(accuracy_score(y_true, y_pred))
         ),
+        "precision": precision,
+        "positive_predictive_value": precision,
+        "negative_predictive_value": negative_predictive_value,
         "recall": float(recall_score(y_true, y_pred, zero_division=0)),
-        "specificity": (
-            float(tn / negative_count) if negative_count else None
-        ),
-        "false_positive_rate": (
-            float(fp / negative_count) if negative_count else None
-        ),
-        "false_negative_rate": (
-            float(fn / positive_count) if positive_count else None
-        ),
+        "sensitivity": sensitivity,
+        "specificity": specificity,
+        "false_positive_rate": false_positive_rate,
+        "false_negative_rate": false_negative_rate,
+        "likelihood_ratio_positive": likelihood_ratio_positive,
+        "likelihood_ratio_negative": likelihood_ratio_negative,
         "f1": float(f1_score(y_true, y_pred, zero_division=0)),
         "roc_auc": (
-            float(roc_auc_score(y_true, y_probability))
+            float(roc_auc_score(y_true, y_probability)) if has_both_classes else None
+        ),
+        "average_precision": (
+            float(average_precision_score(y_true, y_probability))
+            if has_both_classes
+            else None
+        ),
+        "pr_auc": (
+            float(average_precision_score(y_true, y_probability))
             if has_both_classes
             else None
         ),
         "brier_score": float(brier_score_loss(y_true, y_probability)),
+        "prevalence": float(np.mean(y_true)),
+        "true_negatives": int(tn),
+        "false_positives": int(fp),
+        "false_negatives": int(fn),
+        "true_positives": int(tp),
     }
 
 
@@ -104,9 +143,7 @@ def calibration_summary(
             continue
         mean_probability = float(probabilities[mask].mean())
         observed_frequency = float(labels[mask].mean())
-        absolute_error_sum += count * abs(
-            observed_frequency - mean_probability
-        )
+        absolute_error_sum += count * abs(observed_frequency - mean_probability)
         points.append(
             {
                 "bin_lower": float(edges[bin_id]),
@@ -117,14 +154,34 @@ def calibration_summary(
             }
         )
 
+    calibration_intercept: float | None = None
+    calibration_slope: float | None = None
+    calibration_status = "estimated"
+    if len(np.unique(labels)) < 2 or np.allclose(probabilities, probabilities[0]):
+        calibration_status = "not_estimable"
+    else:
+        clipped = np.clip(probabilities, 1e-6, 1 - 1e-6)
+        logits = np.log(clipped / (1 - clipped)).reshape(-1, 1)
+        try:
+            calibration_model = LogisticRegression(
+                C=np.inf,
+                solver="lbfgs",
+                max_iter=2000,
+            ).fit(logits, labels.astype(int))
+            calibration_intercept = float(calibration_model.intercept_[0])
+            calibration_slope = float(calibration_model.coef_[0, 0])
+        except (ValueError, FloatingPointError):
+            calibration_status = "not_estimable"
+
     return {
         "dataset": "test",
         "strategy": strategy,
         "requested_bins": n_bins,
         "effective_bins": len(points),
-        "expected_calibration_error": float(
-            absolute_error_sum / len(probabilities)
-        ),
+        "expected_calibration_error": float(absolute_error_sum / len(probabilities)),
+        "calibration_intercept": calibration_intercept,
+        "calibration_slope": calibration_slope,
+        "calibration_regression_status": calibration_status,
         "points": points,
     }
 
@@ -138,7 +195,7 @@ def bootstrap_confidence_intervals(
     n_bootstrap: int = 2000,
     random_state: int = 42,
 ) -> dict[str, object]:
-    """Estima ICs percentis com reamostragem pareada das observações."""
+    """Estima ICs percentis com bootstrap estratificado por desfecho."""
     if not 0 < confidence_level < 1:
         raise ValueError("O nível de confiança deve estar entre zero e um.")
     if n_bootstrap < 1:
@@ -148,17 +205,33 @@ def bootstrap_confidence_intervals(
     predictions = np.asarray(y_pred)
     probabilities = np.asarray(y_probability)
     estimates = _metric_values(labels, predictions, probabilities)
-    samples: dict[str, list[float]] = {
-        metric: [] for metric in estimates
-    }
+    samples: dict[str, list[float]] = {metric: [] for metric in estimates}
     generator = np.random.default_rng(random_state)
+    class_indices = {
+        value: np.flatnonzero(labels == value) for value in np.unique(labels)
+    }
+    valid_resamples = 0
+    discarded_resamples = 0
     for _ in range(n_bootstrap):
-        indices = generator.integers(0, len(labels), size=len(labels))
+        sampled_parts = [
+            generator.choice(indices, size=len(indices), replace=True)
+            for indices in class_indices.values()
+            if len(indices)
+        ]
+        if not sampled_parts:
+            discarded_resamples += 1
+            continue
+        indices = np.concatenate(sampled_parts)
+        generator.shuffle(indices)
         values = _metric_values(
             labels[indices],
             predictions[indices],
             probabilities[indices],
         )
+        if not values:
+            discarded_resamples += 1
+            continue
+        valid_resamples += 1
         for metric, value in values.items():
             if value is not None:
                 samples[metric].append(value)
@@ -168,23 +241,116 @@ def bootstrap_confidence_intervals(
     for metric, estimate in estimates.items():
         metric_samples = samples[metric]
         if estimate is None or not metric_samples:
-            intervals[metric] = None
             continue
+        lower = float(np.quantile(metric_samples, alpha / 2))
+        upper = float(np.quantile(metric_samples, 1 - (alpha / 2)))
         intervals[metric] = {
             "estimate": estimate,
-            "lower": float(np.quantile(metric_samples, alpha / 2)),
-            "upper": float(
-                np.quantile(metric_samples, 1 - (alpha / 2))
-            ),
+            "lower": min(lower, float(estimate)),
+            "upper": max(upper, float(estimate)),
             "valid_resamples": len(metric_samples),
         }
 
     return {
-        "method": "paired_nonparametric_percentile_bootstrap",
+        "method": "outcome_stratified_nonparametric_percentile_bootstrap",
         "dataset": "test",
         "confidence_level": confidence_level,
         "n_bootstrap": n_bootstrap,
+        "valid_resamples": valid_resamples,
+        "discarded_resamples": discarded_resamples,
         "random_state": random_state,
+        "metrics": intervals,
+    }
+
+
+def _subgroup_gap_intervals(
+    labels: np.ndarray,
+    predictions: np.ndarray,
+    probabilities: np.ndarray,
+    masks: list[np.ndarray],
+    *,
+    confidence_level: float,
+    n_bootstrap: int,
+    random_state: int,
+    metrics: tuple[str, ...] = (
+        "recall",
+        "precision",
+        "false_positive_rate",
+        "roc_auc",
+        "brier_score",
+    ),
+) -> dict[str, object]:
+    """Bootstrap estratificado do maior gap entre grupos comparáveis."""
+    original_values = [
+        _metric_values(labels[mask], predictions[mask], probabilities[mask])
+        for mask in masks
+    ]
+    generator = np.random.default_rng(random_state)
+    samples: dict[str, list[float]] = {metric: [] for metric in metrics}
+    valid_resamples = 0
+    discarded_resamples = 0
+    for _ in range(n_bootstrap):
+        resampled_groups: list[dict[str, float | None]] = []
+        for mask in masks:
+            group_indices = np.flatnonzero(mask)
+            group_labels = labels[group_indices]
+            parts = [
+                generator.choice(
+                    group_indices[group_labels == target_class],
+                    size=int((group_labels == target_class).sum()),
+                    replace=True,
+                )
+                for target_class in np.unique(group_labels)
+            ]
+            indices = np.concatenate(parts)
+            resampled_groups.append(
+                _metric_values(
+                    labels[indices],
+                    predictions[indices],
+                    probabilities[indices],
+                )
+            )
+        recorded = False
+        for metric in metrics:
+            values = [
+                float(group[metric])
+                for group in resampled_groups
+                if group.get(metric) is not None
+            ]
+            if len(values) >= 2:
+                samples[metric].append(max(values) - min(values))
+                recorded = True
+        if recorded:
+            valid_resamples += 1
+        else:
+            discarded_resamples += 1
+
+    alpha = 1 - confidence_level
+    intervals: dict[str, object] = {}
+    for metric in metrics:
+        values = [
+            float(group[metric])
+            for group in original_values
+            if group.get(metric) is not None
+        ]
+        metric_samples = samples[metric]
+        if len(values) < 2 or not metric_samples:
+            continue
+        estimate = max(values) - min(values)
+        lower = float(np.quantile(metric_samples, alpha / 2))
+        upper = float(np.quantile(metric_samples, 1 - alpha / 2))
+        intervals[metric] = {
+            "estimate": estimate,
+            "lower": min(lower, estimate),
+            "upper": max(upper, estimate),
+            "valid_resamples": len(metric_samples),
+        }
+    return {
+        "method": "group_and_outcome_stratified_percentile_bootstrap",
+        "confidence_level": confidence_level,
+        "n_bootstrap": n_bootstrap,
+        "valid_resamples": valid_resamples,
+        "discarded_resamples": discarded_resamples,
         "metrics": intervals,
     }
 
@@ -214,7 +380,7 @@ def subgroup_evaluation(
             raise ValueError(f"Coluna de subgrupo ausente: {column}")
 
         values = dataframe[column].reset_index(drop=True)
-        if "bins" in definition:
+        if definition.get("bins") is not None:
             group_values = pd.cut(
                 values,
                 bins=definition["bins"],
@@ -223,16 +389,12 @@ def subgroup_evaluation(
                 include_lowest=True,
             ).astype(object)
             group_order = definition["labels"]
-            display_labels = {
-                str(value): str(value) for value in group_order
-            }
+            display_labels = {str(value): str(value) for value in group_order}
         else:
             group_values = values.astype(object)
             configured_labels = definition.get("value_labels", {})
             observed_values = [
-                value
-                for value in pd.unique(group_values)
-                if not pd.isna(value)
+                value for value in pd.unique(group_values) if not pd.isna(value)
             ]
             group_order = observed_values
             if configured_labels:
@@ -256,6 +418,7 @@ def subgroup_evaluation(
             }
 
         groups = []
+        comparable_masks: list[np.ndarray] = []
         for value in group_order:
             mask = np.asarray(group_values == value)
             count = int(mask.sum())
@@ -265,7 +428,9 @@ def subgroup_evaluation(
                 "label": display_labels[str(value)],
                 "n": count,
                 "positives": positives,
+                "negatives": count - positives,
                 "prevalence": float(positives / count) if count else None,
+                "warnings": [],
             }
             if count < minimum_size:
                 group_result.update(
@@ -276,7 +441,11 @@ def subgroup_evaluation(
                         "minimum_size": minimum_size,
                     }
                 )
+                group_result["warnings"].append(
+                    f"Amostra menor que o mínimo configurado ({minimum_size})."
+                )
             else:
+                comparable_masks.append(mask)
                 limited_events = min(positives, count - positives) < minimum_events
                 group_result.update(
                     {
@@ -295,25 +464,42 @@ def subgroup_evaluation(
                             if confidence_settings.get("n_bootstrap", 0) > 0
                             else None
                         ),
-                        "status": (
-                            "limited_events"
-                            if limited_events
-                            else "estimated"
-                        ),
+                        "status": ("limited_events" if limited_events else "estimated"),
                         "minimum_events": minimum_events,
                     }
                 )
+                if limited_events:
+                    group_result["warnings"].append(
+                        "Número limitado de eventos ou não eventos; interprete "
+                        "estimativas e intervalos com cautela."
+                    )
             groups.append(group_result)
 
+        missing_count = int(pd.isna(group_values).sum())
         results[name] = {
             "column": column,
-            "label": definition.get("label", name),
+            "label": definition.get("label") or name,
             "dataset": "test",
             "minimum_size": minimum_size,
             "minimum_events": minimum_events,
             "n_total": len(group_values),
-            "missing_or_unassigned": int(pd.isna(group_values).sum()),
+            "missing_or_unassigned": missing_count,
+            "missing_rate": float(missing_count / len(group_values)),
             "groups": groups,
+            "gap_confidence_intervals": (
+                _subgroup_gap_intervals(
+                    labels,
+                    predictions,
+                    probabilities,
+                    comparable_masks,
+                    confidence_level=confidence_settings.get("confidence_level", 0.95),
+                    n_bootstrap=confidence_settings.get("n_bootstrap", 0),
+                    random_state=confidence_settings.get("random_state", 42),
+                )
+                if len(comparable_masks) >= 2
+                and confidence_settings.get("n_bootstrap", 0) > 0
+                else None
+            ),
         }
     return results
 
@@ -364,14 +550,19 @@ def subgroup_bias_summary(
             high = max(comparable, key=lambda item: item["value"])
             metric_gaps[metric] = {
                 "status": (
-                    "limited_estimates_included"
-                    if limited_groups
-                    else "estimated"
+                    "limited_estimates_included" if limited_groups else "estimated"
                 ),
                 "absolute_gap": float(high["value"] - low["value"]),
                 "lowest_group": low,
                 "highest_group": high,
                 "limited_groups": limited_groups,
+                "confidence_interval": (
+                    subgroup.get("gap_confidence_intervals", {})
+                    .get("metrics", {})
+                    .get(metric)
+                    if subgroup.get("gap_confidence_intervals")
+                    else None
+                ),
             }
 
         summaries[name] = {
@@ -438,7 +629,8 @@ def explainability_summary(
         "features": importances,
         "interpretation": (
             "Importância por permutação mede queda de desempenho ao embaralhar "
-            "uma variável no teste; não deve ser lida como efeito causal."
+            "uma variável no teste; não deve ser lida como efeito causal. "
+            "Variáveis correlacionadas podem dividir ou mascarar importância."
         ),
     }
 
