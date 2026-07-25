@@ -34,9 +34,10 @@ export function PrivacyNotice({ info }: Props) {
     <div className="privacy-notice">
       <PrivacySection title="Como os dados são usados">
         <p>
-          Nome, e-mail, CRM e UF são usados para administrar a conta e registrar
-          a análise manual do cadastro profissional. A senha é armazenada
-          somente como hash e a autenticação usa cookie protegido.
+          Nome, e-mail, CRM e UF são usados para administrar a conta. A
+          comprovação profissional valida a assinatura digital e os atributos
+          CRM/UF do certificado; o PDF enviado não é armazenado. A senha é
+          conservada somente como hash e a autenticação usa cookie protegido.
         </p>
       </PrivacySection>
       <PrivacySection title="Dados armazenados">
@@ -48,7 +49,8 @@ export function PrivacyNotice({ info }: Props) {
       <PrivacySection title="Dados não armazenados">
         <p>
           O sistema não armazena nome, CPF ou prontuário do paciente nem os valores
-          clínicos enviados ao modelo.
+          clínicos enviados ao modelo. Também não conserva o PDF usado para
+          comprovar o CRM, apenas hashes criptográficos para auditoria.
         </p>
       </PrivacySection>
       <PrivacySection title="Pseudonimização">

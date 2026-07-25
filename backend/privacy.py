@@ -7,6 +7,7 @@ from sqlalchemy import delete
 from sqlalchemy.orm import Session
 
 from backend.models import (
+    CrmVerificationChallenge,
     EmailVerificationToken,
     PasswordResetToken,
     PredictionResult,
@@ -14,7 +15,7 @@ from backend.models import (
 )
 from backend.settings import setting
 
-PRIVACY_NOTICE_VERSION = "2026-07-11.1"
+PRIVACY_NOTICE_VERSION = "2026-07-25.1"
 DEFAULT_RESULT_RETENTION_DAYS = 180
 
 
@@ -81,8 +82,14 @@ def purge_expired_auth_records(db: Session) -> int:
     password_resets = db.execute(
         delete(PasswordResetToken).where(PasswordResetToken.expires_at <= now)
     )
+    crm_challenges = db.execute(
+        delete(CrmVerificationChallenge).where(
+            CrmVerificationChallenge.expires_at <= now
+        )
+    )
     return (
         (sessions.rowcount or 0)
         + (verifications.rowcount or 0)
         + (password_resets.rowcount or 0)
+        + (crm_challenges.rowcount or 0)
     )

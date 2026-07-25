@@ -471,12 +471,12 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
             <h2 id="auth-access-title">Acesso profissional controlado</h2>
             <p>
               Entre com sua conta ou solicite um novo cadastro profissional. O
-              acesso às avaliações depende da análise administrativa do CRM
-              informado.
+              acesso às avaliações é liberado após a validação do certificado
+              profissional vinculado ao CRM informado.
             </p>
             <ul>
               <li><ShieldCheck size={17} aria-hidden="true" /> Conta individual e sessão protegida</li>
-              <li><ShieldCheck size={17} aria-hidden="true" /> Conferência administrativa do cadastro profissional</li>
+              <li><ShieldCheck size={17} aria-hidden="true" /> Verificação automática por PDF assinado</li>
               <li><ShieldCheck size={17} aria-hidden="true" /> Dados clínicos não persistidos no histórico</li>
             </ul>
           </div>
@@ -593,7 +593,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
                   <span>E-mail</span>
                   <input id="register-email" type="email" autoComplete="email" placeholder="voce@exemplo.com" required value={email} onChange={(event) => { setEmail(event.target.value); setError(""); }} />
                 </label>
-                <small className="fieldset-note">O CRM informado é submetido à conferência administrativa antes da liberação das avaliações.</small>
+                <small className="fieldset-note">Depois de confirmar o e-mail, assine um PDF de uso único com seu Certificado Digital do CFM para liberar as avaliações.</small>
               </fieldset>
             ) : (
               <label htmlFor="login-email">

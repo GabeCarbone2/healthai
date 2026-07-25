@@ -1,6 +1,6 @@
 # Aviso de privacidade e controles LGPD
 
-Versão do aviso: **2026-07-11.1**
+Versão do aviso: **2026-07-25.1**
 
 Este documento descreve os controles técnicos implementados no HealthAI. Ele
 não substitui a definição, pelo responsável pelo projeto, do controlador, do
@@ -16,15 +16,17 @@ avaliação profissional.
 
 ## Dados tratados
 
-- conta profissional: nome, e-mail, CRM, UF do CRM, estado e data da análise,
-  administrador responsável, eventual motivo de rejeição, estado da
-  confirmação do e-mail, hash da senha, sessões e data/versionamento dos aceites
-  do aviso e dos Termos de Uso;
+- conta profissional: nome, e-mail, CRM, UF do CRM, estado e data da
+  verificação, hashes SHA-256 do certificado e do documento assinado,
+  desafios efêmeros, estado da confirmação do e-mail, hash da senha, sessões e
+  data/versionamento dos aceites do aviso e dos Termos de Uso;
 - avaliação: identificador pseudonimizado `PAC-…`, modelo e sua versão,
   resultado, probabilidade, limiar, completude da entrada, quantidade de
   medidas imputadas e data;
 - dados clínicos informados no formulário: processados transitoriamente para
   inferência e não persistidos pelo aplicativo.
+- PDF de comprovação profissional: processado transitoriamente para validar a
+  assinatura e não persistido pelo aplicativo.
 
 O sistema não deve receber nome, CPF, número de prontuário ou outro
 identificador direto do paciente. A eventual tabela que relacione o código
@@ -40,12 +42,17 @@ O cadastro exige aceite livre e destacado da versão atual deste aviso. O
 usuário pode recusar o aceite e sair, ou excluir a conta. Quando o aviso muda,
 um novo aceite é exigido antes do acesso aos modelos e resultados.
 
-O CRM é analisado manualmente por uma conta administrativa e cada decisão fica
-registrada em uma trilha de auditoria. Enquanto estiver
-pendente ou rejeitado, o usuário pode administrar sua conta, mas não acessar
-avaliações ou resultados clínicos. A consulta ao portal público do CFM é feita
-pelo administrador em uma aba separada; o HealthAI não automatiza nem armazena
-o conteúdo dessa consulta.
+O CRM é comprovado por um PDF de uso único assinado com certificado digital
+profissional. O HealthAI valida a assinatura PAdES, a cadeia de confiança
+ICP-Brasil, o estado de revogação, a integridade do documento e a
+correspondência dos atributos CRM e UF do certificado com a conta. Cada
+aprovação fica registrada em uma trilha de auditoria sem exigir conta
+administrativa. Enquanto estiver pendente, o usuário pode administrar sua
+conta, mas não acessar avaliações ou resultados clínicos.
+
+Essa verificação demonstra a posse de um certificado profissional válido no
+momento da assinatura. Ela não consulta em tempo real eventual suspensão,
+cancelamento ou outra alteração cadastral no portal do CFM ou do CRM.
 
 O aceite do usuário da conta não representa, por si só, consentimento do
 paciente nem define a hipótese legal para tratar dados de saúde de terceiros.
@@ -58,9 +65,10 @@ titular.
 
 Resultados são mantidos por até `HEALTHAI_RESULT_RETENTION_DAYS` dias
 (180 por padrão). Uma rotina periódica elimina registros vencidos, sessões e
-links de confirmação ou recuperação expirados; a limpeza também é executada na inicialização e
-ao acessar ou criar resultados. Dados da conta permanecem enquanto ela estiver
-ativa.
+links de confirmação, recuperação e desafios profissionais expirados; a
+limpeza também é executada na inicialização e ao acessar ou criar resultados.
+O evento de aprovação mantém apenas a impressão digital do documento como
+evidência. Dados da conta permanecem enquanto ela estiver ativa.
 
 O usuário pode:
 

@@ -31,7 +31,6 @@ def validate_production_settings() -> None:
         return
 
     required = {
-        "HEALTHAI_ADMIN_EMAILS": setting("HEALTHAI_ADMIN_EMAILS"),
         "HEALTHAI_PRIVACY_CONTACT": setting("HEALTHAI_PRIVACY_CONTACT"),
         "HEALTHAI_FRONTEND_URL": setting("HEALTHAI_FRONTEND_URL"),
         "HEALTHAI_SMTP_HOST": setting("HEALTHAI_SMTP_HOST"),
@@ -48,6 +47,19 @@ def validate_production_settings() -> None:
 
     if setting("HEALTHAI_EMAIL_DELIVERY", "console").strip().lower() != "smtp":
         raise RuntimeError("Produção exige HEALTHAI_EMAIL_DELIVERY=smtp.")
+
+    if setting(
+        "HEALTHAI_CRM_REVOCATION_MODE", "hard-fail"
+    ).strip().lower() != "hard-fail":
+        raise RuntimeError(
+            "Produção exige HEALTHAI_CRM_REVOCATION_MODE=hard-fail."
+        )
+
+    trust_roots = setting("HEALTHAI_ICP_BRASIL_TRUST_ROOTS").strip()
+    if trust_roots and not Path(trust_roots).expanduser().is_file():
+        raise RuntimeError(
+            "HEALTHAI_ICP_BRASIL_TRUST_ROOTS deve apontar para um arquivo."
+        )
 
     frontend = urlparse(required["HEALTHAI_FRONTEND_URL"].strip())
     if frontend.scheme != "https" or not frontend.hostname:

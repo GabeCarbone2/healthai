@@ -1,7 +1,7 @@
 import type {
-  AdminCrmReview,
   Catalog,
-  CrmStatus,
+  CrmVerificationChallenge,
+  CrmVerificationStatus,
   PatientResult,
   PatientResultPage,
   PrivacyInfo,
@@ -13,6 +13,20 @@ import type {
   User,
 } from "./types";
 
+async function responseError(response: Response): Promise<Error> {
+  const payload = await response.json().catch(() => null);
+  const validationMessage =
+    payload?.detail instanceof Array
+      ? payload.detail.find((item: { msg?: unknown }) =>
+          typeof item?.msg === "string"
+        )?.msg
+      : null;
+  const detail = validationMessage
+    ? validationMessage.replace(/^Value error, /, "")
+    : payload?.detail;
+  return new Error(detail || "Não foi possível concluir a solicitação.");
+}
+
 export async function request<T>(
   path: string,
   options?: RequestInit,
@@ -23,17 +37,7 @@ export async function request<T>(
     ...options,
   });
   if (!response.ok) {
-    const payload = await response.json().catch(() => null);
-    const validationMessage =
-      payload?.detail instanceof Array
-        ? payload.detail.find((item: { msg?: unknown }) =>
-            typeof item?.msg === "string"
-          )?.msg
-        : null;
-    const detail = validationMessage
-      ? validationMessage.replace(/^Value error, /, "")
-      : payload?.detail;
-    throw new Error(detail || "Não foi possível concluir a solicitação.");
+    throw await responseError(response);
   }
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
@@ -108,24 +112,46 @@ export function submitCrm(crm: string, crmUf: string): Promise<User> {
   });
 }
 
-export function fetchCrmReviews(
-  status?: CrmStatus,
-): Promise<AdminCrmReview[]> {
-  const query = status ? `?status=${status}` : "";
-  return request<AdminCrmReview[]>(`/auth/admin/crm-reviews${query}`);
+export function fetchCrmVerification(): Promise<CrmVerificationStatus> {
+  return request<CrmVerificationStatus>("/auth/crm-verification");
 }
 
-export function reviewCrm(
-  userId: number,
-  status: "approved" | "rejected",
-  rejectionReason?: string,
+export function createCrmVerificationChallenge(): Promise<CrmVerificationChallenge> {
+  return request<CrmVerificationChallenge>(
+    "/auth/crm-verification/challenge",
+    { method: "POST" },
+  );
+}
+
+export async function downloadCrmVerificationChallenge(
+  challenge: CrmVerificationChallenge,
+): Promise<void> {
+  const response = await fetch(`/api${challenge.download_url}`, {
+    credentials: "include",
+  });
+  if (!response.ok) throw await responseError(response);
+  const blob = await response.blob();
+  const downloadUrl = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = downloadUrl;
+  anchor.download = "healthai-verificacao-crm.pdf";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(downloadUrl);
+}
+
+export function submitSignedCrmVerification(
+  challengeId: number,
+  signedPdf: File,
 ): Promise<User> {
-  return request<User>(`/auth/admin/crm-reviews/${userId}`, {
+  const form = new FormData();
+  form.append("challenge_id", String(challengeId));
+  form.append("signed_pdf", signedPdf);
+  return request<User>("/auth/crm-verification/submit", {
     method: "POST",
-    body: JSON.stringify({
-      status,
-      rejection_reason: rejectionReason || null,
-    }),
+    headers: {},
+    body: form,
   });
 }
 

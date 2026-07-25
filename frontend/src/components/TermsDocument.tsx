@@ -30,9 +30,11 @@ export function TermsDocument({ info, contact }: Props) {
         <h2>2. Acesso profissional</h2>
         <p>
           O acesso às avaliações é destinado a profissionais médicos com conta
-          individual, e-mail confirmado e cadastro profissional aprovado por
-          análise administrativa manual. A aprovação no HealthAI não representa
-          consulta automática ou certificação pelo CFM ou por conselho regional.
+          individual, e-mail confirmado e cadastro profissional validado por PDF
+          assinado com certificado digital que contenha CRM e UF compatíveis. A
+          aprovação comprova a posse do certificado no momento da validação, mas
+          não representa consulta em tempo real à situação cadastral no CFM ou
+          no conselho regional.
         </p>
       </section>
 

@@ -143,7 +143,7 @@ def test_privacy_policy_is_public_and_reports_retention(
 
     assert response.status_code == 200
     assert response.json() == {
-        "notice_version": "2026-07-11.1",
+        "notice_version": "2026-07-25.1",
         "result_retention_days": 90,
         "contact": "privacidade@example.com",
     }
@@ -154,8 +154,8 @@ def test_terms_metadata_is_public_and_versioned(client: TestClient) -> None:
 
     assert response.status_code == 200
     assert response.json() == {
-        "version": "2026-07-11.1",
-        "effective_date": "2026-07-11",
+        "version": "2026-07-25.1",
+        "effective_date": "2026-07-25",
     }
 
 
@@ -570,85 +570,7 @@ def test_pending_crm_blocks_clinical_access(client: TestClient) -> None:
     assert response.status_code == 403
     assert "ainda não foi aprovado" in response.json()["detail"]
     assert client.get("/auth/me").json()["crm_status"] == "pending"
-    assert client.get("/auth/admin/crm-reviews").status_code == 403
-
-
-def test_admin_can_approve_pending_crm(
-    client: TestClient,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("HEALTHAI_ADMIN_EMAILS", "admin@example.com")
-    register(client, approve_crm=False)
-    assert client.post("/auth/logout").status_code == 204
-
-    admin_registration = client.post(
-        "/auth/register",
-        json={
-            "name": "Administradora",
-            "crm": "999999",
-            "crm_uf": "DF",
-            "email": "admin@example.com",
-            "password": "senha-admin",
-            "privacy_accepted": True,
-            "terms_accepted": True,
-        },
-    )
-    assert admin_registration.status_code == 201
-
-    db_override = app.dependency_overrides[get_db]
-    with next(db_override()) as db:
-        admin = db.scalar(select(User).where(User.email == "admin@example.com"))
-        assert admin is not None
-        assert admin.role == "admin"
-        admin.email_verified_at = datetime.now(timezone.utc)
-        db.commit()
-
-    login = client.post(
-        "/auth/login",
-        json={"email": "admin@example.com", "password": "senha-admin"},
-    )
-    assert login.status_code == 200
-
-    pending = client.get(
-        "/auth/admin/crm-reviews",
-        params={"status": "pending"},
-    )
-    assert pending.status_code == 200
-    doctor = next(
-        item for item in pending.json() if item["email"] == "usuario@example.com"
-    )
-
-    rejected_without_reason = client.post(
-        f"/auth/admin/crm-reviews/{doctor['id']}",
-        json={"status": "rejected"},
-    )
-    assert rejected_without_reason.status_code == 422
-
-    approval = client.post(
-        f"/auth/admin/crm-reviews/{doctor['id']}",
-        json={"status": "approved"},
-    )
-    assert approval.status_code == 200
-    assert approval.json()["crm_status"] == "approved"
-    assert approval.json()["crm_verified_by"] == login.json()["id"]
-    assert approval.json()["crm_verified_at"] is not None
-
-    history = client.get(f"/auth/admin/crm-reviews/{doctor['id']}/history")
-    assert history.status_code == 200
-    assert len(history.json()) == 1
-    assert history.json()[0]["status"] == "approved"
-    assert history.json()[0]["reviewer_id"] == login.json()["id"]
-
-    assert client.post("/auth/logout").status_code == 204
-    doctor_login = client.post(
-        "/auth/login",
-        json={
-            "email": "usuario@example.com",
-            "password": "senha-segura",
-        },
-    )
-    assert doctor_login.status_code == 200
-    assert client.get("/models").status_code == 200
+    assert client.get("/auth/admin/crm-reviews").status_code == 404
 
 
 def test_logout_invalidates_session(client: TestClient) -> None:
@@ -679,7 +601,7 @@ def test_existing_user_must_accept_current_privacy_notice(
     )
     assert consent.status_code == 200
     assert consent.json()["privacy_accepted_at"] is not None
-    assert consent.json()["privacy_notice_version"] == "2026-07-11.1"
+    assert consent.json()["privacy_notice_version"] == "2026-07-25.1"
     assert client.get("/results").status_code == 200
 
 
@@ -697,7 +619,7 @@ def test_existing_user_must_accept_current_terms(client: TestClient) -> None:
     consent = client.post("/auth/terms-consent", json={"accepted": True})
     assert consent.status_code == 200
     assert consent.json()["terms_accepted_at"] is not None
-    assert consent.json()["terms_version"] == "2026-07-11.1"
+    assert consent.json()["terms_version"] == "2026-07-25.1"
     assert client.get("/results").status_code == 200
 
 

@@ -131,19 +131,6 @@ class DeleteAccountInput(BaseModel):
     confirmation: Literal["EXCLUIR"]
 
 
-class CrmReviewInput(BaseModel):
-    status: Literal["approved", "rejected"]
-    rejection_reason: str | None = Field(default=None, max_length=500)
-
-    @model_validator(mode="after")
-    def validate_rejection_reason(self) -> "CrmReviewInput":
-        reason = self.rejection_reason.strip() if self.rejection_reason else None
-        if self.status == "rejected" and not reason:
-            raise ValueError("Informe o motivo da rejeição.")
-        self.rejection_reason = reason
-        return self
-
-
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -175,39 +162,16 @@ class UserResponse(BaseModel):
         return ensure_utc(value)
 
 
-class AdminCrmReviewResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
+class CrmVerificationChallengeResponse(BaseModel):
     id: int
-    name: str
-    email: EmailStr
-    crm: str | None
-    crm_uf: str | None
+    created_at: datetime
+    expires_at: datetime
+    download_url: str
+
+
+class CrmVerificationStatusResponse(BaseModel):
     crm_status: CrmStatus | None
-    created_at: datetime
-    email_verified_at: datetime | None
-    crm_verified_at: datetime | None
-    crm_verified_by: int | None
-    crm_rejection_reason: str | None
-
-    @field_serializer("created_at", "email_verified_at", "crm_verified_at")
-    def serialize_datetimes(self, value: datetime | None) -> datetime | None:
-        return ensure_utc(value)
-
-
-class CrmReviewEventResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    user_id: int
-    reviewer_id: int | None
-    status: CrmStatus
-    rejection_reason: str | None
-    created_at: datetime
-
-    @field_serializer("created_at")
-    def serialize_created_at(self, value: datetime) -> datetime:
-        return ensure_utc(value) or value
+    active_challenge: CrmVerificationChallengeResponse | None
 
 
 class PatientPredictionInput(BaseModel):

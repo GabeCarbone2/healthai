@@ -7,7 +7,7 @@
 - cada processo reutiliza conexões por meio de um pool limitado, com validação
   antes do uso e reciclagem periódica;
 - uma ou mais réplicas PostgreSQL podem receber as consultas de histórico de
-  resultados e revisão de CRM, em distribuição round-robin;
+  resultados, em distribuição round-robin;
 - sessões destinadas às réplicas rejeitam `INSERT`, `UPDATE`, `DELETE`, flush e
   commit; em produção, essa proteção deve ser reforçada com um usuário do banco
   que possua somente `SELECT`;
@@ -78,8 +78,10 @@ HEALTHAI_READ_REPLICA_FALLBACK=false
 - `prediction_results (user_id, created_at, id)` cobre paginação e ordenação do
   histórico; `created_at` isolado cobre a retenção global;
 - `crm_review_events (user_id, created_at, id)` cobre a trilha de auditoria;
-- `users (crm_status, created_at)` e `users (created_at)` cobrem as filas de
-  revisão;
+- `crm_verification_challenges (user_id, created_at)` cobre o desafio atual e
+  `expires_at` cobre a limpeza periódica;
+- `users (crm_status, created_at)` e `users (created_at)` cobrem filtros e
+  rotinas operacionais;
 - índices das chaves estrangeiras aceleram exclusões em cascata e `SET NULL`;
 - índices por `(user_id, created_at)` cobrem a busca do token mais recente;
 - hashes de sessão, verificação e recuperação já possuem índices únicos.

@@ -3,21 +3,38 @@ import {
   CheckCircle2,
   Clock3,
   Database,
+  Download,
   Eye,
   EyeOff,
+  FileSignature,
+  FileUp,
   ShieldCheck,
   Trash2,
   UserRound,
   XCircle,
 } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
-import { deleteAccount, submitCrm } from "../api";
+import {
+  createCrmVerificationChallenge,
+  deleteAccount,
+  downloadCrmVerificationChallenge,
+  fetchCrmVerification,
+  submitCrm,
+  submitSignedCrmVerification,
+} from "../api";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ErrorSummary } from "../components/ErrorSummary";
 import { PrivacyNotice } from "../components/PrivacyNotice";
-import type { PrivacyInfo, User } from "../types";
-import { formatBrazilianDate } from "../utils/date";
+import type {
+  CrmVerificationChallenge,
+  PrivacyInfo,
+  User,
+} from "../types";
+import {
+  formatBrazilianDate,
+  formatBrazilianDateTime,
+} from "../utils/date";
 
 type Props = {
   user: User;
@@ -57,6 +74,41 @@ export function AccountPage({
   const [crmUf, setCrmUf] = useState(user.crm_uf ?? "");
   const [crmLoading, setCrmLoading] = useState(false);
   const [crmError, setCrmError] = useState("");
+  const [challenge, setChallenge] =
+    useState<CrmVerificationChallenge | null>(null);
+  const [challengeLoading, setChallengeLoading] = useState(false);
+  const [signedPdf, setSignedPdf] = useState<File | null>(null);
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [verificationError, setVerificationError] = useState("");
+  const [verificationNotice, setVerificationNotice] = useState("");
+
+  useEffect(() => {
+    if (
+      user.crm_status === "approved"
+      || !user.crm
+      || !user.crm_uf
+    ) {
+      setChallenge(null);
+      return;
+    }
+    let active = true;
+    fetchCrmVerification()
+      .then((status) => {
+        if (active) setChallenge(status.active_challenge);
+      })
+      .catch((requestError) => {
+        if (active) {
+          setVerificationError(
+            requestError instanceof Error
+              ? requestError.message
+              : "Não foi possível consultar a verificação.",
+          );
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [user.crm, user.crm_status, user.crm_uf]);
 
   async function removeAccount() {
     if (confirmation !== "EXCLUIR" || password.length < 8) return;
@@ -81,7 +133,10 @@ export function AccountPage({
     setCrmLoading(true);
     setCrmError("");
     try {
-      onUserUpdated(await submitCrm(crm, crmUf));
+      const updatedUser = await submitCrm(crm, crmUf);
+      setChallenge(null);
+      setSignedPdf(null);
+      onUserUpdated(updatedUser);
     } catch (requestError) {
       setCrmError(
         requestError instanceof Error
@@ -90,6 +145,71 @@ export function AccountPage({
       );
     } finally {
       setCrmLoading(false);
+    }
+  }
+
+  async function createAndDownloadChallenge() {
+    setChallengeLoading(true);
+    setVerificationError("");
+    setVerificationNotice("");
+    try {
+      const createdChallenge = await createCrmVerificationChallenge();
+      setChallenge(createdChallenge);
+      setSignedPdf(null);
+      await downloadCrmVerificationChallenge(createdChallenge);
+      setVerificationNotice(
+        "Documento gerado. Assine o PDF e envie o arquivo resultante abaixo.",
+      );
+    } catch (requestError) {
+      setVerificationError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Não foi possível gerar o documento de verificação.",
+      );
+    } finally {
+      setChallengeLoading(false);
+    }
+  }
+
+  async function downloadActiveChallenge() {
+    if (!challenge) return;
+    setChallengeLoading(true);
+    setVerificationError("");
+    try {
+      await downloadCrmVerificationChallenge(challenge);
+    } catch (requestError) {
+      setVerificationError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Não foi possível baixar o documento.",
+      );
+    } finally {
+      setChallengeLoading(false);
+    }
+  }
+
+  async function verifySignedPdf(event: FormEvent) {
+    event.preventDefault();
+    if (!challenge || !signedPdf) return;
+    setVerificationLoading(true);
+    setVerificationError("");
+    setVerificationNotice("");
+    try {
+      const updatedUser = await submitSignedCrmVerification(
+        challenge.id,
+        signedPdf,
+      );
+      setChallenge(null);
+      setSignedPdf(null);
+      onUserUpdated(updatedUser);
+    } catch (requestError) {
+      setVerificationError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Não foi possível validar o PDF assinado.",
+      );
+    } finally {
+      setVerificationLoading(false);
     }
   }
 
@@ -182,7 +302,7 @@ export function AccountPage({
           <Clock3 size={25} />
         )}
         <div>
-          <span className="status-kicker">Verificação administrativa</span>
+          <span className="status-kicker">Verificação por certificado digital</span>
           <h2>Cadastro profissional</h2>
           <span className={`status-badge ${user.crm_status ?? "missing"}`}>
             {user.crm_status === "approved" ? (
@@ -195,12 +315,12 @@ export function AccountPage({
           </span>
           <p>
             {user.crm_status === "approved"
-              ? `Cadastro aprovado em ${formatBrazilianDate(user.crm_verified_at)} após análise administrativa.`
+              ? `Cadastro aprovado em ${formatBrazilianDate(user.crm_verified_at)} por validação criptográfica do certificado profissional.`
               : user.crm_status === "rejected"
                 ? user.crm_rejection_reason ?? "Revise os dados informados e envie novamente."
                 : user.crm
-                  ? "O acesso às avaliações aguarda a análise administrativa do cadastro profissional."
-                  : "Informe CRM e UF para iniciar a análise administrativa."}
+                  ? "Comprove o CRM assinando um PDF de uso único com seu Certificado Digital do CFM."
+                  : "Informe CRM e UF para iniciar a verificação profissional."}
           </p>
           {user.crm && user.crm_uf && <strong>CRM {showData ? user.crm : maskCrm(user.crm)}/{user.crm_uf}</strong>}
           {canSubmitCrm && (
@@ -228,11 +348,114 @@ export function AccountPage({
               </label>
               <button type="submit" disabled={crmLoading}>
                 {crmLoading ? <Activity size={16} /> : <ShieldCheck size={16} />}
-                {crmLoading ? "Enviando..." : "Enviar para análise"}
+                {crmLoading ? "Salvando..." : "Salvar CRM"}
               </button>
             </form>
           )}
           {crmError && <ErrorSummary title="Não foi possível enviar" message={crmError} />}
+          {user.crm_status !== "approved" && user.crm && user.crm_uf && (
+            <div className="crm-verification-flow">
+              <ol>
+                <li>
+                  <span>1</span>
+                  <div>
+                    <strong>Baixe o documento de uso único</strong>
+                    <p>Ele vincula esta conta ao CRM informado e expira em poucos minutos.</p>
+                  </div>
+                </li>
+                <li>
+                  <span>2</span>
+                  <div>
+                    <strong>Assine com seu certificado profissional</strong>
+                    <p>Use um assinador PAdES com o Certificado Digital do CFM vinculado ao mesmo CRM e UF.</p>
+                  </div>
+                </li>
+                <li>
+                  <span>3</span>
+                  <div>
+                    <strong>Envie o PDF assinado</strong>
+                    <p>A aprovação ocorre automaticamente após a validação da assinatura e do certificado.</p>
+                  </div>
+                </li>
+              </ol>
+
+              <div className="crm-challenge-actions">
+                <button
+                  type="button"
+                  onClick={createAndDownloadChallenge}
+                  disabled={challengeLoading || verificationLoading}
+                >
+                  {challengeLoading
+                    ? <Activity size={16} />
+                    : <FileSignature size={16} />}
+                  {challenge
+                    ? "Gerar novo documento"
+                    : "Gerar e baixar PDF"}
+                </button>
+                {challenge && (
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={downloadActiveChallenge}
+                    disabled={challengeLoading || verificationLoading}
+                  >
+                    <Download size={16} />
+                    Baixar novamente
+                  </button>
+                )}
+              </div>
+
+              {challenge && (
+                <form
+                  className="signed-pdf-form"
+                  onSubmit={verifySignedPdf}
+                  noValidate
+                >
+                  <label htmlFor="signed-crm-pdf">
+                    <span>PDF assinado</span>
+                    <input
+                      id="signed-crm-pdf"
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      required
+                      onChange={(event) => {
+                        setSignedPdf(event.target.files?.[0] ?? null);
+                        setVerificationError("");
+                      }}
+                    />
+                    <small>
+                      Desafio válido até{" "}
+                      {formatBrazilianDateTime(challenge.expires_at)}. O PDF
+                      enviado não é armazenado.
+                    </small>
+                  </label>
+                  <button
+                    type="submit"
+                    disabled={!signedPdf || verificationLoading}
+                  >
+                    {verificationLoading
+                      ? <Activity size={16} />
+                      : <FileUp size={16} />}
+                    {verificationLoading
+                      ? "Validando assinatura..."
+                      : "Validar PDF assinado"}
+                  </button>
+                </form>
+              )}
+              {verificationNotice && (
+                <p className="crm-verification-notice" role="status">
+                  <CheckCircle2 size={16} />
+                  {verificationNotice}
+                </p>
+              )}
+              {verificationError && (
+                <ErrorSummary
+                  title="Não foi possível verificar"
+                  message={verificationError}
+                />
+              )}
+            </div>
+          )}
         </div>
       </section>
 

@@ -9,7 +9,7 @@ import { ResetPasswordPage } from "./ResetPasswordPage";
 vi.mock("../api");
 
 const privacy = {
-  notice_version: "2026-07-11.1",
+  notice_version: "2026-07-25.1",
   result_retention_days: 180,
   contact: "privacidade@example.com",
 };

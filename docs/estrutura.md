@@ -28,7 +28,13 @@ externa. A discussão interpretativa fica em `docs/modelo.md`.
 
 O banco da aplicação é separado dos CSVs analíticos. Ele guarda hashes de
 senha Argon2, hashes dos tokens de sessão, aceite versionado do aviso,
-auditoria imutável das decisões de CRM e resultados vinculados apenas a
+desafios efêmeros de verificação, hashes da evidência assinada, auditoria
+imutável das aprovações de CRM e resultados vinculados apenas a
 identificadores pseudonimizados. Cada resultado registra versão do modelo e
 completude, mas não os valores clínicos usados na inferência. Registros
 expirados são removidos periodicamente conforme a retenção configurada.
+
+`backend/crm_verification.py` gera o desafio PDF e valida a assinatura PAdES,
+a cadeia ICP-Brasil, revogação e os OIDs de CRM/UF. O arquivo assinado é
+processado apenas em memória. `backend/auth.py` expõe criação, download, estado
+e envio do desafio, consumindo-o de forma atômica antes de aprovar a conta.

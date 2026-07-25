@@ -186,18 +186,16 @@ export type User = {
 
 export type CrmStatus = "pending" | "approved" | "rejected";
 
-export type AdminCrmReview = {
+export type CrmVerificationChallenge = {
   id: number;
-  name: string;
-  email: string;
-  crm: string | null;
-  crm_uf: string | null;
-  crm_status: CrmStatus | null;
   created_at: string;
-  email_verified_at: string | null;
-  crm_verified_at: string | null;
-  crm_verified_by: number | null;
-  crm_rejection_reason: string | null;
+  expires_at: string;
+  download_url: string;
+};
+
+export type CrmVerificationStatus = {
+  crm_status: CrmStatus | null;
+  active_challenge: CrmVerificationChallenge | null;
 };
 
 export type RegistrationResponse = {

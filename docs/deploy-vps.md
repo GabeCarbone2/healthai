@@ -49,10 +49,13 @@ Edite `.env.production` e preencha `HEALTHAI_SMTP_PASSWORD` com a senha
 exclusiva da caixa postal remetente. O arquivo é ignorado pelo Git e não deve
 ser enviado ao repositório.
 
-Defina também `HEALTHAI_ADMIN_EMAILS` com os e-mails, separados por vírgula,
-das contas autorizadas a analisar cadastros profissionais. Ao iniciar, a API
-promove contas existentes que correspondam à lista. Sem ao menos um
-administrador configurado, nenhum CRM pendente poderá ser aprovado.
+Mantenha `HEALTHAI_CRM_REVOCATION_MODE=hard-fail`. A API usa a lista oficial
+do ITI quando `HEALTHAI_ICP_BRASIL_TRUST_ROOTS` fica vazio; nesse caso, o
+contêiner precisa de saída HTTPS para a lista e para os serviços de
+cadeia/revogação indicados pelos certificados. Se a infraestrutura exigir uma
+fonte local, monte um bundle PEM confiável no contêiner e configure o caminho
+nessa variável. Nenhuma conta administrativa ou credencial paga do Web Service
+do CFM é necessária.
 
 Os artefatos `models/pima_selected.joblib` e
 `models/nhanes_selected.joblib` precisam estar versionados no repositório antes

@@ -17,6 +17,7 @@ EXPECTED_TABLES = {
     "user_sessions",
     "users",
     "crm_review_events",
+    "crm_verification_challenges",
     "password_reset_tokens",
 }
 
@@ -59,6 +60,23 @@ def test_migrations_create_fresh_database(tmp_path: Path) -> None:
         "input_completeness",
         "missing_feature_count",
     } <= result_columns
+    event_columns = {
+        column["name"] for column in inspector.get_columns("crm_review_events")
+    }
+    assert {"source", "evidence_fingerprint"} <= event_columns
+    challenge_columns = {
+        column["name"]
+        for column in inspector.get_columns("crm_verification_challenges")
+    }
+    assert {
+        "challenge_code",
+        "crm",
+        "crm_uf",
+        "expires_at",
+        "used_at",
+        "signer_certificate_sha256",
+        "signed_document_sha256",
+    } <= challenge_columns
     indexes = {
         table: {index["name"] for index in inspector.get_indexes(table)}
         for table in EXPECTED_TABLES - {"alembic_version"}
@@ -85,7 +103,12 @@ def test_migrations_create_fresh_database(tmp_path: Path) -> None:
         "ix_crm_review_events_user_created_id",
         "ix_crm_review_events_reviewer_id",
     } <= indexes["crm_review_events"]
-    assert revision == "20260713_10"
+    assert {
+        "ix_crm_verification_challenges_challenge_code",
+        "ix_crm_verification_challenges_expires_at",
+        "ix_crm_verification_challenges_user_created",
+    } <= indexes["crm_verification_challenges"]
+    assert revision == "20260725_11"
     command.check(config)
     engine.dispose()
 

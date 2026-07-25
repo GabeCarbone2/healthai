@@ -104,22 +104,24 @@ nomes de pacientes e valores clínicos enviados ao modelo não são armazenados.
 
 No primeiro acesso, use **Criar conta**. O cadastro profissional exige CRM e
 UF e impede a repetição desse par. Após confirmar o e-mail, a conta permanece
-com o CRM pendente e só recebe acesso às avaliações depois da aprovação manual
-por um administrador. A API registra o status, a data, o administrador
-responsável e eventual motivo de rejeição. A consulta é feita no portal público
-do CFM, sem automação pelo HealthAI. Cada decisão administrativa também é
-preservada em uma trilha de auditoria imutável.
+pendente até que o titular conclua a verificação por certificado digital:
 
-Defina uma ou mais contas administrativas, separadas por vírgula, antes de
-iniciar a API:
+1. a API gera um PDF com CRM, UF, validade e desafio aleatório de uso único;
+2. o médico assina o arquivo em um assinador PAdES com o Certificado Digital
+   do CFM;
+3. a API confere a integridade e a cadeia ICP-Brasil, a revogação, o desafio
+   assinado e os OIDs de CRM e UF do certificado;
+4. o cadastro é aprovado automaticamente quando todos os dados coincidem.
 
-```bash
-HEALTHAI_ADMIN_EMAILS=administrador@example.com
-```
+O fluxo não usa conta administrativa nem a assinatura paga do Web Service do
+CFM. Ele exige que o médico possua o certificado profissional e não equivale a
+uma consulta em tempo real da situação do registro no conselho. O PDF enviado
+é processado em memória e descartado; ficam somente hashes SHA-256, data,
+origem da verificação e o evento de auditoria.
 
-Contas existentes com esses e-mails são promovidas na inicialização. A API cria
-automaticamente o banco SQLite `data/healthai.db`, armazena usuários, sessões e
-o histórico de resultados, e protege senhas com Argon2. A conta só abre uma
+A API cria automaticamente o banco SQLite `data/healthai.db`, armazena
+usuários, sessões e o histórico de resultados, e protege senhas com Argon2. A
+conta só abre uma
 sessão depois da confirmação do e-mail; o link de confirmação expira em 24
 horas e somente hashes de tokens são persistidos. A recuperação de senha usa
 resposta genérica contra enumeração, link de uso único válido por uma hora e
@@ -148,8 +150,12 @@ HTTPS, defina `HEALTHAI_SECURE_COOKIE=true` e configure
 `HEALTHAI_DATABASE_URL` para o banco do ambiente.
 Copie `.env.example` para `.env`; a API carrega esse arquivo automaticamente.
 Em produção, copie `.env.production.example` para `.env.production`. A API
-recusa a inicialização se HTTPS, SMTP, administrador ou canal de privacidade
-estiverem incompletos.
+recusa a inicialização se HTTPS, SMTP, canal de privacidade ou validação rígida
+de revogação estiverem incompletos. Por padrão, as raízes ICP-Brasil são
+extraídas da lista de confiança oficial do ITI. Um bundle PEM local pode ser
+definido em `HEALTHAI_ICP_BRASIL_TRUST_ROOTS`; o modo
+`HEALTHAI_CRM_REVOCATION_MODE=soft-fail` é restrito ao desenvolvimento e aos
+testes.
 
 A camada de persistência possui índices voltados às consultas reais, pool de
 conexões configurável e roteamento opcional para múltiplas read replicas

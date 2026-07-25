@@ -1,6 +1,6 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as api from "../api";
 import { AccountPage } from "./AccountPage";
@@ -9,7 +9,7 @@ import { AuthPage } from "./AuthPage";
 vi.mock("../api");
 
 const privacy = {
-  notice_version: "2026-07-11.1",
+  notice_version: "2026-07-25.1",
   result_retention_days: 180,
   contact: "privacidade@example.com",
 };
@@ -28,10 +28,18 @@ const registeredUser = {
   created_at: "2026-07-04T12:00:00Z",
   email_verified_at: "2026-07-04T12:00:00Z",
   privacy_accepted_at: "2026-07-04T12:00:00Z",
-  privacy_notice_version: "2026-07-11.1",
+  privacy_notice_version: "2026-07-25.1",
   terms_accepted_at: "2026-07-04T12:00:00Z",
-  terms_version: "2026-07-11.1",
+  terms_version: "2026-07-25.1",
 };
+
+beforeEach(() => {
+  vi.resetAllMocks();
+  vi.mocked(api.fetchCrmVerification).mockResolvedValue({
+    crm_status: "pending",
+    active_challenge: null,
+  });
+});
 
 describe("AuthPage", () => {
   it("apresenta a estrutura pública sem esconder o acesso profissional", () => {
@@ -79,7 +87,7 @@ describe("AuthPage", () => {
       screen.getByRole("heading", { name: "Acesso profissional controlado" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/análise administrativa do CRM informado/i),
+      screen.getByText(/validação do certificado profissional/i),
     ).toBeInTheDocument();
     expect(
       screen.getAllByText(/não substitui diagnóstico, exames, avaliação médica ou julgamento clínico/i),
@@ -199,5 +207,63 @@ describe("AccountPage", () => {
 
     expect(api.deleteAccount).toHaveBeenCalledWith("senha-segura");
     expect(onDeleted).toHaveBeenCalledOnce();
+  });
+
+  it("envia o PDF assinado do desafio e atualiza o usuário", async () => {
+    const pendingUser = {
+      ...registeredUser,
+      crm_status: "pending" as const,
+      crm_verified_at: null,
+      crm_verified_by: null,
+    };
+    const challenge = {
+      id: 42,
+      created_at: "2026-07-25T12:00:00Z",
+      expires_at: "2026-07-25T12:30:00Z",
+      download_url: "/auth/crm-verification/challenge/42/document",
+    };
+    vi.mocked(api.fetchCrmVerification).mockResolvedValue({
+      crm_status: "pending",
+      active_challenge: challenge,
+    });
+    vi.mocked(api.submitSignedCrmVerification).mockResolvedValue(
+      registeredUser,
+    );
+    const onUserUpdated = vi.fn();
+    const browser = userEvent.setup();
+    render(
+      <AccountPage
+        user={pendingUser}
+        privacy={privacy}
+        onDeleted={vi.fn()}
+        onUserUpdated={onUserUpdated}
+      />,
+    );
+
+    expect(
+      await screen.findByRole("button", { name: "Baixar novamente" }),
+    ).toBeInTheDocument();
+    const signedPdf = new File(["signed"], "crm-assinado.pdf", {
+      type: "application/pdf",
+    });
+    await browser.upload(
+      screen.getByLabelText(/^PDF assinado/),
+      signedPdf,
+    );
+    const submitButton = screen.getByRole("button", {
+      name: "Validar PDF assinado",
+    });
+    await waitFor(() => expect(submitButton).toBeEnabled());
+    await browser.click(submitButton);
+
+    await waitFor(() => expect(
+      api.submitSignedCrmVerification,
+    ).toHaveBeenCalledWith(
+      challenge.id,
+      expect.objectContaining({ name: "crm-assinado.pdf" }),
+    ));
+    expect(onUserUpdated).toHaveBeenCalledWith(
+      registeredUser,
+    );
   });
 });

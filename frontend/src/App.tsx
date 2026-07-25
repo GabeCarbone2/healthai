@@ -4,7 +4,6 @@ import {
   ListChecks,
   LogOut,
   RefreshCw,
-  ShieldEllipsis,
   ShieldCheck,
   WifiOff,
 } from "lucide-react";
@@ -25,7 +24,6 @@ import { PageFooter } from "./components/PageFooter";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { Assessment } from "./pages/Assessment";
 import { AccountPage } from "./pages/AccountPage";
-import { AdminCrmPage } from "./pages/AdminCrmPage";
 import { AuthPage } from "./pages/AuthPage";
 import { PatientResults } from "./pages/PatientResults";
 import { PrivacyConsentPage } from "./pages/PrivacyConsentPage";
@@ -45,7 +43,7 @@ import type {
   User,
 } from "./types";
 
-type Page = "assessment" | "results" | "account" | "admin";
+type Page = "assessment" | "results" | "account";
 
 const clinicalNavigation = [
   { id: "assessment" as const, label: "Nova avaliação", icon: ClipboardPlus },
@@ -55,11 +53,6 @@ const accountNavigation = {
   id: "account" as const,
   label: "Conta",
   icon: ShieldCheck,
-};
-const adminNavigation = {
-  id: "admin" as const,
-  label: "Análises de acesso",
-  icon: ShieldEllipsis,
 };
 const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000;
 const ACTIVITY_EVENTS = [
@@ -455,18 +448,14 @@ export default function App() {
   }
 
   const clinicalAccess = user.crm_status === "approved";
-  const adminAccess = user.role === "admin";
   const navigation = [
     ...(clinicalAccess ? clinicalNavigation : []),
     accountNavigation,
-    ...(adminAccess ? [adminNavigation] : []),
   ];
   const effectivePage: Page =
-    page === "admin" && !adminAccess
+    (page === "assessment" || page === "results") && !clinicalAccess
       ? "account"
-      : (page === "assessment" || page === "results") && !clinicalAccess
-        ? "account"
-        : page;
+      : page;
 
   return (
     <div className="app-shell">
@@ -540,9 +529,7 @@ export default function App() {
             await endSession();
           }}
         />
-        {effectivePage === "admin" ? (
-          <AdminCrmPage />
-        ) : effectivePage === "account" ? (
+        {effectivePage === "account" ? (
           <AccountPage
             user={user}
             privacy={privacyInfo}

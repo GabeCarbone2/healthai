@@ -123,6 +123,35 @@ class PasswordResetToken(Base):
     created_at: Mapped[int]
 
 
+class CrmVerificationChallenge(Base):
+    """Desafio efêmero usado para comprovar a posse do certificado do CRM."""
+
+    __tablename__ = "crm_verification_challenges"
+    __table_args__ = (
+        Index(
+            "ix_crm_verification_challenges_user_created",
+            "user_id",
+            "created_at",
+        ),
+        Index("ix_crm_verification_challenges_expires_at", "expires_at"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    challenge_code: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    crm: Mapped[str] = mapped_column(String(10))
+    crm_uf: Mapped[str] = mapped_column(String(2))
+    expires_at: Mapped[int]
+    used_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    signer_certificate_sha256: Mapped[str | None] = mapped_column(
+        String(64), nullable=True
+    )
+    signed_document_sha256: Mapped[str | None] = mapped_column(
+        String(64), nullable=True
+    )
+    created_at: Mapped[int]
+
+
 class PredictionResult(Base):
     """Resultado de uma avaliação, sem armazenar os dados clínicos de entrada."""
 
@@ -154,7 +183,7 @@ class PredictionResult(Base):
 
 
 class CrmReviewEvent(Base):
-    """Registro imutável de cada decisão administrativa sobre um CRM."""
+    """Registro imutável de cada verificação profissional."""
 
     __tablename__ = "crm_review_events"
     __table_args__ = (
@@ -178,6 +207,10 @@ class CrmReviewEvent(Base):
     )
     status: Mapped[str] = mapped_column(String(20))
     rejection_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    source: Mapped[str] = mapped_column(String(40), default="legacy_manual")
+    evidence_fingerprint: Mapped[str | None] = mapped_column(
+        String(64), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now
     )

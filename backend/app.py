@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import delete, func, select, text
 from sqlalchemy.orm import Session
 
-from backend.auth import get_consented_user, promote_configured_admins
+from backend.auth import get_consented_user
 from backend.auth import router as auth_router
 from backend.database import SessionLocal, get_db, get_read_db, init_database
 from backend.model_service import (
@@ -78,7 +78,6 @@ async def lifespan(_: FastAPI):
     validate_production_settings()
     init_database()
     with SessionLocal() as db:
-        promote_configured_admins(db)
         purge_expired_results(db)
         purge_expired_auth_records(db)
         db.commit()

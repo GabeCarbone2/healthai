@@ -11,18 +11,30 @@ from fastapi import (
     APIRouter,
     Cookie,
     Depends,
+    File,
+    Form,
     HTTPException,
-    Query,
     Request,
     Response,
+    UploadFile,
     status,
 )
 from pwdlib import PasswordHash
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 
-from backend.database import get_db, get_read_db
+from backend.crm_verification import (
+    ChallengeDocument,
+    CrmVerificationError,
+    CrmVerificationUnavailable,
+    challenge_duration_seconds,
+    generate_challenge_pdf,
+    max_signed_pdf_bytes,
+    validate_signed_challenge,
+)
+from backend.database import get_db
 from backend.email_service import (
     EmailDeliveryError,
     send_password_reset_email,
@@ -30,6 +42,7 @@ from backend.email_service import (
 )
 from backend.models import (
     CrmReviewEvent,
+    CrmVerificationChallenge,
     EmailVerificationToken,
     PasswordResetToken,
     PredictionResult,
@@ -38,11 +51,9 @@ from backend.models import (
 )
 from backend.privacy import PRIVACY_NOTICE_VERSION
 from backend.schemas import (
-    AdminCrmReviewResponse,
     CrmCredentialsInput,
-    CrmReviewEventResponse,
-    CrmReviewInput,
-    CrmStatus,
+    CrmVerificationChallengeResponse,
+    CrmVerificationStatusResponse,
     DeleteAccountInput,
     ForgotPasswordInput,
     LoginInput,
@@ -69,30 +80,6 @@ password_hash = PasswordHash.recommended()
 dummy_password_hash = password_hash.hash("healthai-dummy-password")
 router = APIRouter(prefix="/auth", tags=["Autenticação"])
 DatabaseSession = Annotated[Session, Depends(get_db)]
-ReadDatabaseSession = Annotated[Session, Depends(get_read_db)]
-
-
-def configured_admin_emails() -> set[str]:
-    """Retorna os e-mails autorizados a receber a função administrativa."""
-    return {
-        email.strip().lower()
-        for email in setting("HEALTHAI_ADMIN_EMAILS").split(",")
-        if email.strip()
-    }
-
-
-def promote_configured_admins(db: Session) -> int:
-    """Promove contas existentes explicitamente listadas na configuração."""
-    emails = configured_admin_emails()
-    if not emails:
-        return 0
-    users = db.scalars(select(User).where(User.email.in_(emails))).all()
-    promoted = 0
-    for user in users:
-        if user.role != "admin":
-            user.role = "admin"
-            promoted += 1
-    return promoted
 
 
 def _token_digest(token: str) -> str:
@@ -271,17 +258,6 @@ def get_consented_user(
     return user
 
 
-def get_admin_user(
-    user: Annotated[User, Depends(get_current_user)],
-) -> User:
-    if user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Acesso administrativo necessário.",
-        )
-    return user
-
-
 @router.post("/register", response_model=RegistrationResponse, status_code=201)
 def register(
     data: RegisterInput,
@@ -315,7 +291,7 @@ def register(
         crm=data.crm,
         crm_uf=data.crm_uf,
         crm_status="pending",
-        role="admin" if email in configured_admin_emails() else "user",
+        role="user",
         password_hash=password_hash.hash(data.password),
         privacy_accepted_at=datetime.now(timezone.utc),
         privacy_notice_version=PRIVACY_NOTICE_VERSION,
@@ -526,6 +502,18 @@ def submit_crm(
     db: DatabaseSession,
     user: Annotated[User, Depends(get_current_user)],
 ) -> User:
+    locked_user = db.scalar(
+        select(User)
+        .where(User.id == user.id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if locked_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Sessão inválida.",
+        )
+    user = locked_user
     if user.crm_status == "approved":
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -549,91 +537,301 @@ def submit_crm(
     user.crm_verified_at = None
     user.crm_verified_by = None
     user.crm_rejection_reason = None
+    db.execute(
+        delete(CrmVerificationChallenge).where(
+            CrmVerificationChallenge.user_id == user.id,
+            CrmVerificationChallenge.used_at.is_(None),
+        )
+    )
     db.commit()
     db.refresh(user)
     return user
 
 
-@router.get(
-    "/admin/crm-reviews",
-    response_model=list[AdminCrmReviewResponse],
-)
-def list_crm_reviews(
-    db: ReadDatabaseSession,
-    _: Annotated[User, Depends(get_admin_user)],
-    review_status: Annotated[CrmStatus | None, Query(alias="status")] = None,
-) -> list[User]:
-    statement = (
-        select(User)
-        .where(User.crm.is_not(None), User.crm_uf.is_not(None))
-        .order_by(User.created_at.asc())
+def _challenge_response(
+    challenge: CrmVerificationChallenge,
+) -> CrmVerificationChallengeResponse:
+    return CrmVerificationChallengeResponse(
+        id=challenge.id,
+        created_at=datetime.fromtimestamp(challenge.created_at, timezone.utc),
+        expires_at=datetime.fromtimestamp(challenge.expires_at, timezone.utc),
+        download_url=(
+            f"/auth/crm-verification/challenge/{challenge.id}/document"
+        ),
     )
-    if review_status:
-        statement = statement.where(User.crm_status == review_status)
-    return list(db.scalars(statement))
 
 
 @router.post(
-    "/admin/crm-reviews/{user_id}",
-    response_model=UserResponse,
+    "/crm-verification/challenge",
+    response_model=CrmVerificationChallengeResponse,
+    status_code=status.HTTP_201_CREATED,
 )
-def review_crm(
-    user_id: int,
-    data: CrmReviewInput,
+def create_crm_verification_challenge(
     db: DatabaseSession,
-    admin: Annotated[User, Depends(get_admin_user)],
-) -> User:
-    target = db.get(User, user_id)
-    if not target or not target.crm or not target.crm_uf:
+    user: Annotated[User, Depends(get_current_user)],
+    request: Request,
+) -> CrmVerificationChallengeResponse:
+    check_rate_limit(
+        request,
+        scope="crm-verification-challenge",
+        limit=10,
+        window_seconds=60 * 60,
+        identifier=str(user.id),
+    )
+    if user.crm_status == "approved":
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Cadastro profissional não encontrado.",
+            status_code=status.HTTP_409_CONFLICT,
+            detail="O CRM desta conta já foi aprovado.",
         )
-    reviewed_at = datetime.now(timezone.utc)
-    target.crm_status = data.status
-    target.crm_verified_at = reviewed_at
-    target.crm_verified_by = admin.id
-    target.crm_rejection_reason = (
-        data.rejection_reason if data.status == "rejected" else None
-    )
-    db.add(
-        CrmReviewEvent(
-            user_id=target.id,
-            reviewer_id=admin.id,
-            status=data.status,
-            rejection_reason=target.crm_rejection_reason,
-            created_at=reviewed_at,
+    if not user.crm or not user.crm_uf:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Informe CRM e UF antes de gerar o desafio.",
+        )
+
+    now = int(time.time())
+    db.execute(
+        delete(CrmVerificationChallenge).where(
+            CrmVerificationChallenge.user_id == user.id,
+            CrmVerificationChallenge.used_at.is_(None),
         )
     )
+    challenge = CrmVerificationChallenge(
+        user_id=user.id,
+        challenge_code=secrets.token_urlsafe(32),
+        crm=user.crm,
+        crm_uf=user.crm_uf,
+        created_at=now,
+        expires_at=now + challenge_duration_seconds(),
+    )
+    db.add(challenge)
     db.commit()
-    db.refresh(target)
-    return target
+    db.refresh(challenge)
+    return _challenge_response(challenge)
 
 
 @router.get(
-    "/admin/crm-reviews/{user_id}/history",
-    response_model=list[CrmReviewEventResponse],
+    "/crm-verification",
+    response_model=CrmVerificationStatusResponse,
 )
-def crm_review_history(
-    user_id: int,
-    db: ReadDatabaseSession,
-    _: Annotated[User, Depends(get_admin_user)],
-) -> list[CrmReviewEvent]:
-    if not db.get(User, user_id):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Cadastro profissional não encontrado.",
+def crm_verification_status(
+    db: DatabaseSession,
+    user: Annotated[User, Depends(get_current_user)],
+) -> CrmVerificationStatusResponse:
+    active_challenge = db.scalar(
+        select(CrmVerificationChallenge)
+        .where(
+            CrmVerificationChallenge.user_id == user.id,
+            CrmVerificationChallenge.used_at.is_(None),
+            CrmVerificationChallenge.expires_at > int(time.time()),
         )
-    return list(
-        db.scalars(
-            select(CrmReviewEvent)
-            .where(CrmReviewEvent.user_id == user_id)
-            .order_by(
-                CrmReviewEvent.created_at.desc(),
-                CrmReviewEvent.id.desc(),
-            )
+        .order_by(CrmVerificationChallenge.created_at.desc())
+    )
+    return CrmVerificationStatusResponse(
+        crm_status=user.crm_status,
+        active_challenge=(
+            _challenge_response(active_challenge)
+            if active_challenge
+            else None
+        ),
+    )
+
+
+@router.get("/crm-verification/challenge/{challenge_id}/document")
+def download_crm_verification_challenge(
+    challenge_id: int,
+    db: DatabaseSession,
+    user: Annotated[User, Depends(get_current_user)],
+) -> Response:
+    challenge = db.scalar(
+        select(CrmVerificationChallenge).where(
+            CrmVerificationChallenge.id == challenge_id,
+            CrmVerificationChallenge.user_id == user.id,
         )
     )
+    if not challenge:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Desafio de verificação não encontrado.",
+        )
+    if challenge.used_at is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Este desafio já foi utilizado.",
+        )
+    if challenge.expires_at <= int(time.time()):
+        raise HTTPException(
+            status_code=status.HTTP_410_GONE,
+            detail="Este desafio expirou. Gere um novo documento.",
+        )
+    if user.crm != challenge.crm or user.crm_uf != challenge.crm_uf:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Os dados do CRM mudaram. Gere um novo desafio.",
+        )
+
+    pdf_bytes = generate_challenge_pdf(
+        ChallengeDocument(
+            challenge_id=challenge.id,
+            challenge_code=challenge.challenge_code,
+            user_id=user.id,
+            account_name=user.name,
+            crm=challenge.crm,
+            crm_uf=challenge.crm_uf,
+            created_at=challenge.created_at,
+            expires_at=challenge.expires_at,
+        )
+    )
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": (
+                'attachment; filename="healthai-verificacao-crm.pdf"'
+            ),
+            "Cache-Control": "no-store",
+        },
+    )
+
+
+@router.post(
+    "/crm-verification/submit",
+    response_model=UserResponse,
+)
+async def submit_signed_crm_verification(
+    request: Request,
+    db: DatabaseSession,
+    user: Annotated[User, Depends(get_current_user)],
+    challenge_id: Annotated[int, Form(gt=0)],
+    signed_pdf: Annotated[UploadFile, File()],
+) -> User:
+    check_rate_limit(
+        request,
+        scope="crm-verification-submit",
+        limit=10,
+        window_seconds=60 * 60,
+        identifier=str(user.id),
+    )
+    if user.crm_status == "approved":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="O CRM desta conta já foi aprovado.",
+        )
+    challenge = db.scalar(
+        select(CrmVerificationChallenge).where(
+            CrmVerificationChallenge.id == challenge_id,
+            CrmVerificationChallenge.user_id == user.id,
+        )
+    )
+    if not challenge:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Desafio de verificação não encontrado.",
+        )
+    if challenge.used_at is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Este desafio já foi utilizado.",
+        )
+    if challenge.expires_at <= int(time.time()):
+        raise HTTPException(
+            status_code=status.HTTP_410_GONE,
+            detail="Este desafio expirou. Gere um novo documento.",
+        )
+    if user.crm != challenge.crm or user.crm_uf != challenge.crm_uf:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Os dados do CRM mudaram. Gere um novo desafio.",
+        )
+
+    maximum_size = max_signed_pdf_bytes()
+    pdf_bytes = await signed_pdf.read(maximum_size + 1)
+    await signed_pdf.close()
+    if len(pdf_bytes) > maximum_size:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="O PDF assinado excede o tamanho permitido.",
+        )
+    try:
+        evidence = await run_in_threadpool(
+            validate_signed_challenge,
+            pdf_bytes,
+            challenge_code=challenge.challenge_code,
+            expected_crm=challenge.crm,
+            expected_crm_uf=challenge.crm_uf,
+        )
+    except CrmVerificationUnavailable as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(error),
+        ) from error
+    except CrmVerificationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(error),
+        ) from error
+
+    validated_at = int(time.time())
+    locked_user = db.scalar(
+        select(User)
+        .where(User.id == user.id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if (
+        locked_user is None
+        or locked_user.crm != challenge.crm
+        or locked_user.crm_uf != challenge.crm_uf
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Os dados do CRM mudaram durante a verificação.",
+        )
+    if locked_user.crm_status == "approved":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="O CRM desta conta já foi aprovado.",
+        )
+    user = locked_user
+    consumed = db.execute(
+        update(CrmVerificationChallenge)
+        .where(
+            CrmVerificationChallenge.id == challenge.id,
+            CrmVerificationChallenge.used_at.is_(None),
+            CrmVerificationChallenge.expires_at > validated_at,
+        )
+        .values(
+            used_at=validated_at,
+            signer_certificate_sha256=evidence.certificate_sha256,
+            signed_document_sha256=evidence.signed_document_sha256,
+        )
+    )
+    if consumed.rowcount != 1:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="O desafio expirou ou já foi utilizado.",
+        )
+
+    verified_at = datetime.now(timezone.utc)
+    user.crm_status = "approved"
+    user.crm_verified_at = verified_at
+    user.crm_verified_by = None
+    user.crm_rejection_reason = None
+    db.add(
+        CrmReviewEvent(
+            user_id=user.id,
+            reviewer_id=None,
+            status="approved",
+            rejection_reason=None,
+            source="signed_pdf",
+            evidence_fingerprint=evidence.signed_document_sha256,
+            created_at=verified_at,
+        )
+    )
+    db.commit()
+    db.refresh(user)
+    return user
 
 
 @router.post("/privacy-consent", response_model=UserResponse)

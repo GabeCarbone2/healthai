@@ -21,9 +21,9 @@ const user = {
   created_at: "2026-07-04T12:00:00Z",
   email_verified_at: "2026-07-04T12:00:00Z",
   privacy_accepted_at: "2026-07-04T12:00:00Z",
-  privacy_notice_version: "2026-07-11.1",
+  privacy_notice_version: "2026-07-25.1",
   terms_accepted_at: "2026-07-04T12:00:00Z",
-  terms_version: "2026-07-11.1",
+  terms_version: "2026-07-25.1",
 };
 
 const catalog = {
@@ -40,14 +40,14 @@ const emptyResults = {
 };
 
 const privacy = {
-  notice_version: "2026-07-11.1",
+  notice_version: "2026-07-25.1",
   result_retention_days: 180,
   contact: "privacidade@example.com",
 };
 
 const terms = {
-  version: "2026-07-11.1",
-  effective_date: "2026-07-11",
+  version: "2026-07-25.1",
+  effective_date: "2026-07-25",
 };
 
 describe("App", () => {
@@ -58,6 +58,10 @@ describe("App", () => {
     vi.mocked(api.fetchTermsInfo).mockResolvedValue(terms);
     vi.mocked(api.fetchCatalog).mockResolvedValue(catalog);
     vi.mocked(api.fetchResults).mockResolvedValue(emptyResults);
+    vi.mocked(api.fetchCrmVerification).mockResolvedValue({
+      crm_status: "pending",
+      active_challenge: null,
+    });
     vi.mocked(api.logout).mockResolvedValue(undefined);
   });
 
