@@ -11427,6 +11427,41 @@ html[data-scrolled] .app-shell .topbar {
   color: var(--scm-body);
 }
 
+.app-shell .confirm-dialog .dialog-form {
+  color-scheme: light;
+}
+
+.app-shell .confirm-dialog .dialog-form label > span {
+  color: var(--scm-body);
+}
+
+.app-shell .confirm-dialog .dialog-form input {
+  min-height: 46px;
+  padding: 0 12px;
+  color: var(--scm-ink);
+  caret-color: var(--scm-green-dark);
+  background: #ffffff;
+  border: 1px solid #9eaaa5;
+  border-radius: 8px;
+  box-shadow: none;
+  -webkit-text-fill-color: var(--scm-ink);
+}
+
+.app-shell .confirm-dialog .dialog-form input:hover {
+  border-color: #74837d;
+}
+
+.app-shell .confirm-dialog .dialog-form input:focus {
+  outline: 3px solid rgb(0 125 78 / 22%);
+  outline-offset: 2px;
+  border-color: var(--scm-green-dark);
+}
+
+.app-shell .confirm-dialog .dialog-form input:-webkit-autofill {
+  box-shadow: 0 0 0 1000px #ffffff inset;
+  -webkit-text-fill-color: var(--scm-ink);
+}
+
 .logout-confirm-dialog > svg {
   color: var(--scm-green-dark);
   filter: none;
