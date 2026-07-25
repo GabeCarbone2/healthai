@@ -9532,21 +9532,7 @@ html[data-scrolled] .app-shell .topbar {
   min-height: 0;
   display: grid;
   place-items: center;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 46%, rgb(138 198 79 / 14%), transparent 52%),
-    linear-gradient(145deg, #fbfdf9, #f1f8ec);
-  border: 1px solid #dce8d3;
-  border-radius: 18px;
-}
-
-.auth-diabetes-frame::before {
-  content: "";
-  position: absolute;
-  inset: 12px;
-  border: 1px dashed rgb(74 138 26 / 16%);
-  border-radius: 12px;
-  pointer-events: none;
+  overflow: visible;
 }
 
 .auth-diabetes-frame img {
