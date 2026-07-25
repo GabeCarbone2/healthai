@@ -296,32 +296,26 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
 
           <div className="auth-signal-stage" data-reveal="right" aria-hidden="true">
             <div className="auth-signal-index">
-              <span>Estrutura do resultado</span>
-              <b>Não é resultado de paciente</b>
+              <span>Diabetes em foco</span>
+              <b>Ilustração educacional</b>
             </div>
-            <div className="auth-result-structure">
-              <div className="auth-result-row probability">
-                <span>Risco estimado</span>
-                <i><b /></i>
+            <div className="auth-diabetes-visual">
+              <div className="auth-diabetes-frame">
+                <img
+                  src="/diabetes-glucose-monitor.svg"
+                  alt=""
+                  width="640"
+                  height="480"
+                />
               </div>
-              <div className="auth-result-row threshold">
-                <span>Nível de atenção</span>
-                <i><b /></i>
-              </div>
-              <div className="auth-result-row completeness">
-                <span>Dados informados</span>
-                <i>
-                  <b />
-                  <b />
-                  <b />
-                  <b />
-                  <b />
-                </i>
+              <div className="auth-diabetes-tags">
+                <span><i /> Glicose no sangue</span>
+                <span><i /> Acompanhamento metabólico</span>
               </div>
             </div>
             <div className="auth-signal-legend">
-              <span>Representação conceitual da estrutura do resultado</span>
-              <span>Não representa monitoramento em tempo real</span>
+              <span>Glicosímetro e tira reagente</span>
+              <span>Não representa resultado de paciente</span>
             </div>
           </div>
           </div>

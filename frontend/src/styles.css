@@ -9519,85 +9519,77 @@ html[data-scrolled] .app-shell .topbar {
   background: #fff0ad;
 }
 
-.auth-result-structure {
+.auth-diabetes-visual {
+  min-height: 0;
   display: grid;
   align-content: center;
-  gap: 34px;
-  padding: 40px 0;
+  gap: 14px;
+  padding: 18px 0 12px;
 }
 
-.auth-result-row {
+.auth-diabetes-frame {
+  position: relative;
+  min-height: 0;
   display: grid;
-  gap: 10px;
-  color: var(--text-secondary);
-  font-size: 12px;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 46%, rgb(138 198 79 / 14%), transparent 52%),
+    linear-gradient(145deg, #fbfdf9, #f1f8ec);
+  border: 1px solid #dce8d3;
+  border-radius: 18px;
 }
 
-.auth-result-row > span {
-  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-  letter-spacing: 0.08em;
+.auth-diabetes-frame::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border: 1px dashed rgb(74 138 26 / 16%);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.auth-diabetes-frame img {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 410px);
+  height: auto;
+  display: block;
+  filter: saturate(0.96);
+  transform: translateY(2px);
+}
+
+.auth-diabetes-tags {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.auth-diabetes-tags span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 10px;
+  color: var(--scm-body);
+  background: var(--scm-green-soft);
+  border: 1px solid #d7e9c8;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  line-height: 1.35;
   text-transform: uppercase;
 }
 
-.auth-result-row > i {
-  position: relative;
-  height: 12px;
+.auth-diabetes-tags i {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
   display: block;
-  background: rgb(245 230 168 / 9%);
-  border: 1px solid rgb(245 230 168 / 18%);
-}
-
-.auth-result-row.probability > i > b {
-  width: 68%;
-  height: 100%;
-  display: block;
-  background: linear-gradient(90deg, var(--accent-strong), var(--accent));
-}
-
-.auth-result-row.threshold > i {
-  height: 4px;
-  margin-top: 4px;
-  border: 0;
-}
-
-.auth-result-row.threshold > i > b {
-  position: absolute;
-  top: -9px;
-  left: 46%;
-  width: 2px;
-  height: 22px;
-  background: var(--accent);
-}
-
-.auth-result-row.threshold > i > b::after {
-  content: "";
-  position: absolute;
-  top: -1px;
-  left: -4px;
-  width: 8px;
-  height: 8px;
-  background: #141209;
-  border: 1px solid var(--accent);
-  transform: rotate(45deg);
-}
-
-.auth-result-row.completeness > i {
-  height: 14px;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 5px;
-  background: transparent;
-  border: 0;
-}
-
-.auth-result-row.completeness > i > b {
-  display: block;
-  background: var(--accent);
-  border: 1px solid rgb(255 240 173 / 38%);
-}
-
-.auth-result-row.completeness > i > b:last-child {
-  background: rgb(245 230 168 / 12%);
+  background: var(--scm-green);
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgb(138 198 79 / 13%);
 }
 
 .auth-signal-legend {
