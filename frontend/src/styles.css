@@ -9519,23 +9519,20 @@ html[data-scrolled] .app-shell .topbar {
   background: #fff0ad;
 }
 
-.auth-diabetes-visual {
-  min-height: 0;
-  display: grid;
-  align-content: center;
-  gap: 14px;
-  padding: 18px 0 12px;
+.auth-page .auth-signal-stage.auth-diabetes-standalone {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  clip-path: none;
 }
 
-.auth-diabetes-frame {
-  position: relative;
-  min-height: 0;
-  display: grid;
-  place-items: center;
-  overflow: visible;
+.auth-page .auth-signal-stage.auth-diabetes-standalone::before,
+.auth-page .auth-signal-stage.auth-diabetes-standalone::after {
+  display: none;
 }
 
-.auth-diabetes-frame img {
+.auth-diabetes-standalone img {
   position: relative;
   z-index: 1;
   width: min(100%, 410px);
@@ -9543,39 +9540,6 @@ html[data-scrolled] .app-shell .topbar {
   display: block;
   filter: saturate(0.96);
   transform: translateY(2px);
-}
-
-.auth-diabetes-tags {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.auth-diabetes-tags span {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 9px 10px;
-  color: var(--scm-body);
-  background: var(--scm-green-soft);
-  border: 1px solid #d7e9c8;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.035em;
-  line-height: 1.35;
-  text-transform: uppercase;
-}
-
-.auth-diabetes-tags i {
-  width: 7px;
-  height: 7px;
-  flex: 0 0 7px;
-  display: block;
-  background: var(--scm-green);
-  border-radius: 50%;
-  box-shadow: 0 0 0 4px rgb(138 198 79 / 13%);
 }
 
 .auth-signal-legend {
