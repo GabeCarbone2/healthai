@@ -11192,25 +11192,74 @@ html[data-scrolled] .app-shell .topbar {
 .app-shell .input-wrap select,
 .app-shell .results-filters input,
 .app-shell .danger-zone input,
-.crm-update-form input,
-.crm-update-form select,
-.review-actions textarea {
+.app-shell .crm-update-form input,
+.app-shell .crm-update-form select,
+.app-shell .signed-pdf-form input[type="file"],
+.app-shell .confirm-dialog .dialog-form input,
+.app-shell .review-actions textarea {
   color: var(--scm-ink);
   color-scheme: light;
   background: #ffffff;
-  border-color: #cfd4da;
+  border-color: #9eaaa5;
   box-shadow: none;
+  opacity: 1;
+  -webkit-text-fill-color: var(--scm-ink);
 }
 
 .app-shell .input-wrap input:focus,
 .app-shell .input-wrap select:focus,
 .app-shell .results-filters input:focus,
 .app-shell .danger-zone input:focus,
-.crm-update-form input:focus,
-.crm-update-form select:focus,
-.review-actions textarea:focus {
+.app-shell .crm-update-form input:focus,
+.app-shell .crm-update-form select:focus,
+.app-shell .signed-pdf-form input[type="file"]:focus,
+.app-shell .confirm-dialog .dialog-form input:focus,
+.app-shell .review-actions textarea:focus {
+  outline: 3px solid rgb(0 125 78 / 22%);
+  outline-offset: 2px;
   border-color: var(--scm-green-dark);
-  box-shadow: 0 0 0 3px rgb(138 198 79 / 18%);
+  box-shadow: none;
+}
+
+.app-shell .input-wrap input::placeholder,
+.app-shell .results-filters input::placeholder,
+.app-shell .danger-zone input::placeholder,
+.app-shell .crm-update-form input::placeholder,
+.app-shell .confirm-dialog .dialog-form input::placeholder {
+  color: #69746f;
+  opacity: 1;
+}
+
+.app-shell .input-wrap select option,
+.app-shell .crm-update-form select option {
+  color: var(--scm-ink);
+  background: #ffffff;
+}
+
+.app-shell .input-wrap input:disabled,
+.app-shell .input-wrap select:disabled,
+.app-shell .results-filters input:disabled,
+.app-shell .danger-zone input:disabled,
+.app-shell .crm-update-form input:disabled,
+.app-shell .crm-update-form select:disabled,
+.app-shell .signed-pdf-form input[type="file"]:disabled,
+.app-shell .confirm-dialog .dialog-form input:disabled,
+.app-shell .review-actions textarea:disabled {
+  color: #626c68;
+  cursor: not-allowed;
+  background: #edf0eb;
+  border-color: #c8ceca;
+  opacity: 1;
+  -webkit-text-fill-color: #626c68;
+}
+
+.app-shell .input-wrap input:-webkit-autofill,
+.app-shell .results-filters input:-webkit-autofill,
+.app-shell .danger-zone input:-webkit-autofill,
+.app-shell .crm-update-form input:-webkit-autofill,
+.app-shell .confirm-dialog .dialog-form input:-webkit-autofill {
+  box-shadow: 0 0 0 1000px #ffffff inset;
+  -webkit-text-fill-color: var(--scm-ink);
 }
 
 .app-shell .input-wrap em,
@@ -11239,6 +11288,78 @@ html[data-scrolled] .app-shell .topbar {
 .cfm-link:hover {
   color: #ffffff;
   background: var(--scm-green-dark);
+}
+
+.app-shell .signed-pdf-form {
+  color: var(--scm-ink);
+  background: #f8faf7;
+  border-color: #bfc9c4;
+}
+
+.app-shell .signed-pdf-form label > span {
+  color: var(--scm-ink);
+}
+
+.app-shell .signed-pdf-form input[type="file"] {
+  min-height: 48px;
+  padding: 6px 8px;
+  caret-color: var(--scm-green-dark);
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.app-shell .signed-pdf-form input[type="file"]::file-selector-button {
+  min-height: 34px;
+  margin-right: 12px;
+  padding: 0 12px;
+  color: var(--scm-green-dark);
+  background: var(--scm-green-soft);
+  border: 1px solid #bfd9ac;
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.app-shell .signed-pdf-form input[type="file"]::file-selector-button:hover {
+  color: #ffffff;
+  background: var(--scm-green-dark);
+  border-color: var(--scm-green-dark);
+}
+
+.app-shell .signed-pdf-form small {
+  color: var(--scm-body);
+}
+
+.app-shell .crm-challenge-actions button,
+.app-shell .signed-pdf-form button {
+  color: #ffffff;
+  background: var(--scm-green);
+  border-color: var(--scm-green);
+}
+
+.app-shell .crm-challenge-actions button.secondary {
+  color: var(--scm-green-dark);
+  background: #ffffff;
+  border-color: #9eaaa5;
+}
+
+.app-shell .crm-challenge-actions button:hover:not(:disabled),
+.app-shell .signed-pdf-form button:hover:not(:disabled) {
+  color: #ffffff;
+  background: var(--scm-green-dark);
+  border-color: var(--scm-green-dark);
+}
+
+.app-shell .crm-challenge-actions button:disabled,
+.app-shell .signed-pdf-form button:disabled {
+  color: #59635f;
+  cursor: not-allowed;
+  background: #e3e8e0;
+  border-color: #c5ccc7;
+  opacity: 1;
 }
 
 .app-shell .primary-button:disabled {
