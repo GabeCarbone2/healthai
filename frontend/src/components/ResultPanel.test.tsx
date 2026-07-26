@@ -29,6 +29,9 @@ describe("ResultPanel", () => {
     render(
       <ResultPanel
         experiment={experiment}
+        patientIdentifier="PAC-A1B2C3D4"
+        performedAt="2026-07-25T20:10:00-03:00"
+        estimatedFieldLabels={["Glicose"]}
         prediction={{
           experiment: "pima",
           model: "random_forest",
@@ -58,21 +61,25 @@ describe("ResultPanel", () => {
         name: "Probabilidade estimada de risco",
       }),
     ).toHaveAttribute("value", "42");
-    expect(screen.getByText(/1 campo foi estimado/)).toBeInTheDocument();
+    expect(screen.getByText("Referência de atenção utilizada")).toBeInTheDocument();
+    expect(screen.getByText(/1 campo foi substituído/)).toBeInTheDocument();
+    expect(screen.getByText("Glicose", { selector: "li" })).toBeInTheDocument();
     expect(screen.getByText(/não representa diagnóstico médico/)).toBeInTheDocument();
-    const technicalSummary = screen.getByText("Detalhes técnicos da avaliação");
+    expect(screen.getByText("PAC-A1B2C3D4")).toBeInTheDocument();
+    const technicalSummary = screen.getByText("Transparência técnica da avaliação");
     expect(technicalSummary).toHaveAttribute("aria-expanded", "false");
     await browser.click(technicalSummary);
     expect(technicalSummary).toHaveAttribute("aria-expanded", "true");
     expect(
-      screen.getByRole("heading", { name: "Fatores mais considerados pelo sistema" }),
+      screen.getByRole("heading", { name: "Informações com maior influência geral no sistema" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/não explicam individualmente este resultado/)).toBeInTheDocument();
-    const localSummary = screen.getByText("Informações consideradas nesta avaliação");
+    expect(screen.getByText(/Não explicam individualmente esta avaliação/)).toBeInTheDocument();
+    const localSummary = screen.getByText("Análise técnica de sensibilidade");
     expect(localSummary).toHaveAttribute("aria-expanded", "false");
     await browser.click(localSummary);
-    expect(screen.getByText("Variações estimadas nesta avaliação")).toBeInTheDocument();
-    expect(screen.getByText(/elevou 8.0 p.p./)).toBeInTheDocument();
+    expect(screen.getByText(/Os efeitos não são causais nem aditivos/)).toBeInTheDocument();
+    expect(screen.getByText(/\+8,0 pontos percentuais/)).toBeInTheDocument();
+    expect(screen.queryByText(/elevou|reduziu/i)).not.toBeInTheDocument();
   });
 
   it("mantém o estado vazio curto e sem lista antecipada", () => {

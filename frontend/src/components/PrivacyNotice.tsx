@@ -34,23 +34,25 @@ export function PrivacyNotice({ info }: Props) {
     <div className="privacy-notice">
       <PrivacySection title="Como os dados são usados">
         <p>
-          Nome, e-mail, CRM e UF são usados para administrar a conta. A
-          comprovação profissional valida a assinatura digital e os atributos
-          CRM/UF do certificado; o PDF enviado não é armazenado. A senha é
-          conservada somente como hash e a autenticação usa cookie protegido.
+          Nome, e-mail, CRM e UF são usados para administrar a conta e apoiar a
+          conferência administrativa do cadastro profissional. A documentação
+          enviada é processada para essa finalidade, e o PDF não é armazenado.
+          A senha é conservada somente como hash e a autenticação usa cookie
+          protegido.
         </p>
       </PrivacySection>
       <PrivacySection title="Dados armazenados">
         <p>
           O HealthAI conserva o identificador <code>PAC-…</code>, resultado,
-          probabilidade, limiar, versão do modelo e metadados de completude.
+          probabilidade, referência de atenção, versão da análise e metadados de
+          completude.
         </p>
       </PrivacySection>
       <PrivacySection title="Dados não armazenados">
         <p>
           O sistema não armazena nome, CPF ou prontuário do paciente nem os valores
-          clínicos enviados ao modelo. Também não conserva o PDF usado para
-          comprovar o CRM, apenas hashes criptográficos para auditoria.
+          clínicos enviados ao cálculo. Também não conserva o PDF da documentação
+          profissional enviada, apenas hashes criptográficos para auditoria.
         </p>
       </PrivacySection>
       <PrivacySection title="Pseudonimização">

@@ -5334,7 +5334,497 @@ body {
   }
 }
 
-/* Verificação profissional automática por PDF assinado */
+/* Refinamento clínico do resultado e da avaliação — 2026-07-25 */
+.auth-page {
+  overflow-x: clip;
+}
+
+.app-shell .assessment-page .result-panel {
+  min-height: 0;
+  align-self: start;
+}
+
+.assessment-page .result-empty {
+  min-height: 230px;
+  padding: 30px 18px;
+}
+
+.assessment-page .result-empty small {
+  color: var(--scm-muted);
+  font-size: 12px;
+}
+
+.assessment-page .result-empty small strong {
+  color: var(--scm-ink);
+}
+
+.app-shell .result-status.attention {
+  color: #8a5800;
+  background: #fff7e5;
+  border-color: #e5c06f;
+}
+
+.app-shell .result-status.attention small {
+  color: #765d31;
+}
+
+.app-shell .result-class.positive {
+  color: #8a5800;
+  background: #fff7e5;
+  border-color: #e5c06f;
+}
+
+.result-measure {
+  margin-top: 16px;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid var(--scm-border);
+  border-radius: 12px;
+}
+
+.result-measure-values {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: end;
+}
+
+.attention-reference-readout {
+  padding-left: 14px;
+  border-left: 1px solid var(--scm-border);
+}
+
+.attention-reference-readout span {
+  display: block;
+  color: var(--scm-muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.attention-reference-readout strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--scm-ink);
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+
+.probability-scale {
+  position: relative;
+  padding: 15px 0 24px;
+}
+
+.probability-scale .probability-track {
+  width: 100%;
+  height: 12px;
+  display: block;
+  margin: 0;
+}
+
+.app-shell .probability-track.attention::-webkit-progress-value {
+  background: #d88b00;
+}
+
+.app-shell .probability-track.attention::-moz-progress-bar {
+  background: #d88b00;
+}
+
+.app-shell .probability-track.neutral::-webkit-progress-value {
+  background: var(--scm-green);
+}
+
+.app-shell .probability-track.neutral::-moz-progress-bar {
+  background: var(--scm-green);
+}
+
+.attention-reference-marker {
+  position: absolute;
+  z-index: 2;
+  top: 9px;
+  width: 2px;
+  height: 24px;
+  background: var(--scm-ink);
+  transform: translateX(-1px);
+}
+
+.probability-scale-start,
+.probability-scale-end,
+.attention-reference-label {
+  position: absolute;
+  bottom: 0;
+  color: var(--scm-muted);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.probability-scale-start {
+  left: 0;
+}
+
+.probability-scale-end {
+  right: 0;
+}
+
+.attention-reference-label {
+  color: var(--scm-body);
+  font-weight: 700;
+  transform: translateX(-50%);
+}
+
+.attention-reference-help {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 10px 0 0;
+  color: var(--scm-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.attention-reference-help svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--scm-green-dark);
+}
+
+.result-interpretation,
+.result-section,
+.result-disclaimer {
+  margin-top: 14px;
+  padding: 15px;
+  background: #ffffff;
+  border: 1px solid var(--scm-border) !important;
+  border-radius: 10px;
+}
+
+.result-interpretation h3,
+.result-section h3,
+.result-disclaimer h3,
+.technical-section > h3 {
+  margin: 0 0 7px;
+  color: var(--scm-ink);
+  font-size: 13px;
+  font-weight: 780;
+  letter-spacing: 0.02em;
+}
+
+.result-interpretation p,
+.result-section p,
+.result-disclaimer p,
+.technical-section > p {
+  margin: 0;
+  color: var(--scm-body);
+  font-size: 13px;
+  line-height: 1.58;
+}
+
+.result-interpretation.attention {
+  background: #fff7e5;
+  border-color: #e5c06f !important;
+}
+
+.result-interpretation.attention h3 {
+  color: #8a5800;
+}
+
+.result-interpretation.information {
+  background: #eef7fd;
+  border-color: #bed9ea !important;
+}
+
+.result-quality dl,
+.assessment-metadata dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.result-quality dl > div,
+.assessment-metadata dl > div {
+  min-width: 0;
+  padding: 10px;
+  background: var(--scm-canvas);
+  border-radius: 8px;
+}
+
+.result-quality dt,
+.assessment-metadata dt,
+.sensitivity-list dt {
+  color: var(--scm-muted);
+  font-size: 11px;
+}
+
+.result-quality dd,
+.assessment-metadata dd,
+.sensitivity-list dd {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+  color: var(--scm-ink);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.missing-data-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.missing-data-section.complete h3 svg {
+  color: var(--scm-green-dark);
+}
+
+.missing-data-section.attention {
+  background: #fff9eb;
+  border-color: #ead39a !important;
+}
+
+.missing-data-section.attention h3,
+.missing-data-section.attention h3 svg {
+  color: #805509;
+}
+
+.missing-data-section ul {
+  margin: 8px 0;
+  padding-left: 21px;
+  color: var(--scm-body);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.result-disclaimer {
+  color: var(--scm-body);
+  background: #eef7fd;
+  border-color: #bed9ea !important;
+}
+
+.result-disclaimer h3 {
+  color: #245f7f;
+}
+
+.assessment-information,
+.technical-evaluation-details {
+  margin-top: 14px;
+  background: #ffffff;
+  border: 1px solid var(--scm-border) !important;
+}
+
+.assessment-information > div,
+.technical-evaluation-details > div {
+  padding: 0 14px 14px;
+}
+
+.considered-information-list {
+  display: grid;
+  gap: 0;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.considered-information-list li {
+  min-height: 40px;
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0 !important;
+  border-bottom: 1px solid var(--scm-border);
+}
+
+.considered-information-list li:last-child {
+  border-bottom: 0;
+}
+
+.considered-information-list strong {
+  color: var(--scm-body);
+  font-size: 11px;
+  text-align: right;
+}
+
+.technical-section {
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.technical-section + .technical-section,
+.technical-sensitivity,
+.technical-feature-list {
+  padding-top: 14px;
+  border-top: 1px solid var(--scm-border);
+}
+
+.technical-metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.technical-metrics dd {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.technical-sensitivity {
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+}
+
+.technical-sensitivity > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--scm-ink);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 760;
+}
+
+.technical-sensitivity > div {
+  padding: 0 0 4px;
+}
+
+.technical-sensitivity p {
+  color: var(--scm-body);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.sensitivity-list {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sensitivity-list > li {
+  display: block;
+  padding: 12px;
+  background: var(--scm-canvas);
+  border: 1px solid var(--scm-border);
+  border-radius: 8px;
+}
+
+.sensitivity-list h4 {
+  margin: 0 0 9px;
+  color: var(--scm-ink);
+  font-size: 13px;
+}
+
+.sensitivity-list dl {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.sensitivity-list dl > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sensitivity-list dd {
+  text-align: right;
+}
+
+.profile-context-content {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 20px;
+}
+
+.assessment-page .model-context .profile-context-content section {
+  min-width: 0;
+}
+
+.assessment-page .model-context .profile-context-content h3 {
+  margin: 0 0 4px;
+  color: var(--scm-ink);
+  font-size: 12px;
+}
+
+.assessment-page .model-context .profile-context-content p {
+  margin: 0;
+}
+
+.field-tooltip button,
+.row-actions button,
+.result-reset {
+  min-width: 40px;
+  min-height: 40px;
+}
+
+:where(button, a, summary, input, select, textarea):focus-visible {
+  outline: 3px solid rgb(74 138 26 / 30%);
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .result-measure-values,
+  .result-quality dl,
+  .assessment-metadata dl,
+  .technical-metrics,
+  .profile-context-content {
+    grid-template-columns: 1fr;
+  }
+
+  .attention-reference-readout {
+    padding-top: 12px;
+    padding-left: 0;
+    border-top: 1px solid var(--scm-border);
+    border-left: 0;
+  }
+
+  .app-shell .assessment-page .result-panel {
+    margin-top: 0;
+    min-height: 0;
+  }
+
+  .assessment-page .result-empty {
+    min-height: 220px;
+  }
+
+  .app-shell .assessment-page .form-actions {
+    position: static;
+    margin-right: 0;
+    margin-left: 0;
+  }
+
+  .app-shell .assessment-page .form-actions,
+  .app-shell .assessment-page .form-actions > div {
+    align-items: stretch;
+  }
+
+  .app-shell .assessment-page .form-actions button,
+  .auth-hero-actions a {
+    width: 100%;
+  }
+}
+
+@media (max-width: 390px) {
+  .result-panel-heading {
+    align-items: flex-start;
+  }
+
+  .result-panel-heading .result-reset {
+    padding-inline: 9px;
+  }
+
+  .sensitivity-list dl > div {
+    display: grid;
+    gap: 2px;
+  }
+
+  .sensitivity-list dd {
+    text-align: left;
+  }
+}
+
+/* Fluxo de documentação do cadastro profissional */
 .crm-verification-flow {
   display: grid;
   gap: 18px;
@@ -11747,5 +12237,49 @@ html[data-scrolled] .app-shell .topbar {
     transform: none;
     translate: none;
     transition: none;
+  }
+}
+
+/* Restringe transforms de entrada à área pública sem criar rolagem lateral. */
+.auth-page {
+  overflow-x: clip;
+}
+
+/* Garantias finais de cascata para os estados clínicos. */
+.app-shell .assessment-page .result-panel {
+  min-height: 0;
+}
+
+.assessment-page .result-empty {
+  min-height: 230px;
+  padding: 30px 18px;
+}
+
+.app-shell .result-status.attention,
+.app-shell .result-class.positive {
+  color: #8a5800;
+  background: #fff7e5;
+  border-color: #e5c06f;
+}
+
+.app-shell .result-status.attention small {
+  color: #765d31;
+}
+
+.app-shell .result-disclaimer {
+  color: var(--scm-body);
+  background: #eef7fd;
+  border-color: #bed9ea !important;
+}
+
+@media (max-width: 720px) {
+  .app-shell .assessment-page .result-panel {
+    min-height: 0;
+  }
+
+  .app-shell .assessment-page .form-actions {
+    position: static;
+    margin-right: 0;
+    margin-left: 0;
   }
 }

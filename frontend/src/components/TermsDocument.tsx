@@ -30,11 +30,10 @@ export function TermsDocument({ info, contact }: Props) {
         <h2>2. Acesso profissional</h2>
         <p>
           O acesso às avaliações é destinado a profissionais médicos com conta
-          individual, e-mail confirmado e cadastro profissional validado por PDF
-          assinado com certificado digital que contenha CRM e UF compatíveis. A
-          aprovação comprova a posse do certificado no momento da validação, mas
-          não representa consulta em tempo real à situação cadastral no CFM ou
-          no conselho regional.
+          individual, e-mail confirmado e cadastro profissional aprovado após
+          análise administrativa dos dados e da documentação enviada. Essa
+          conferência administrativa não representa consulta oficial ou em
+          tempo real à situação cadastral no CFM ou no conselho regional.
         </p>
       </section>
 
@@ -52,10 +51,10 @@ export function TermsDocument({ info, contact }: Props) {
       <section>
         <h2>4. Resultados e limitações</h2>
         <p>
-          Probabilidades, limiares e explicações refletem os modelos e bases
+          Probabilidades, referências de atenção e análises técnicas refletem os modelos e bases
           acadêmicas identificados na interface. Podem ocorrer erros, vieses,
           indisponibilidade e desempenho diferente em outras populações. A
-          explicação individual mostra sensibilidade matemática, não causalidade.
+          análise individual mostra sensibilidade técnica, não causalidade.
         </p>
       </section>
 

@@ -70,8 +70,10 @@ describe("AuthPage", () => {
     expect(screen.getByRole("link", { name: "Entrar" }))
       .toHaveAttribute("href", "#acesso");
     expect(
-      screen.getByRole("link", { name: "Iniciar avaliação" }),
+      screen.getByRole("link", { name: "Entrar na plataforma" }),
     ).toHaveAttribute("href", "#acesso");
+    expect(screen.getAllByRole("link", { name: "Como funciona" }).at(-1))
+      .toHaveAttribute("href", "#como-funciona");
     expect(
       screen.getByRole("heading", {
         name: "Da informação disponível à leitura contextualizada.",
@@ -87,8 +89,10 @@ describe("AuthPage", () => {
       screen.getByRole("heading", { name: "Acesso profissional controlado" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/validação do certificado profissional/i),
+      screen.getByText(/análise administrativa do cadastro profissional/i),
     ).toBeInTheDocument();
+    expect(screen.queryByText(/ROLAGEM/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/verificação automática/i)).not.toBeInTheDocument();
     expect(
       screen.getAllByText(/não substitui diagnóstico, exames, avaliação médica ou julgamento clínico/i),
     ).toHaveLength(3);
@@ -251,7 +255,7 @@ describe("AccountPage", () => {
       signedPdf,
     );
     const submitButton = screen.getByRole("button", {
-      name: "Validar PDF assinado",
+      name: "Enviar PDF assinado",
     });
     await waitFor(() => expect(submitButton).toBeEnabled());
     await browser.click(submitButton);

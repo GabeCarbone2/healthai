@@ -193,10 +193,6 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
       <a className="skip-link" href="#acesso">
         Ir para o acesso
       </a>
-      <div className="auth-scroll-meter" aria-hidden="true">
-        <span>ROLAGEM</span>
-        <i><b /></i>
-      </div>
 
       <header className="auth-topbar">
         <div className="auth-topbar-inner">
@@ -276,15 +272,15 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
                 href="#acesso"
                 onClick={() => followSection("acesso", "login")}
               >
-                Iniciar avaliação
+                Entrar na plataforma
                 <ArrowRight size={18} aria-hidden="true" />
               </a>
               <a
                 className="auth-hero-secondary"
-                href="#acesso"
-                onClick={() => followSection("acesso", "login")}
+                href="#como-funciona"
+                onClick={() => followSection("como-funciona")}
               >
-                Entrar na plataforma
+                Como funciona
               </a>
             </div>
             <p className="auth-trust-line">
@@ -410,7 +406,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
               <div>
                 <small>03</small>
                 <h3>Resultado rastreável</h3>
-                <p>Resultado, data, perfil e versão da análise acompanham cada registro.</p>
+                <p>Resultado, data, perfil, completude e versão da análise acompanham cada registro.</p>
               </div>
             </li>
           </ol>
@@ -434,12 +430,12 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
             <article data-reveal="up">
               <ListChecks size={22} aria-hidden="true" />
               <h3>Completude importa</h3>
-              <p>Informações ausentes podem reduzir a confiabilidade da avaliação.</p>
+              <p>Informações ausentes ou substituídas por referências estatísticas podem reduzir a confiabilidade da avaliação.</p>
             </article>
             <article data-reveal="up">
               <BrainCircuit size={22} aria-hidden="true" />
-              <h3>Generalização limitada</h3>
-              <p>Os métodos foram avaliados internamente em bases públicas, sem validação externa.</p>
+              <h3>Aplicabilidade limitada</h3>
+              <p>O desempenho pode variar em pacientes, serviços e populações diferentes daqueles utilizados no desenvolvimento e na avaliação interna.</p>
             </article>
           </div>
         </section>
@@ -452,13 +448,13 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
             </span>
             <h2 id="auth-access-title">Acesso profissional controlado</h2>
             <p>
-              Entre com sua conta ou solicite um novo cadastro profissional. O
-              acesso às avaliações é liberado após a validação do certificado
-              profissional vinculado ao CRM informado.
+              Entre com sua conta ou solicite um novo cadastro profissional.
+              O acesso às avaliações é liberado após análise administrativa do
+              cadastro profissional e dos documentos informados.
             </p>
             <ul>
               <li><ShieldCheck size={17} aria-hidden="true" /> Conta individual e sessão protegida</li>
-              <li><ShieldCheck size={17} aria-hidden="true" /> Verificação automática por PDF assinado</li>
+              <li><ShieldCheck size={17} aria-hidden="true" /> Conferência administrativa do cadastro profissional</li>
               <li><ShieldCheck size={17} aria-hidden="true" /> Dados clínicos não persistidos no histórico</li>
             </ul>
           </div>
@@ -575,7 +571,11 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
                   <span>E-mail</span>
                   <input id="register-email" type="email" autoComplete="email" placeholder="voce@exemplo.com" required value={email} onChange={(event) => { setEmail(event.target.value); setError(""); }} />
                 </label>
-                <small className="fieldset-note">Depois de confirmar o e-mail, assine um PDF de uso único com seu Certificado Digital do CFM para liberar as avaliações.</small>
+                <small className="fieldset-note">
+                  Depois de confirmar o e-mail, envie pela sua conta a
+                  documentação solicitada para análise administrativa do
+                  cadastro profissional.
+                </small>
               </fieldset>
             ) : (
               <label htmlFor="login-email">
@@ -730,7 +730,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
                     <div><dt>Limitação</dt><dd>Teste interno da mesma fonte, sem validação externa.</dd></div>
                   </dl>
                   <div className="auth-model-metrics" aria-label="Métricas no teste interno da análise Pima">
-                    <span><small>Recall</small><b>88,9%</b></span>
+                    <span><small>Sensibilidade</small><b>88,9%</b></span>
                     <span><small>F1-score</small><b>64,4%</b></span>
                     <span><small>AUC-ROC</small><b>82,5%</b></span>
                   </div>
@@ -751,7 +751,7 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
                     <div><dt>Limitação</dt><dd>Teste interno da própria onda, sem validação externa.</dd></div>
                   </dl>
                   <div className="auth-model-metrics" aria-label="Métricas no teste interno da análise NHANES">
-                    <span><small>Recall</small><b>80,1%</b></span>
+                    <span><small>Sensibilidade</small><b>80,1%</b></span>
                     <span><small>F1-score</small><b>60,4%</b></span>
                     <span><small>AUC-ROC</small><b>90,1%</b></span>
                   </div>
@@ -760,13 +760,15 @@ export function AuthPage({ onAuthenticated, privacy }: Props) {
               <div className="auth-methodology-copy">
                 <p>
                   Os algoritmos candidatos foram comparados por F1 em validação
-                  cruzada no conjunto de treino. O limiar foi definido por F2,
-                  com maior peso para recall, e o desempenho final foi estimado
-                  em uma partição de teste isolada da mesma fonte.
+                  cruzada no conjunto de treino. A referência de atenção foi
+                  definida por F2, com maior peso para sensibilidade, e o
+                  desempenho final foi estimado em uma partição de teste isolada
+                  da mesma fonte.
                 </p>
                 <p>
-                  Ainda não foi realizada validação externa. As métricas descrevem
-                  esses experimentos e não comprovam desempenho clínico em outras
+                  Métricas obtidas em uma avaliação interna da base de
+                  desenvolvimento. Não representam validação externa e não
+                  garantem o mesmo desempenho em outros serviços, pacientes ou
                   populações.
                 </p>
               </div>

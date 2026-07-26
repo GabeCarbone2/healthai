@@ -149,6 +149,8 @@ export function Assessment({ experiments, onResult }: Props) {
   );
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [prediction, setPrediction] = useState<Prediction | null>(null);
+  const [assessmentIdentifier, setAssessmentIdentifier] = useState("");
+  const [assessmentPerformedAt, setAssessmentPerformedAt] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -169,6 +171,8 @@ export function Assessment({ experiments, onResult }: Props) {
     setFieldErrors({});
     setPatientIdentifier(createPatientIdentifier());
     setPrediction(null);
+    setAssessmentIdentifier("");
+    setAssessmentPerformedAt("");
     setError("");
     setCopied(false);
     setConfirmingClear(false);
@@ -190,6 +194,12 @@ export function Assessment({ experiments, onResult }: Props) {
   const allRequiredFieldsCompleted =
     completedRequiredFields === requiredFields.length;
   const hasEnteredValues = Object.values(values).some((value) => value.trim());
+  const estimatedFieldLabels = prediction
+    ? experiment.input_fields
+      .filter((field) => !values[field.key]?.trim())
+      .slice(0, prediction.missing_feature_count)
+      .map((field) => FIELD_LABELS[field.key] ?? field.label)
+    : [];
   const groupedFields: Array<{ title: string; fields: InputField[] }> = CLINICAL_GROUPS
     .map((group) => ({
       title: group.title,
@@ -312,6 +322,8 @@ export function Assessment({ experiments, onResult }: Props) {
         missing_feature_count: savedResult.missingFeatureCount,
         local_explanation: savedResult.localExplanation,
       });
+      setAssessmentIdentifier(savedResult.patientIdentifier);
+      setAssessmentPerformedAt(savedResult.createdAt);
       onResult(savedResult);
     } catch (requestError) {
       setError(
@@ -330,6 +342,8 @@ export function Assessment({ experiments, onResult }: Props) {
     setFieldErrors({});
     setPatientIdentifier(createPatientIdentifier());
     setPrediction(null);
+    setAssessmentIdentifier("");
+    setAssessmentPerformedAt("");
     setError("");
     setCopied(false);
     setPatientIdentifierError("");
@@ -393,25 +407,52 @@ export function Assessment({ experiments, onResult }: Props) {
       >
         <summary aria-expanded={profileDetailsOpen}>
           <Info size={16} aria-hidden="true" />
-          Detalhes técnicos e limitações do perfil
+          Sobre este perfil de avaliação
         </summary>
-        <div>
-          <p>
-            <strong>Base técnica utilizada: {presentation.technicalName}.</strong>{" "}
-            Este perfil foi desenvolvido a partir de {presentation.population},
-            com {experiment.n_train} registros de treino e {experiment.n_test} de teste
-            da base {experiment.source_dataset}.
-          </p>
-          <p>
-            Algoritmo utilizado: {experiment.selected_model_label}. A população e os
-            intervalos observados nessa base limitam a generalização para outros grupos.
-            Os resultados não equivalem a diagnóstico, risco futuro validado ou
-            recomendação clínica.
-          </p>
-          <p>
-            Campos opcionais ausentes podem ser estimados estatisticamente pelo modelo,
-            com possível redução da confiabilidade da avaliação.
-          </p>
+        <div className="profile-context-content">
+          <section>
+            <h3>Público indicado</h3>
+            <p>{presentation.description}</p>
+          </section>
+          <section>
+            <h3>Informações utilizadas</h3>
+            <p>
+              {experiment.input_fields
+                .map((field) => FIELD_LABELS[field.key] ?? field.label)
+                .join(", ")}.
+            </p>
+          </section>
+          <section>
+            <h3>Campos opcionais</h3>
+            <p>
+              {experiment.input_fields.some((field) => !field.required)
+                ? "Campos opcionais ausentes podem ser substituídos por referências estatísticas, com possível redução da confiabilidade."
+                : "Este perfil não possui campos opcionais."}
+            </p>
+          </section>
+          <section>
+            <h3>Situações fora do escopo</h3>
+            <p>
+              Avaliações incompatíveis com o público indicado ou com as
+              informações aceitas por este perfil ficam fora do seu escopo de uso.
+            </p>
+          </section>
+          <section>
+            <h3>Limitações</h3>
+            <p>
+              O resultado não equivale a diagnóstico, risco futuro validado ou
+              recomendação clínica. O desempenho pode variar em outras
+              populações e serviços.
+            </p>
+          </section>
+          <section>
+            <h3>Transparência técnica</h3>
+            <p>
+              Base {presentation.technicalName} ({experiment.source_dataset}),
+              com {experiment.n_train} registros de treino e {experiment.n_test} de
+              teste. Algoritmo utilizado: {experiment.selected_model_label}.
+            </p>
+          </section>
         </div>
       </details>
 
@@ -497,7 +538,7 @@ export function Assessment({ experiments, onResult }: Props) {
                 const range = field.type === "number"
                   && field.min !== undefined
                   && field.max !== undefined
-                  ? `Faixa: ${formatClinicalNumber(field.min)}–${formatClinicalNumber(field.max)}${field.unit ? ` ${field.unit}` : ""}`
+                  ? `Intervalo aceito pelo sistema: ${formatClinicalNumber(field.min)}–${formatClinicalNumber(field.max)}${field.unit ? ` ${field.unit}` : ""}. Esta faixa não representa um intervalo clínico de normalidade.`
                   : "";
                 const describedBy = [
                   range && rangeId,
@@ -602,7 +643,18 @@ export function Assessment({ experiments, onResult }: Props) {
           </form>
         </section>
 
-        <ResultPanel experiment={experiment} prediction={prediction} onReset={resetForm} />
+        <ResultPanel
+          experiment={experiment}
+          prediction={prediction}
+          patientIdentifier={assessmentIdentifier || undefined}
+          performedAt={assessmentPerformedAt || undefined}
+          estimatedFieldLabels={estimatedFieldLabels}
+          requiredProgress={{
+            completed: completedRequiredFields,
+            total: requiredFields.length,
+          }}
+          onReset={resetForm}
+        />
       </div>
 
       <ConfirmDialog

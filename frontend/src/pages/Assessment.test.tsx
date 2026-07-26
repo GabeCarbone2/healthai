@@ -58,14 +58,17 @@ describe("Assessment", () => {
     const glucose = screen.getByLabelText(/Glicose/);
     expect(glucose).toHaveValue("");
     expect(glucose).not.toHaveAttribute("placeholder", "0");
-    expect(screen.getByText(/Campos obrigatórios preenchidos:/)).toHaveTextContent("0 de 1");
+    expect(screen.getAllByText(/Campos obrigatórios preenchidos:/)[0]).toHaveTextContent("0 de 1");
     expect(
       screen.getByRole("button", { name: "Calcular avaliação" }),
     ).toBeDisabled();
-    const limitations = screen.getByText("Detalhes técnicos e limitações do perfil");
+    const limitations = screen.getByText("Sobre este perfil de avaliação");
     expect(limitations).toHaveAttribute("aria-expanded", "false");
     await browser.click(limitations);
     expect(limitations).toHaveAttribute("aria-expanded", "true");
+    expect(
+      screen.getByText(/Intervalo aceito pelo sistema: 44–199/),
+    ).toHaveTextContent("não representa um intervalo clínico de normalidade");
   });
 
   it("mantém a seleção entre os perfis Pima e NHANES", async () => {
@@ -190,7 +193,9 @@ describe("Assessment", () => {
       { glucose_mg_dl: 110 },
       expect.stringMatching(/^PAC-[A-Z0-9]{12}$/),
     );
-    expect(await screen.findByText("a1b2c3d4")).toBeInTheDocument();
+    expect((await screen.findAllByText("a1b2c3d4")).length).toBeGreaterThan(0);
+    expect(screen.getByText("PAC-A1B2C3D4")).toBeInTheDocument();
+    expect(screen.getByText(/11\/07\/2026 às \d{2}:\d{2}/)).toBeInTheDocument();
     expect(onResult).toHaveBeenCalledOnce();
   });
 

@@ -168,7 +168,7 @@ export function PatientResults({
     const headers = [
       "Identificador", "Data", "Perfil da avaliação", "Resultado da triagem",
       "Probabilidade", "Completude", "Informações estimadas", "Algoritmo",
-      "Versão da análise", "Limiar",
+      "Versão da análise", "Referência de atenção",
     ];
     const rows = sortedResults.map((result) => [
       result.patientIdentifier,
@@ -459,12 +459,12 @@ export function PatientResults({
                               O histórico guarda metadados do resultado, não os valores clínicos utilizados no cálculo.
                             </p>
                             <details className="history-technical-details">
-                              <summary>Detalhes técnicos da avaliação</summary>
+                              <summary>Transparência técnica da avaliação</summary>
                               <dl>
                                 <div><dt>Base técnica</dt><dd>{result.experiment}</dd></div>
                                 <div><dt>Algoritmo utilizado</dt><dd>{result.model}</dd></div>
                                 <div><dt>Versão da análise</dt><dd>{displayVersion(result.modelVersion)}</dd></div>
-                                <div><dt>Limiar</dt><dd>{percent(result.decisionThreshold)}</dd></div>
+                                <div><dt>Referência de atenção</dt><dd>{percent(result.decisionThreshold)}</dd></div>
                               </dl>
                               <p>
                                 Estas informações descrevem o funcionamento técnico

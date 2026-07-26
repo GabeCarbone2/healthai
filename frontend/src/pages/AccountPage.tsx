@@ -101,7 +101,7 @@ export function AccountPage({
           setVerificationError(
             requestError instanceof Error
               ? requestError.message
-              : "Não foi possível consultar a verificação.",
+              : "Não foi possível consultar o status da análise.",
           );
         }
       });
@@ -164,7 +164,7 @@ export function AccountPage({
       setVerificationError(
         requestError instanceof Error
           ? requestError.message
-          : "Não foi possível gerar o documento de verificação.",
+          : "Não foi possível gerar o documento para análise.",
       );
     } finally {
       setChallengeLoading(false);
@@ -206,7 +206,7 @@ export function AccountPage({
       setVerificationError(
         requestError instanceof Error
           ? requestError.message
-          : "Não foi possível validar o PDF assinado.",
+          : "Não foi possível processar a documentação enviada.",
       );
     } finally {
       setVerificationLoading(false);
@@ -277,7 +277,7 @@ export function AccountPage({
               <h3>Armazenado</h3>
               <ul>
                 <li>Identificador pseudonimizado</li>
-                <li>Resultado, probabilidade e limiar</li>
+                <li>Resultado, probabilidade e referência de atenção</li>
                 <li>Modelo, versão e completude</li>
               </ul>
             </div>
@@ -295,14 +295,14 @@ export function AccountPage({
 
       <section className={`crm-status-card ${user.crm_status ?? "missing"}`}>
         {user.crm_status === "approved" ? (
-          <CheckCircle2 size={25} />
+          <CheckCircle2 size={25} aria-hidden="true" />
         ) : user.crm_status === "rejected" ? (
-          <XCircle size={25} />
+          <XCircle size={25} aria-hidden="true" />
         ) : (
-          <Clock3 size={25} />
+          <Clock3 size={25} aria-hidden="true" />
         )}
         <div>
-          <span className="status-kicker">Verificação por certificado digital</span>
+          <span className="status-kicker">Análise administrativa</span>
           <h2>Cadastro profissional</h2>
           <span className={`status-badge ${user.crm_status ?? "missing"}`}>
             {user.crm_status === "approved" ? (
@@ -315,12 +315,12 @@ export function AccountPage({
           </span>
           <p>
             {user.crm_status === "approved"
-              ? `Cadastro aprovado em ${formatBrazilianDate(user.crm_verified_at)} por validação criptográfica do certificado profissional.`
+              ? `Cadastro profissional aprovado em ${formatBrazilianDate(user.crm_verified_at)} após conferência administrativa da documentação enviada.`
               : user.crm_status === "rejected"
                 ? user.crm_rejection_reason ?? "Revise os dados informados e envie novamente."
                 : user.crm
-                  ? "Comprove o CRM assinando um PDF de uso único com seu Certificado Digital do CFM."
-                  : "Informe CRM e UF para iniciar a verificação profissional."}
+                  ? "Envie a documentação solicitada para a análise administrativa do cadastro profissional."
+                  : "Informe CRM e UF para iniciar a análise do cadastro profissional."}
           </p>
           {user.crm && user.crm_uf && <strong>CRM {showData ? user.crm : maskCrm(user.crm)}/{user.crm_uf}</strong>}
           {canSubmitCrm && (
@@ -366,15 +366,15 @@ export function AccountPage({
                 <li>
                   <span>2</span>
                   <div>
-                    <strong>Assine com seu certificado profissional</strong>
-                    <p>Use um assinador PAdES com o Certificado Digital do CFM vinculado ao mesmo CRM e UF.</p>
+                    <strong>Assine a documentação solicitada</strong>
+                    <p>Use um assinador PAdES com um certificado profissional que contenha o mesmo CRM e a mesma UF informados.</p>
                   </div>
                 </li>
                 <li>
                   <span>3</span>
                   <div>
-                    <strong>Envie o PDF assinado</strong>
-                    <p>A aprovação ocorre automaticamente após a validação da assinatura e do certificado.</p>
+                    <strong>Envie a documentação assinada</strong>
+                    <p>O arquivo enviado é usado na conferência administrativa do cadastro profissional.</p>
                   </div>
                 </li>
               </ol>
@@ -437,8 +437,8 @@ export function AccountPage({
                       ? <Activity size={16} />
                       : <FileUp size={16} />}
                     {verificationLoading
-                      ? "Validando assinatura..."
-                      : "Validar PDF assinado"}
+                      ? "Enviando documentação..."
+                      : "Enviar PDF assinado"}
                   </button>
                 </form>
               )}
@@ -450,7 +450,7 @@ export function AccountPage({
               )}
               {verificationError && (
                 <ErrorSummary
-                  title="Não foi possível verificar"
+                  title="Não foi possível enviar"
                   message={verificationError}
                 />
               )}
