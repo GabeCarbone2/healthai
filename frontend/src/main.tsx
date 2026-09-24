@@ -8,6 +8,7 @@ import "@fontsource/inter/latin-700.css";
 
 import App from "./App";
 import "./styles.css";
+import "./refresh.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
