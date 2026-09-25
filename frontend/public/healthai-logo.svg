@@ -1,17 +1,16 @@
 <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="3" y="3" width="58" height="58" rx="17" fill="#16bfa6"/>
+  <rect x="3" y="3" width="58" height="58" rx="18" fill="#087f73"/>
   <rect x="3" y="3" width="58" height="58" rx="17" fill="url(#paint0_linear)"/>
   <rect x="3" y="3" width="58" height="58" rx="17" stroke="#d9fff1" stroke-opacity=".36" stroke-width="2"/>
-  <path d="M18 43V21" stroke="#f6fbf8" stroke-width="5" stroke-linecap="round"/>
-  <path d="M46 43V21" stroke="#f6fbf8" stroke-width="5" stroke-linecap="round"/>
-  <path d="M18 32H24.5L28.75 22.5L35.25 43L39.75 32H46" stroke="#f6fbf8" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="46" cy="21" r="3.6" fill="#f4bf4f"/>
-  <circle cx="46" cy="21" r="7.4" stroke="#f4bf4f" stroke-opacity=".36"/>
+  <path d="M18 42V22M46 42V22" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+  <path d="M18 32h7l4-9 6 19 5-10h6" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="46" cy="22" r="3.6" fill="#d8ee8e"/>
+  <circle cx="46" cy="22" r="7.4" stroke="#d8ee8e" stroke-opacity=".4"/>
   <defs>
     <linearGradient id="paint0_linear" x1="8" y1="8" x2="58" y2="58" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#85f0ce"/>
-      <stop offset=".62" stop-color="#16bfa6"/>
-      <stop offset="1" stop-color="#f4bf4f"/>
+      <stop stop-color="#39ad9d"/>
+      <stop offset=".62" stop-color="#087f73"/>
+      <stop offset="1" stop-color="#075e59"/>
     </linearGradient>
   </defs>
 </svg>

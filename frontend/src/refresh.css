@@ -1,5 +1,7 @@
 /* Visual refresh: a calm, contemporary clinical interface. */
 :root {
+  --refresh-font-ui: "Inter", "Segoe UI", Arial, sans-serif;
+  --refresh-font-display: Georgia, "Times New Roman", serif;
   --refresh-ink: #142c2a;
   --refresh-body: #526866;
   --refresh-muted: #788b89;
@@ -14,6 +16,29 @@
   --refresh-shadow-sm: 0 8px 24px rgb(23 63 59 / 7%);
   color: var(--refresh-ink);
   background: var(--refresh-canvas);
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--refresh-font-ui);
+}
+
+h1,
+h2,
+.auth-concept-line {
+  font-family: var(--refresh-font-display);
+  font-weight: 600;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--refresh-font-ui);
+  font-weight: 700;
 }
 
 html {
@@ -194,7 +219,7 @@ summary:focus-visible {
 .app-shell .page-header h1 {
   color: var(--refresh-ink);
   font-size: clamp(28px, 3vw, 36px);
-  letter-spacing: -0.035em;
+  letter-spacing: -0.025em;
 }
 
 .app-shell .page-header p {
@@ -489,7 +514,7 @@ summary:focus-visible {
 }
 .auth-page .auth-intro h1,
 .auth-page .auth-intro h1 em { color: var(--refresh-ink); }
-.auth-page .auth-intro h1 { letter-spacing: -.05em; }
+.auth-page .auth-intro h1 { letter-spacing: -.035em; }
 .auth-page .auth-description,
 .auth-concept-line,
 .auth-trust-line { color: var(--refresh-body); }

@@ -1,72 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-labelledby="title description">
-  <title id="title">Monitoramento de glicose</title>
-  <desc id="description">Ilustração de um glicosímetro, uma tira reagente e uma gota de sangue.</desc>
+  <title id="title">Cuidado e acompanhamento da glicose</title>
+  <desc id="description">Ilustração de uma mão segurando um monitor de glicose, cercada por elementos de cuidado e saúde.</desc>
   <defs>
-    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#eef8e7"/>
-      <stop offset="1" stop-color="#dcefcf"/>
-    </linearGradient>
-    <linearGradient id="drop" x1="0.25" y1="0" x2="0.8" y2="1">
-      <stop offset="0" stop-color="#ef7772"/>
-      <stop offset="1" stop-color="#c84643"/>
-    </linearGradient>
-    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
-      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#1a1a2e" flood-opacity=".12"/>
-    </filter>
+    <filter id="shadow" x="-30%" y="-30%" width="170%" height="180%"><feDropShadow dx="0" dy="22" stdDeviation="18" flood-color="#163f3b" flood-opacity=".16"/></filter>
   </defs>
-
-  <g fill="none" stroke="#8ac64f" stroke-opacity=".22">
-    <circle cx="320" cy="232" r="202"/>
-    <circle cx="320" cy="232" r="166" stroke-dasharray="5 12"/>
-    <path d="M58 352c78-16 115 57 193 39s113-95 202-71 91 79 142 67"/>
-  </g>
-
-  <g fill="#8ac64f" opacity=".22">
-    <circle cx="90" cy="130" r="7"/>
-    <circle cx="558" cy="126" r="7"/>
-    <circle cx="550" cy="368" r="5"/>
-    <circle cx="104" cy="392" r="5"/>
-  </g>
-
-  <g transform="translate(474 82)" fill="none" stroke="#4a8a1a" stroke-width="4">
-    <path d="M34 0 64 17v35L34 69 4 52V17Z"/>
-    <circle cx="34" cy="34.5" r="8" fill="#8ac64f" stroke="none"/>
-    <path d="M34 0v17M64 17 49 26M64 52 49 43M34 69V52M4 52l15-9M4 17l15 9"/>
-  </g>
-
+  <path d="M93 254C76 145 164 55 278 43c122-13 242 50 270 158 26 101-41 203-142 229-111 29-286-34-313-176Z" fill="#e9f6f3"/>
+  <path d="M103 153c60-100 207-143 323-91 99 44 143 158 105 247" fill="none" stroke="#087f73" stroke-opacity=".12" stroke-width="2" stroke-dasharray="7 12"/>
+  <circle cx="505" cy="111" r="39" fill="#dff1a4" opacity=".72"/><circle cx="114" cy="347" r="25" fill="#b9e1d8" opacity=".65"/>
+  <g transform="translate(456 81)"><rect width="84" height="84" rx="25" fill="#fff" stroke="#d7e8e4" stroke-width="2"/><path d="M42 22v40M22 42h40" stroke="#087f73" stroke-width="8" stroke-linecap="round"/></g>
+  <g transform="translate(82 114)"><rect width="108" height="82" rx="25" fill="#fff" stroke="#d7e8e4" stroke-width="2"/><path d="M17 45h17l9-20 15 38 13-29 9 11h12" fill="none" stroke="#087f73" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <g transform="translate(411 326)"><rect width="128" height="64" rx="24" fill="#fff" stroke="#d7e8e4" stroke-width="2"/><circle cx="34" cy="32" r="14" fill="#e9f6f3"/><path d="M27 32h14M34 25v14" stroke="#087f73" stroke-width="3.5" stroke-linecap="round"/><path d="M58 25h47M58 36h35" stroke="#b0c9c4" stroke-width="5" stroke-linecap="round"/></g>
   <g filter="url(#shadow)">
-    <rect x="154" y="64" width="310" height="318" rx="42" fill="#fff" stroke="#cbd9c1" stroke-width="3"/>
-    <rect x="182" y="94" width="254" height="190" rx="24" fill="url(#screen)" stroke="#b8d5a3" stroke-width="2"/>
-
-    <g transform="translate(202 118)">
-      <path d="M38 3C25 24 11 40 11 58a27 27 0 0 0 54 0C65 40 51 24 38 3Z" fill="#4a8a1a"/>
-      <path d="M28 60c3 8 10 12 20 10" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="4" opacity=".8"/>
-      <text x="86" y="33" fill="#315f14" font-family="Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="2">GLICOSE</text>
-      <text x="86" y="59" fill="#60715a" font-family="Arial, sans-serif" font-size="13" letter-spacing="1">ACOMPANHAMENTO</text>
+    <path d="M93 470c37-79 87-119 145-132 60-13 117 4 163 53l65 79H93Z" fill="#087f73"/>
+    <path d="M175 375c12-47 31-90 57-128 14-21 34-41 57-34 22 7 22 30 13 53l-14 37 112-42c27-10 48 19 31 41l-65 84c-22 28-58 41-93 34l-98-20v-25Z" fill="#edb89b"/>
+    <path d="M282 304c-26 12-50 26-72 44" fill="none" stroke="#c48267" stroke-width="4" stroke-linecap="round" opacity=".6"/>
+    <g transform="rotate(-8 327 201)">
+      <rect x="226" y="74" width="202" height="267" rx="39" fill="#f9fcfb" stroke="#c4ddd7" stroke-width="3"/>
+      <rect x="249" y="102" width="156" height="136" rx="25" fill="#d7eee8"/>
+      <path d="M275 190h24l12-27 18 47 15-34 13 14h22" fill="none" stroke="#087f73" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="327" cy="276" r="24" fill="#fff" stroke="#bcd8d2" stroke-width="3"/><path d="M319 276h16M327 268v16" stroke="#087f73" stroke-width="4" stroke-linecap="round"/><path d="M298 320h58" stroke="#d3e4e0" stroke-width="6" stroke-linecap="round"/>
     </g>
-
-    <g transform="translate(202 216)" fill="none">
-      <path d="M0 18h31l17-30 25 46 24-23 22 7h102" stroke="#d2e5c4" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M0 18h31l17-30 25 46 24-23 22 7h47" stroke="#6eaf39" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="166" cy="18" r="8" fill="#4a8a1a" stroke="#fff" stroke-width="3"/>
-    </g>
-
-    <circle cx="309" cy="330" r="24" fill="#f2f8ed" stroke="#a9ca91" stroke-width="2"/>
-    <path d="M299 330h20M309 320v20" stroke="#4a8a1a" stroke-linecap="round" stroke-width="4"/>
-
-    <path d="M278 382h62v74c0 10-8 18-18 18h-26c-10 0-18-8-18-18Z" fill="#fff" stroke="#cbd9c1" stroke-width="3"/>
-    <path d="M291 410h36M291 426h36" stroke="#8ac64f" stroke-width="4"/>
-    <rect x="298" y="454" width="22" height="14" rx="4" fill="#e8b2a4"/>
   </g>
-
-  <g transform="translate(474 282)">
-    <path d="M54 0C36 30 10 57 10 86a44 44 0 0 0 88 0C98 57 72 30 54 0Z" fill="url(#drop)"/>
-    <path d="M35 91c5 13 16 20 31 18" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="6" opacity=".6"/>
-    <circle cx="54" cy="86" r="55" fill="none" stroke="#d96460" stroke-opacity=".18" stroke-width="15"/>
-  </g>
-
-  <g transform="translate(64 226)">
-    <rect width="82" height="82" rx="24" fill="#f0f8ea" stroke="#c7dfb5" stroke-width="2"/>
-    <path d="M41 20v42M20 41h42" stroke="#4a8a1a" stroke-linecap="round" stroke-width="8"/>
-  </g>
+  <g transform="translate(461 211)"><path d="M36 0C24 21 7 40 7 59a29 29 0 0 0 58 0C65 40 48 21 36 0Z" fill="#e06465"/><path d="M23 61c3 8 10 12 18 11" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".65"/></g>
 </svg>
