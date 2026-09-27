@@ -1,7 +1,7 @@
 /* Visual refresh: a calm, contemporary clinical interface. */
 :root {
-  --refresh-font-ui: "Inter", "Segoe UI", Arial, sans-serif;
-  --refresh-font-display: Georgia, "Times New Roman", serif;
+  --refresh-font-ui: "Open Sans", "Segoe UI", Arial, sans-serif;
+  --refresh-font-display: "Open Sans", "Segoe UI", Arial, sans-serif;
   --refresh-ink: #142c2a;
   --refresh-body: #526866;
   --refresh-muted: #788b89;
@@ -30,7 +30,7 @@ h1,
 h2,
 .auth-concept-line {
   font-family: var(--refresh-font-display);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 h3,
